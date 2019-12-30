@@ -18,7 +18,7 @@ class CodeGeneratorUtil:
         """
         Applies clang formatting to the given file. Requires clang installation http://releases.llvm.org/download.html
         """
-        subprocess.call(['clang-format', file_path])
+        subprocess.call(['clang-format', file_path, '-i'])
 
 
 class CodeGenerator:
@@ -94,7 +94,7 @@ class CodeGenerator:
         osl_path = path.join(self._gui.get_source_path(), "intern", "cycles", "kernel", "shaders", "node_" + node_name_underscored + ".osl")
         with open(osl_path, "w+") as osl_f:
             CodeGeneratorUtil.write_license(osl_f)
-            osl_f.writelines(['#include "stdosl.h"', ''])
+            osl_f.write('#include "stdosl.h"\n\n')
 
             properties1 = self._gui.get_node_dropdown1_properties()
             properties2 = self._gui.get_node_dropdown2_properties()
@@ -114,7 +114,7 @@ class CodeGenerator:
                 '){}')
 
             osl_f.write(function)
-            CodeGeneratorUtil.apply_clang_formatting(osl_path)
+        CodeGeneratorUtil.apply_clang_formatting(osl_path)
 
     def _add_svm_shader(self):
         """"""

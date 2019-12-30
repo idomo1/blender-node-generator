@@ -30,7 +30,7 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_osl_file_correct_formatting(self):
         """Test OSL function generation is correct for paramaters"""
         m = mock.MagicMock()
-        calls = [call().writelines(['#include "stdosl.h"', '']),
+        calls = [call().write('#include "stdosl.h"\n\n'),
                  call().write('shader node_node_name(string dropdown1 = "prop1", '
                                                     'string dropdown2 = "prop2", '
                                                     'int box1 = 0, '
@@ -49,7 +49,7 @@ class TestCodeGeneration(unittest.TestCase):
         self.mock_gui.get_node_type.return_value = "Texture"
 
         m = mock.MagicMock()
-        calls = [call().writelines(['#include "stdosl.h"', '']),
+        calls = [call().write('#include "stdosl.h"\n\n'),
                  call().write('shader node_node_name_texture(int use_mapping = 0, '
                               'matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), '
                               'string dropdown1 = "prop1", '
