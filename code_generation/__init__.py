@@ -1,17 +1,40 @@
+import shutil
+from os import path
+from os import pardir
+import subprocess
+
+
+class CodeGeneratorUtil:
+    """Utility operations for common code generation"""
+
+    @staticmethod
+    def write_license(fd):
+        """Appends Blender license info to the file specified by the given file descriptor"""
+        with open(path.join(path.dirname(__file__), pardir, "templates", "license.txt"), 'r') as license_f:
+            shutil.copyfileobj(license_f, fd)
+
+    @staticmethod
+    def apply_clang_formatting(file_path):
+        """
+        Applies clang formatting to the given file. Requires clang installation http://releases.llvm.org/download.html
+        """
+        subprocess.call(['clang-format', file_path])
+
+
 class CodeGenerator:
     """Generates code required for a new node"""
     def __init__(self, gui):
         self._gui = gui
 
-    def _add_node_type_ID(self):
+    def _add_node_type_id(self):
         """BKE_node.h"""
-        with open("/".join((self._gui.get_source_path(), "source", "blender", "blenderkernel", "BKE_node.h")), "r") as f:
+        with open(path.join(self._gui.get_source_path(), "source", "blender", "blenderkernel", "BKE_node.h"), "r") as f:
             last = 707
             name_underscored = "_".join(self._gui.get_node_name().split(" "))
             line = "#define SH_NODE_" + ("TEX_" if self._gui.get_node_type() == "Texture" else "") + name_underscored.upper() + " " + str(last+1)
             print(line)
 
-    def _add_DNA_node_type(self):
+    def _add_dna_node_type(self):
         """
         DNA_node_types.h
         For texture nodes
@@ -68,10 +91,32 @@ class CodeGenerator:
     def _add_osl_shader(self):
         """"""
         node_name_underscored = self._gui.get_node_name().replace(" ", "_").lower()
-        with open("/".join((self._gui.get_source_path(), "intern", "cycles", "kernel", "shaders", "node_" + node_name_underscored)), "w+") as f:
-            f.write()
+        osl_path = path.join(self._gui.get_source_path(), "intern", "cycles", "kernel", "shaders", "node_" + node_name_underscored + ".osl")
+        with open(osl_path, "w+") as osl_f:
+            CodeGeneratorUtil.write_license(osl_f)
+            osl_f.writelines(['#include "stdosl.h"', ''])
 
-    def _add_kvm_shader(self):
+            properties1 = self._gui.get_node_dropdown1_properties()
+            properties2 = self._gui.get_node_dropdown2_properties()
+            dropdown1_name = self._gui.get_node_dropdown_property1_name()
+            dropdown2_name = self._gui.get_node_dropdown_property2_name()
+            check_boxes = self._gui.get_node_check_boxes()
+            sockets = self._gui.get_node_sockets()
+
+            function = "shader node_{0}{1}({2}{3}{4}{5}{6}{7}{8}".format(node_name_underscored,
+                '_texture' if self._gui.get_node_type() == 'Texture' else '',
+                'int use_mapping = 0, matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), ' if self._gui.get_node_type() == 'Texture' else '',
+                'string {name} = "{default}", '.format(name=dropdown1_name, default=properties1[0]) if properties1 is not None else "",
+                'string {name} = "{default}", '.format(name=dropdown2_name, default=properties2[0]) if properties2 is not None else "",
+                ''.join(['int {name} = {default}, '.format(name=box['name'], default=str(int(box['default']))) for box in check_boxes]),
+                ''.join(['{type} {name} = {default}, '.format(type=socket['data_type'], name=socket['name'], default=socket['default']) for socket in sockets if socket['type'] == 'Input']),
+                ', '.join(['output {type} {name} = {default}'.format(type=socket['data_type'], name=socket['name'], default=socket['default']) for socket in sockets if socket['type'] == 'Output']),
+                '){}')
+
+            osl_f.write(function)
+            CodeGeneratorUtil.apply_clang_formatting(osl_path)
+
+    def _add_svm_shader(self):
         """"""
         pass
 
@@ -79,5 +124,6 @@ class CodeGenerator:
         """"""
         pass
 
+
     def generate_node(self):
-        self._add_node_definition()
+        self._add_osl_shader()
