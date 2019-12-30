@@ -93,6 +93,28 @@ class GUI:
     def node_has_check_box(self):
         return len(self._check_box_GUI.get_check_box_properties()) > 0
 
+    def get_node_sockets(self):
+        return self._socket_GUI.get_io()
+
+    def get_node_check_boxes(self):
+        return self._check_box_GUI.get_check_box_properties()
+
+    def get_node_dropdown_property1_name(self):
+        return self._dropdown_GUI1.get_dropdown_name()
+
+    def get_node_dropdown_property2_name(self):
+        return self._dropdown_GUI2.get_dropdown_name()
+
+    def get_node_dropdown1_properties(self):
+        """Returns None if the dropdown is disabled or has no options"""
+        properties = self._dropdown_GUI1.get_dropdown_properties()
+        return properties if self._dropdown_GUI1.is_enabled() and len(properties) > 0 else None
+
+    def get_node_dropdown2_properties(self):
+        """Returns None if the dropdown is disabled or has no options"""
+        properties = self._dropdown_GUI2.get_dropdown_properties()
+        return properties if self._dropdown_GUI2.is_enabled() and len(properties) > 0 else None
+
     def generate_node(self):
         if self._is_input_valid():
             print(self._general_GUI.get_node_name())
@@ -186,12 +208,17 @@ class DropdownGUI:
 
     def _toggle_enabled(self):
         self._add_property_button['state'] = DISABLED if str(self._add_property_button['state']) == 'normal' else NORMAL
+        self._name['state'] = DISABLED if str(self._name['state']) == 'normal' else NORMAL
         for component in self._properties:
             component.toggle_enabled()
 
     def _dropdown_properties_display(self):
         Label(self.window, text='Enabled').grid(row=self._row_i)
         Checkbutton(self.window, variable=self._enabled, command=self._toggle_enabled).grid(row=self._row_i, column=1)
+
+        Label(self.window, text='Name').grid(row=self._row_i, column=2)
+        self._name = Entry(self.window)
+        self._name.grid(row=self._row_i, column=3)
         self._row_i += 1
 
         self._add_property_button = Button(self.window, text='Add Property', command=self._add_dropdown_property)
@@ -203,7 +230,15 @@ class DropdownGUI:
         self._toggle_enabled()  # Initially disabled
 
     def get_dropdown_properties(self):
-        return list(filter(lambda p: p is not None, map(lambda p: p.get_input(), self._properties)))
+        if self.is_enabled():
+            return list(filter(lambda p: p is not None, map(lambda p: p.get_input(), self._properties)))
+
+    def get_dropdown_name(self):
+        if self.is_enabled():
+            return self._name.get()
+
+    def is_enabled(self):
+        return self._enabled
 
     def is_input_valid(self):
         return True
@@ -449,6 +484,6 @@ class RemovableSocketDefinitionInput(Frame):
 
     def get_input(self):
         """Returns None if the input has been destroyed"""
-        return {'type' : self.children['!combobox'].get(), 'name' : self.children['!entry'].get(), 'data_type' : self.children['!combobox2'].get(),
-                'min' : self.children['!entry2'].get(), 'max' : self.children['!entry3'].get(),
-                'default' : self.children['!entry4'].get()} if self.winfo_exists() else None
+        return {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(), 'data_type': self.children['!combobox2'].get(),
+                'min': self.children['!entry2'].get(), 'max': self.children['!entry3'].get(),
+                'default': self.children['!entry4'].get()} if self.winfo_exists() else None
