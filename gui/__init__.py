@@ -115,6 +115,9 @@ class GUI:
         properties = self._dropdown_GUI2.get_dropdown_properties()
         return properties if self._dropdown_GUI2.is_enabled() and len(properties) > 0 else None
 
+    def get_poll(self):
+        return self._general_GUI.get_poll()
+
     def generate_node(self):
         if self._is_input_valid():
             print(self._general_GUI.get_node_name())
@@ -139,6 +142,7 @@ class GeneralGUI:
         self._window = tab
         self._node_types = ['Input', 'Output', 'Shader', 'Texture', 'Color', 'Vector', 'Converter', 'Script', 'Group',
                             'Layout']
+        self._poll_enabled = BooleanVar()
 
     def _name_input_display(self):
         """Input for the name of the new node"""
@@ -163,10 +167,22 @@ class GeneralGUI:
         self._path_input.grid(row=self._row_i, column=1)
         self._row_i += 1
 
+    def _toggle_enabled(self):
+        self._poll_input['state'] = DISABLED if str(self._poll_input['state']) == 'normal' else NORMAL
+
+    def _poll_input_display(self):
+        Label(self._window, text='Poll Enabled').grid(row=self._row_i)
+        Checkbutton(self._window, var=self._poll_enabled, command=self._toggle_enabled).grid(row=self._row_i, column=1)
+        self._poll_input = Entry(self._window)
+        self._poll_input.grid(row=self._row_i, column=2)
+        self._row_i += 1
+
     def display(self):
         self._name_input_display()
         self._type_input_display()
         self._blender_path_input_display()
+        self._poll_input_display()
+        self._toggle_enabled()
 
     def get_node_name(self):
         return self._name_input.get()
@@ -176,6 +192,9 @@ class GeneralGUI:
 
     def get_source_path(self):
         return self._path_input.get()
+
+    def get_poll(self):
+        return self._poll_input.get() if self._poll_enabled.get() else None
 
     def is_input_valid(self):
         node_name = self.get_node_name().lower()

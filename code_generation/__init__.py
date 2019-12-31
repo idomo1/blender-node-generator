@@ -2,6 +2,7 @@ import shutil
 from os import path
 from os import pardir
 import subprocess
+import re
 
 
 class CodeGeneratorUtil:
@@ -86,7 +87,31 @@ class CodeGenerator:
 
     def _add_to_node_menu(self):
         """nodeitems_builtins.py"""
-        pass
+        nodeitems_path = path.join(self._gui.get_source_path(), "release", "scripts", "startup", "nodeitems_builtins.py")
+        with open(nodeitems_path, 'r+') as f:
+            lines = f.readlines()
+            cat_line_i = 0
+            for i, line in enumerate(lines):
+                if re.search('SH_NEW_' + ('OP_' if self._gui.get_node_type() == 'Color' else '') + self._gui.get_node_type().upper(), line):
+                    cat_line_i = i
+                    break
+            else:
+                print("Node Type Not Found")
+
+            for i in range(cat_line_i, len(lines)):
+                if re.search(']\)', lines[i]):
+                    lines.insert(i, '        NodeItem("ShaderNode{0}{1}"{2})\n'.format("Tex" if self._gui.get_node_type() == "Texture" else "",
+                                                                              "".join(map(lambda s: s.capitalize(), self._gui.get_node_name().split(" "))),
+                                                                              (', poll={0}'.format(self._gui.get_poll()) if self._gui.get_poll() is not None else '')))
+                    lines[i-1] = lines[i-1][:len(lines[i-1])-1] + ',\n'
+                    break
+            else:
+                print("End not found")
+
+            f.seek(0)
+            f.writelines(lines)
+            f.truncate()
+        # CodeGeneratorUtil.apply_clang_formatting(nodeitems_path)
 
     def _add_osl_shader(self):
         """"""
@@ -127,3 +152,4 @@ class CodeGenerator:
 
     def generate_node(self):
         self._add_osl_shader()
+        self._add_to_node_menu()
