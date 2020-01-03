@@ -29,11 +29,22 @@ class CodeGenerator:
 
     def _add_node_type_id(self):
         """BKE_node.h"""
-        with open(path.join(self._gui.get_source_path(), "source", "blender", "blenderkernel", "BKE_node.h"), "r") as f:
-            last = 707
+        with open(path.join(self._gui.get_source_path(), "source", "blender", "blenderkernel", "BKE_node.h"), "r+") as f:
+            file_text = f.read()
+            last_i = -1
+            last_id = re.search('[7-9][0-9][0-9]\n\n', file_text)
+            if last_id is not None:
+                last_i = last_id.end()
+            else:
+                print("Node ID not found")
+            last = int(file_text[last_i-5:last_i-2])
             name_underscored = "_".join(self._gui.get_node_name().split(" "))
-            line = "#define SH_NODE_" + ("TEX_" if self._gui.get_node_type() == "Texture" else "") + name_underscored.upper() + " " + str(last+1)
-            print(line)
+            line = "#define SH_NODE_{0}{1} {2}\n".format("TEX_" if self._gui.get_node_type() == "Texture" else "", name_underscored.upper(), str(last+1))
+            file_text = file_text[:last_i-1] + line + file_text[last_i-1:]
+
+            f.seek(0)
+            f.write(file_text)
+            f.truncate()
 
     def _add_dna_node_type(self):
         """
@@ -111,7 +122,6 @@ class CodeGenerator:
             f.seek(0)
             f.writelines(lines)
             f.truncate()
-        # CodeGeneratorUtil.apply_clang_formatting(nodeitems_path)
 
     def _add_osl_shader(self):
         """"""
@@ -149,7 +159,7 @@ class CodeGenerator:
         """"""
         pass
 
-
     def generate_node(self):
         self._add_osl_shader()
         self._add_to_node_menu()
+        self._add_node_type_id()

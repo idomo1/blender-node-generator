@@ -66,7 +66,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_osl_shader()
                 self.assertTrue(all(c in mf.mock_calls for c in calls))
 
-    def test_write_to_node_menu_correct_placement(self):
+    def test_write_to_node_menu_correct_formatting(self):
         with patch('builtins.open', mock_open(read_data=
                         'ShaderNodeCategory("SH_NEW_TEXTURE", "Texture", items=[\n'
                         ']),\n'
@@ -101,7 +101,7 @@ class TestCodeGeneration(unittest.TestCase):
 
             self.assertTrue('        NodeItem("ShaderNodeNodeName")\n' in mf.mock_calls[4][1][0])
 
-    def test_write_to_node_menu_poll_correct_placement(self):
+    def test_write_to_node_menu_poll_correct_formatting(self):
         self.mock_gui.get_poll.return_value = 'cycles_shader_nodes_poll'
         with patch('builtins.open', mock_open(read_data=
                         'ShaderNodeCategory("SH_NEW_TEXTURE", "Texture", items=[\n'
@@ -137,6 +137,27 @@ class TestCodeGeneration(unittest.TestCase):
 
             self.assertTrue('        NodeItem("ShaderNodeNodeName", poll=cycles_shader_nodes_poll)\n' in mf.mock_calls[4][1][0])
 
+    def test_write_node_id_correct_formatting(self):
+        with patch('builtins.open', mock_open(read_data=    '#define SH_NODE_TEX_WHITE_NOISE 704\n'
+                                                            '#define SH_NODE_VOLUME_INFO 705\n'
+                                                            '#define SH_NODE_VERTEX_COLOR 706\n'
+                                                            '\n'
+                                                            '/* custom defines options for Material node */\n'
+                                                            '#define SH_NODE_MAT_DIFF 1\n'
+                                                            '#define SH_NODE_MAT_SPEC 2\n'
+                                                            '#define SH_NODE_MAT_NEG 4\n'
+                                                            )) as mf:
+            code_gen = CodeGenerator(self.mock_gui)
+            code_gen._add_node_type_id()
+            self.assertTrue(mf.mock_calls[-3][1][0] ==      '#define SH_NODE_TEX_WHITE_NOISE 704\n'
+                                                            '#define SH_NODE_VOLUME_INFO 705\n'
+                                                            '#define SH_NODE_VERTEX_COLOR 706\n'
+                                                            '#define SH_NODE_NODE_NAME 707\n'
+                                                            '\n'
+                                                            '/* custom defines options for Material node */\n'
+                                                            '#define SH_NODE_MAT_DIFF 1\n'
+                                                            '#define SH_NODE_MAT_SPEC 2\n'
+                                                            '#define SH_NODE_MAT_NEG 4\n')
 
 if __name__ == "__main__":
     unittest.main()
