@@ -99,6 +99,9 @@ class GUI:
     def get_node_check_boxes(self):
         return self._check_box_GUI.get_check_box_properties()
 
+    def get_node_check_box_count(self):
+        return self._check_box_GUI.get_check_box_count()
+
     def get_node_dropdown_property1_name(self):
         return self._dropdown_GUI1.get_dropdown_name()
 
@@ -249,15 +252,18 @@ class DropdownGUI:
         self._toggle_enabled()  # Initially disabled
 
     def get_dropdown_properties(self):
+        """Returns emplty list of not enabled"""
         if self.is_enabled():
             return list(filter(lambda p: p is not None, map(lambda p: p.get_input(), self._properties)))
+        else:
+            return []
 
     def get_dropdown_name(self):
         if self.is_enabled():
             return self._name.get()
 
     def is_enabled(self):
-        return self._enabled
+        return self._enabled.get()
 
     def is_input_valid(self):
         return True

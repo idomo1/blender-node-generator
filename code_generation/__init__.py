@@ -51,7 +51,37 @@ class CodeGenerator:
         DNA_node_types.h
         For texture nodes
         """
-        pass
+        if self._gui.get_node_type() == "Texture":
+            dna_path = path.join(self._gui.get_source_path(), "source", "blender", "makesdna", "DNA_node_types.h")
+            print(self._gui.get_node_dropdown_property2_name() is None)
+            with open(dna_path, 'r+') as f:
+                struct = 'typedef struct NodeTex{name} {{NodeTexBase base; {props}{pad}}} NodeTex{name};\n\n'.format(
+                    name="".join(map(lambda s: s.capitalize(), self._gui.get_node_name().split(" "))),
+                    props='{prop1} {prop2} {bools}'
+                        .format(prop1='int {0};'.format(self._gui.get_node_dropdown_property1_name()) if self._gui.get_node_dropdown_property1_name() is not None else '',
+                                prop2='int {0};'.format(self._gui.get_node_dropdown_property2_name()) if self._gui.get_node_dropdown_property2_name() is not None else '',
+                                bools=" ".join(['int ' + check['name'] + ";" for check in self._gui.get_node_check_boxes()])),
+                    pad=' char _pad[4];' if (self._gui.get_node_check_box_count() +
+                                            (self._gui.get_node_dropdown_property1_name() is not None) +
+                                            (self._gui.get_node_dropdown_property2_name() is not None)) % 2 == 1 else '')
+                text = f.read()
+                match = re.search('} NodeTex'[::-1], text[::-1])    # Reversed to find last occurrence
+                if match:
+                    i = len(text) - match.end()
+                    for _ in range(i, len(text)):
+                        if text[i] == '\n':
+                            break
+                        i += 1
+                    else:
+                        print("No newline found")
+                    text = text[:i+2] + struct + text[i+2:]
+
+                    f.seek(0)
+                    f.write(text)
+                    f.truncate()
+                else:
+                    print("No matches found")
+            CodeGeneratorUtil.apply_clang_formatting(dna_path)
 
     def _add_rna_properties(self):
         """rna_nodetree.c"""
@@ -163,3 +193,4 @@ class CodeGenerator:
         self._add_osl_shader()
         self._add_to_node_menu()
         self._add_node_type_id()
+        self._add_dna_node_type()

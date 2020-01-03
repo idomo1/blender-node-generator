@@ -18,6 +18,7 @@ class TestCodeGeneration(unittest.TestCase):
         self.mock_gui.get_node_type.return_value = "Shader"
         self.mock_gui.get_source_path.return_value = "C:/some/path"
         self.mock_gui.get_poll.return_value = None
+        self.mock_gui.get_node_check_box_count.return_value = 2
         self.mock_gui.get_node_dropdown1_properties.return_value = ["prop1", "prop2"]
         self.mock_gui.get_node_dropdown2_properties.return_value = ["prop2", "prop3"]
         self.mock_gui.get_node_dropdown_property1_name.return_value = "dropdown1"
@@ -158,6 +159,94 @@ class TestCodeGeneration(unittest.TestCase):
                                                             '#define SH_NODE_MAT_DIFF 1\n'
                                                             '#define SH_NODE_MAT_SPEC 2\n'
                                                             '#define SH_NODE_MAT_NEG 4\n')
+
+    def test_write_dna_struct_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Texture"
+        with patch('builtins.open', mock_open(read_data='typedef struct NodeTexWave {\n'
+                                                        '  NodeTexBase base;\n'
+                                                        '  int wave_type;\n'
+                                                        '  int wave_profile;\n'
+                                                        '} NodeTexWave;\n'
+                                                        '\n'
+                                                        'typedef struct NodeTexMagic {\n'
+                                                        '  NodeTexBase base;\n'
+                                                        '  int depth;\n'
+                                                        '  char _pad[4];\n'
+                                                        '} NodeTexMagic;\n'
+                                                        '\n'
+                                                        'typedef struct NodeShaderAttribute {\n'
+                                                        '  char name[64];\n'
+                                                        '} NodeShaderAttribute;\n')) as mf:
+            with patch('code_generation.CodeGeneratorUtil', mock.Mock()):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_dna_node_type()
+
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'typedef struct NodeTexWave {\n'
+                                                            '  NodeTexBase base;\n'
+                                                            '  int wave_type;\n'
+                                                            '  int wave_profile;\n'
+                                                            '} NodeTexWave;\n'
+                                                            '\n'
+                                                            'typedef struct NodeTexMagic {\n'
+                                                            '  NodeTexBase base;\n'
+                                                            '  int depth;\n'
+                                                            '  char _pad[4];\n'
+                                                            '} NodeTexMagic;\n'
+                                                            '\n'
+                                                            'typedef struct NodeTexNodeName {NodeTexBase base; int dropdown1; int dropdown2; int box1; int box2;} NodeTexNodeName;\n'
+                                                            '\n'
+                                                            'typedef struct NodeShaderAttribute {\n'
+                                                            '  char name[64];\n'
+                                                            '} NodeShaderAttribute;\n')
+
+    def test_write_dna_struct_requires_padding_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.get_node_check_boxes.return_value = [{"name": "box1", "default": False}]
+        self.mock_gui.get_node_check_box_count.return_value = 1
+        with patch('builtins.open', mock_open(read_data='typedef struct NodeTexWave {\n'
+                                                        '  NodeTexBase base;\n'
+                                                        '  int wave_type;\n'
+                                                        '  int wave_profile;\n'
+                                                        '} NodeTexWave;\n'
+                                                        '\n'
+                                                        'typedef struct NodeTexMagic {\n'
+                                                        '  NodeTexBase base;\n'
+                                                        '  int depth;\n'
+                                                        '  char _pad[4];\n'
+                                                        '} NodeTexMagic;\n'
+                                                        '\n'
+                                                        'typedef struct NodeShaderAttribute {\n'
+                                                        '  char name[64];\n'
+                                                        '} NodeShaderAttribute;\n')) as mf:
+            with patch('code_generation.CodeGeneratorUtil', mock.Mock()):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_dna_node_type()
+
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'typedef struct NodeTexWave {\n'
+                                                            '  NodeTexBase base;\n'
+                                                            '  int wave_type;\n'
+                                                            '  int wave_profile;\n'
+                                                            '} NodeTexWave;\n'
+                                                            '\n'
+                                                            'typedef struct NodeTexMagic {\n'
+                                                            '  NodeTexBase base;\n'
+                                                            '  int depth;\n'
+                                                            '  char _pad[4];\n'
+                                                            '} NodeTexMagic;\n'
+                                                            '\n'
+                                                            'typedef struct NodeTexNodeName {NodeTexBase base; int dropdown1; int dropdown2; int box1; char _pad[4];} NodeTexNodeName;\n'
+                                                            '\n'
+                                                            'typedef struct NodeShaderAttribute {\n'
+                                                            '  char name[64];\n'
+                                                            '} NodeShaderAttribute;\n')
+
+    def test_write_dna_struct_not_texture_no_call(self):
+        with patch('builtins.open', mock_open()) as mf:
+            code_gen = CodeGenerator(self.mock_gui)
+            code_gen._add_dna_node_type()
+
+            self.assertTrue(len(mf.mock_calls) == 0)
+
 
 if __name__ == "__main__":
     unittest.main()
