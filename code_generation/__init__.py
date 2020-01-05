@@ -104,8 +104,43 @@ class CodeGenerator:
 
     def _add_node_drawing(self):
         """drawnode.c"""
-        if self._gui.node_has_properties() or self._gui.node_has_check_box():
-            pass
+        drawnode_path = path.join(self._gui.get_source_path(), "source", "blender", "editors", "space_node", "drawnode.c")
+        with open(drawnode_path, "r+") as f:
+            if self._gui.node_has_properties() or self._gui.node_has_check_box():
+                func = 'static void node_shader_buts_{name}(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)' \
+                       '{{{prop1}{prop2}{check_boxes}}}\n\n'.format(name=self._gui.get_node_name().replace(" ", "_").lower(),
+                                            check_boxes="".join(['uiItemR(layout, ptr, "{prop}", 0, NULL, ICON_NONE);'.
+                                                    format(prop=prop['name']) for prop in self._gui.get_node_check_boxes()]),
+                                            prop1='uiItemR(layout, ptr, "{prop}", 0, "", ICON_NONE);'.
+                                                    format(prop=self._gui.get_node_dropdown_property1_name())
+                                                if self._gui.get_node_dropdown_property1_name() is not None else '',
+                                            prop2='uiItemR(layout, ptr, "{prop}", 0, "", ICON_NONE);'.
+                                                    format(prop=self._gui.get_node_dropdown_property2_name())
+                                                if self._gui.get_node_dropdown_property2_name() is not None else '')
+                lines = f.readlines()
+                line_i = lines.index("static void node_shader_set_butfunc(bNodeType *ntype)\n") - 1
+
+                lines.insert(line_i, func)
+
+                case = ["case SH_NODE{name}:\n".format(name="_".join(("_TEX" if self._gui.get_node_type() == "Texture" else "", self._gui.get_node_name().replace(" ", "_").upper()))),
+                        "ntype->draw_buttons = node_shader_buts{name};\n".format(name="_".join(["_tex" if self._gui.get_node_type() == "Texture" else "", self._gui.get_node_name().replace(" ", "_").lower()])),
+                        "break;\n"]
+
+                for i in range(line_i, len(lines)):
+                    if "break" in lines[i] and '}' in lines[i+1]:
+                        line_i = i+1
+                        break
+                else:
+                    print("Not Found")
+                    return
+
+                for line in reversed(case):
+                    lines.insert(line_i, line)
+
+                f.seek(0)
+                f.writelines(lines)
+                f.truncate()
+        CodeGeneratorUtil.apply_clang_formatting(drawnode_path)
 
     def _add_shader_node_file(self):
         """node_shader_*.c"""
@@ -195,3 +230,4 @@ class CodeGenerator:
         self._add_to_node_menu()
         self._add_node_type_id()
         self._add_dna_node_type()
+        self._add_node_drawing()

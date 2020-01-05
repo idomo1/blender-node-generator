@@ -23,7 +23,9 @@ class TestCodeGeneration(unittest.TestCase):
         self.mock_gui.get_node_dropdown2_properties.return_value = ["prop2", "prop3"]
         self.mock_gui.get_node_dropdown_property1_name.return_value = "dropdown1"
         self.mock_gui.get_node_dropdown_property2_name.return_value = "dropdown2"
+        self.mock_gui.node_has_properties.return_value = True
         self.mock_gui.get_node_check_boxes.return_value = [{"name": "box1", "default": False}, {"name": "box2", "default": True}]
+        self.mock_gui.node_has_check_box.return_value = True
         self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data_type': "float",
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.0"},
                                                        {'type': "Output", 'name': "socket2", 'data_type': "float",
@@ -246,6 +248,69 @@ class TestCodeGeneration(unittest.TestCase):
             code_gen._add_dna_node_type()
 
             self.assertTrue(len(mf.mock_calls) == 0)
+
+    def test_write_drawnode_correct_formatting(self):
+        with patch('builtins.open', mock_open(read_data=
+                 'static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)\n'
+                 '{\n'
+                 '  uiItemR(layout, ptr, "noise_dimensions", 0, "", ICON_NONE);\n'
+                 '}\n'
+                 '\n'
+                 '/ * only once called * /\n'
+                 'static void node_shader_set_butfunc(bNodeType *ntype)\n'
+                 '{\n'
+                 '   switch (ntype->type) {\n'
+                 '       case SH_NODE_TEX_WHITE_NOISE:\n'
+                 '           ntype->draw_buttons = node_shader_buts_white_noise;\n'
+                 '           break;\n'
+                 '       case SH_NODE_TEX_TRUCHET:\n'
+                 '           ntype->draw_buttons = node_shader_buts_truchet;\n'
+                 '           break;\n'
+                 '   }\n'
+                 '}\n')) as mf:
+            with patch('code_generation.CodeGeneratorUtil', mock.Mock()):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_node_drawing()
+
+            self.assertTrue('static void node_shader_buts_node_name(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)'
+                            '{uiItemR(layout, ptr, "dropdown1", 0, "", ICON_NONE);'
+                            'uiItemR(layout, ptr, "dropdown2", 0, "", ICON_NONE);'
+                            'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
+                            'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);}\n\n' in mf.mock_calls[-3][1][0]
+                            and 'case SH_NODE_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
+                            and 'ntype->draw_buttons = node_shader_buts_node_name;\n' in mf.mock_calls[-3][1][0])
+
+    def test_write_drawnode_texture_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Texture"
+        with patch('builtins.open', mock_open(read_data=
+                 'static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)\n'
+                 '{\n'
+                 '  uiItemR(layout, ptr, "noise_dimensions", 0, "", ICON_NONE);\n'
+                 '}\n'
+                 '\n'
+                 '/ * only once called * /\n'
+                 'static void node_shader_set_butfunc(bNodeType *ntype)\n'
+                 '{\n'
+                 '   switch (ntype->type) {\n'
+                 '       case SH_NODE_TEX_WHITE_NOISE:\n'
+                 '           ntype->draw_buttons = node_shader_buts_white_noise;\n'
+                 '           break;\n'
+                 '       case SH_NODE_TEX_TRUCHET:\n'
+                 '           ntype->draw_buttons = node_shader_buts_truchet;\n'
+                 '           break;\n'
+                 '   }\n'
+                 '}\n')) as mf:
+            with patch('code_generation.CodeGeneratorUtil', mock.Mock()):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_node_drawing()
+
+            self.assertTrue('static void node_shader_buts_node_name(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)'
+                            '{uiItemR(layout, ptr, "dropdown1", 0, "", ICON_NONE);'
+                            'uiItemR(layout, ptr, "dropdown2", 0, "", ICON_NONE);'
+                            'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
+                            'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);}\n\n' in mf.mock_calls[-3][1][0]
+                            and 'case SH_NODE_TEX_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
+                            and 'ntype->draw_buttons = node_shader_buts_tex_node_name;\n' in mf.mock_calls[-3][1][0])
 
 
 if __name__ == "__main__":
