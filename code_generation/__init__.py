@@ -53,7 +53,6 @@ class CodeGenerator:
         """
         if self._gui.get_node_type() == "Texture":
             dna_path = path.join(self._gui.get_source_path(), "source", "blender", "makesdna", "DNA_node_types.h")
-            print(self._gui.get_node_dropdown_property2_name() is None)
             with open(dna_path, 'r+') as f:
                 struct = 'typedef struct NodeTex{name} {{NodeTexBase base; {props}{pad}}} NodeTex{name};\n\n'.format(
                     name="".join(map(lambda s: s.capitalize(), self._gui.get_node_name().split(" "))),
@@ -82,6 +81,8 @@ class CodeGenerator:
                 else:
                     print("No matches found")
             CodeGeneratorUtil.apply_clang_formatting(dna_path)
+
+            # TODO - Add enums
 
     def _add_rna_properties(self):
         """rna_nodetree.c"""
