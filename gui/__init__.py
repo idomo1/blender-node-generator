@@ -88,7 +88,7 @@ class GUI:
         return self._general_GUI.get_node_type()
 
     def node_has_properties(self):
-        return len(self._dropdown_GUI1.get_dropdown_properties()) > 0 and len(self._dropdown_GUI2.get_dropdown_properties()) > 0
+        return len(self._dropdown_GUI1.get_dropdown_properties()) > 0 or len(self._dropdown_GUI2.get_dropdown_properties()) > 0
 
     def node_has_check_box(self):
         return len(self._check_box_GUI.get_check_box_properties()) > 0
