@@ -169,7 +169,7 @@ class CodeGenerator:
             lines = f.readlines()
             cat_line_i = 0
             for i, line in enumerate(lines):
-                if re.search('SH_NEW_' + ('OP_' if self._gui.get_node_type() == 'Color' else '') + self._gui.get_node_type().upper(), line):
+                if re.search('SH_NEW_' + ('OP_' if self._gui.get_node_group() == 'Color' else '') + self._gui.get_node_group().upper(), line):
                     cat_line_i = i
                     break
             else:

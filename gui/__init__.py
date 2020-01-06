@@ -87,6 +87,9 @@ class GUI:
     def get_node_type(self):
         return self._general_GUI.get_node_type()
 
+    def get_node_group(self):
+        return self._general_GUI.get_node_group()
+
     def node_has_properties(self):
         return len(self._dropdown_GUI1.get_dropdown_properties()) > 0 or len(self._dropdown_GUI2.get_dropdown_properties()) > 0
 
@@ -123,16 +126,6 @@ class GUI:
 
     def generate_node(self):
         if self._is_input_valid():
-            print(self._general_GUI.get_node_name())
-            print(self._general_GUI.get_node_type())
-            print(self._general_GUI.get_source_path())
-
-            print(self._check_box_GUI.get_check_box_properties())
-
-            print(self._dropdown_GUI1.get_dropdown_properties())
-            print(self._socket_GUI.get_io())
-            print(self._socket_avail_GUI.get_maps())
-
             code_generator = self.CodeGenerator(self)
             code_generator.generate_node()
 
@@ -143,8 +136,9 @@ class GeneralGUI:
     def __init__(self, tab):
         self._row_i = 0 # Counts the rows which have been filled, methods are responsible for incrementing this value
         self._window = tab
-        self._node_types = ['Input', 'Output', 'Shader', 'Texture', 'Color', 'Vector', 'Converter', 'Script', 'Group',
+        self._node_groups = ['Input', 'Output', 'Shader', 'Texture', 'Color', 'Vector', 'Converter', 'Script', 'Group',
                             'Layout']
+        self._node_types = ['Shader', 'Texture', 'Curves', 'Bsdf', 'BsdfBase', 'ImageSlotTexture', 'Volume']
         self._poll_enabled = BooleanVar()
 
     def _name_input_display(self):
@@ -154,12 +148,21 @@ class GeneralGUI:
         self._name_input.grid(row=self._row_i, column=1)
         self._row_i += 1
 
+    def _group_input_display(self):
+        """Input for the menu which the node will appear under"""
+        Label(self._window, text='Node Group', pad=3).grid(row=self._row_i)
+        self._group_input = Combobox(self._window)
+        self._group_input['values'] = self._node_groups
+        self._group_input.current(2)
+        self._group_input.grid(row=self._row_i, column=1)
+        self._row_i += 1
+
     def _type_input_display(self):
-        """Input for the type of the new node"""
+        """Input for the nodes parent class"""
         Label(self._window, text='Node Type', pad=3).grid(row=self._row_i)
         self._type_input = Combobox(self._window)
         self._type_input['values'] = self._node_types
-        self._type_input.current(2)
+        self._type_input.current(0)
         self._type_input.grid(row=self._row_i, column=1)
         self._row_i += 1
 
@@ -182,6 +185,7 @@ class GeneralGUI:
 
     def display(self):
         self._name_input_display()
+        self._group_input_display()
         self._type_input_display()
         self._blender_path_input_display()
         self._poll_input_display()
@@ -192,6 +196,9 @@ class GeneralGUI:
 
     def get_node_type(self):
         return self._type_input.get()
+
+    def get_node_group(self):
+        return self._group_input.get()
 
     def get_source_path(self):
         return self._path_input.get()
