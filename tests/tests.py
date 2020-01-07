@@ -16,8 +16,10 @@ class TestCodeGeneration(unittest.TestCase):
         """
         self.mock_gui.get_node_name.return_value = "Node Name"
         self.mock_gui.get_node_type.return_value = "Shader"
+        self.mock_gui.get_node_group.return_value = "Shader"
         self.mock_gui.get_source_path.return_value = "C:/some/path"
         self.mock_gui.get_poll.return_value = None
+        self.mock_gui.get_node_group_level.return_value = 3
         self.mock_gui.get_node_check_box_count.return_value = 2
         self.mock_gui.get_node_dropdown1_properties.return_value = ["prop1", "prop2"]
         self.mock_gui.get_node_dropdown2_properties.return_value = ["prop2", "prop3"]
@@ -311,6 +313,88 @@ class TestCodeGeneration(unittest.TestCase):
                             'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);}\n\n' in mf.mock_calls[-3][1][0]
                             and 'case SH_NODE_TEX_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
                             and 'ntype->draw_buttons = node_shader_buts_tex_node_name;\n' in mf.mock_calls[-3][1][0])
+
+    def test_write_node_class_correct_formatting(self):
+        with patch('builtins.open', mock_open()) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class()
+
+                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
+                                                           'float socket1;'
+                                                           'bool box1, box2;'
+                                                           'int dropdown1, dropdown2;};')
+
+    def test_write_node_class_level_0_correct_formatting(self):
+        self.mock_gui.get_node_group_level.return_value = 0
+        with patch('builtins.open', mock_open()) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class()
+
+                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'float socket1;'
+                                                           'bool box1, box2;'
+                                                           'int dropdown1, dropdown2;};')
+
+    def test_write_node_class_no_check_boxes_correct_formatting(self):
+        self.mock_gui.get_node_check_boxes.return_value = []
+        self.mock_gui.node_has_check_box.return_value = False
+        with patch('builtins.open', mock_open()) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class()
+
+                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
+                                                           'float socket1;'
+                                                           'int dropdown1, dropdown2;};')
+
+    def test_write_node_class_no_dropdowns_correct_formatting(self):
+        self.mock_gui.get_node_dropdown_property1_name.return_value = None
+        self.mock_gui.get_node_dropdown_property2_name.return_value = None
+        with patch('builtins.open', mock_open()) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class()
+
+                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
+                                                           'float socket1;'
+                                                           'bool box1, box2;};')
+
+    def test_write_node_class_no_sockets_correct_formatting(self):
+        self.mock_gui.get_node_sockets.return_value = []
+        with patch('builtins.open', mock_open()) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class()
+
+                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
+                                                           'bool box1, box2;'
+                                                           'int dropdown1, dropdown2;};')
+
+    def test_write_node_class_no_props_correct_formatting(self):
+        self.mock_gui.get_node_sockets.return_value = []
+        self.mock_gui.get_node_dropdown_property1_name.return_value = None
+        self.mock_gui.get_node_dropdown_property2_name.return_value = None
+        self.mock_gui.get_node_check_boxes.return_value = []
+        self.mock_gui.node_has_check_box.return_value = False
+        with patch('builtins.open', mock_open()) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class()
+
+                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'virtual int get_group(){return NODE_GROUP_LEVEL_3;}};')
 
 
 if __name__ == "__main__":

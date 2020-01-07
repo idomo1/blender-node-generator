@@ -1,8 +1,8 @@
 import shutil
-from os import path
-from os import pardir
+from os import path, pardir, SEEK_END, SEEK_SET
 import subprocess
 import re
+from collections import defaultdict
 
 
 class CodeGeneratorUtil:
@@ -152,7 +152,47 @@ class CodeGenerator:
 
     def _add_cycles_class(self):
         """nodes.h"""
-        pass
+        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "render", "nodes.h")
+        with open(file_path, 'r+') as f:
+            props = defaultdict(list)
+            for socket in list(filter(lambda s: s['type'] == 'Input', self._gui.get_node_sockets())):
+                props[socket['data_type'] if socket['data_type'] != 'Vector' else 'float3'].append(socket['name'])
+
+            for check_box in self._gui.get_node_check_boxes():
+                props['bool'].append(check_box['name'])
+
+            if self._gui.get_node_dropdown_property1_name() is not None:
+                props['int'].append(self._gui.get_node_dropdown_property1_name())
+            if self._gui.get_node_dropdown_property2_name() is not None:
+                props['int'].append(self._gui.get_node_dropdown_property2_name())
+
+            props_string = "".join('{type} {names};'.format(type=type, names=", ".join(names)) for type, names in props.items())
+
+            node =  "class {name}Node : public {type}Node {{" \
+                    "public:" \
+                    "SHADER_NODE_CLASS({name}Node)" \
+                    "{node_group}" \
+                    "{props}" \
+                    "}};".format(name="".join(list(map(lambda s: s.capitalize(), self._gui.get_node_name().split(" ")))),
+                                 type=self._gui.get_node_type(),
+                                 node_group="virtual int get_group(){{return NODE_GROUP_LEVEL_{level};}}".
+                                 format(level=self._gui.get_node_group_level()) if self._gui.get_node_group_level() is not 0 else "",
+                                 props=props_string)
+            f.seek(0, SEEK_END)
+            f.seek(f.tell() - 100, SEEK_SET)
+            line = f.readline()
+            while line != '\n':
+                line = f.readline()
+                print(line)
+            f.seek(f.tell(), SEEK_SET)
+            f.write(node)
+            f.write("""
+
+                    CCL_NAMESPACE_END
+
+                    #endif /* __NODES_H__ */
+                    """)
+        CodeGeneratorUtil.apply_clang_formatting(file_path)
 
     def _add_cycles_class_instance(self):
         """blender_shader.cpp"""
@@ -231,3 +271,4 @@ class CodeGenerator:
         self._add_node_type_id()
         self._add_dna_node_type()
         self._add_node_drawing()
+        self._add_cycles_class()

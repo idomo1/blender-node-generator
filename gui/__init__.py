@@ -90,6 +90,9 @@ class GUI:
     def get_node_group(self):
         return self._general_GUI.get_node_group()
 
+    def get_node_group_level(self):
+        return self._general_GUI.get_node_group_level()
+
     def node_has_properties(self):
         return len(self._dropdown_GUI1.get_dropdown_properties()) > 0 or len(self._dropdown_GUI2.get_dropdown_properties()) > 0
 
@@ -183,12 +186,21 @@ class GeneralGUI:
         self._poll_input.grid(row=self._row_i, column=2)
         self._row_i += 1
 
+    def _group_level_display(self):
+        Label(self._window, text='Node Group Level').grid(row=self._row_i)
+        self._group_level_input = Combobox(self._window)
+        self._group_level_input['values'] = [i for i in range(4)]
+        self._group_level_input.grid(row=self._row_i, column=1)
+        self._group_level_input.current(0)
+        self._row_i += 1
+
     def display(self):
         self._name_input_display()
         self._group_input_display()
         self._type_input_display()
         self._blender_path_input_display()
         self._poll_input_display()
+        self._group_level_display()
         self._toggle_enabled()
 
     def get_node_name(self):
@@ -205,6 +217,9 @@ class GeneralGUI:
 
     def get_poll(self):
         return self._poll_input.get() if self._poll_enabled.get() else None
+
+    def get_node_group_level(self):
+        return self._group_level_input.get()
 
     def is_input_valid(self):
         node_name = self.get_node_name().lower()
