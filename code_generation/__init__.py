@@ -148,7 +148,27 @@ class CodeGenerator:
 
     def _add_node_register(self):
         """NOD_shader.h"""
-        pass
+        file_path = path.join(self._gui.get_source_path(), "source", "blender", "nodes", "NOD_shader.h")
+        with open(file_path, 'r+') as f:
+
+            func = 'void register_node_type_sh_{tex}{name}(void);\n'.\
+                format(tex="tex_" if self._gui.get_node_type() == "Texture" else '',
+                       name=self._gui.get_node_name().replace(" ", "_").lower())
+
+            f.seek(0, SEEK_END)
+            f.seek(f.tell() - 500, SEEK_SET)
+            line = f.readline()
+            while line != '\n':
+                if line == '':
+                    raise Exception("Reached end of file")
+                line = f.readline()
+            f.seek(f.tell()-2, SEEK_SET)
+            f.write(func)
+            f.write('\n'
+                    'void register_node_type_sh_custom_group(bNodeType *ntype);\n'
+                    '\n'
+                    '#endif\n'
+                    '\n')
 
     def _add_cycles_class(self):
         """nodes.h"""
@@ -273,3 +293,4 @@ class CodeGenerator:
         self._add_dna_node_type()
         self._add_node_drawing()
         self._add_cycles_class()
+        self._add_node_register()

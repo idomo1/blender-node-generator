@@ -553,6 +553,35 @@ class TestCodeGeneration(unittest.TestCase):
                                                            'public:SHADER_NODE_CLASS(NodeNameNode)'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}};')
 
+    def test_write_node_register_correct_formatting(self):
+        with patch('builtins.open', mock_open(read_data=    'void register_node_type_sh_tex_ies(void);\n'
+                                                            'void register_node_type_sh_tex_white_noise(void);\n'
+                                                            'void register_node_type_sh_tex_truchet(void);\n'
+                                                            '\n'
+                                                            'void register_node_type_sh_custom_group(bNodeType *ntype);\n'
+                                                            '\n'
+                                                            '#endif\n'
+                                                            '\n')) as mf:
+            code_gen = CodeGenerator(self.mock_gui)
+            code_gen._add_node_register()
+
+            self.assertTrue(mf.mock_calls[-3][1][0] == 'void register_node_type_sh_node_name(void);\n')
+
+    def test_write_texture_node_register_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Texture"
+        with patch('builtins.open', mock_open(read_data=    'void register_node_type_sh_tex_ies(void);\n'
+                                                            'void register_node_type_sh_tex_white_noise(void);\n'
+                                                            'void register_node_type_sh_tex_truchet(void);\n'
+                                                            '\n'
+                                                            'void register_node_type_sh_custom_group(bNodeType *ntype);\n'
+                                                            '\n'
+                                                            '#endif\n'
+                                                            '\n')) as mf:
+            code_gen = CodeGenerator(self.mock_gui)
+            code_gen._add_node_register()
+
+            self.assertTrue(mf.mock_calls[-3][1][0] == 'void register_node_type_sh_tex_node_name(void);\n')
+
 
 if __name__ == "__main__":
     unittest.main()
