@@ -182,8 +182,9 @@ class CodeGenerator:
             f.seek(f.tell() - 100, SEEK_SET)
             line = f.readline()
             while line != '\n':
+                if line == '':
+                    raise Exception("Reached end of file")
                 line = f.readline()
-                print(line)
             f.seek(f.tell(), SEEK_SET)
             f.write(node)
             f.write("""

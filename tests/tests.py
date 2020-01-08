@@ -315,12 +315,39 @@ class TestCodeGeneration(unittest.TestCase):
                             and 'ntype->draw_buttons = node_shader_buts_tex_node_name;\n' in mf.mock_calls[-3][1][0])
 
     def test_write_node_class_correct_formatting(self):
-        with patch('builtins.open', mock_open()) as mf:
+        with patch('builtins.open', mock_open(read_data='};\n'
+                                                        '\n'
+                                                        'class VectorDisplacementNode : public ShaderNode {\n'
+                                                         'public:\n'
+                                                         ' SHADER_NODE_CLASS(VectorDisplacementNode)\n'
+                                                         ' void attributes(Shader *shader, AttributeRequestSet *attributes);\n'
+                                                         ' bool has_attribute_dependency()\n'
+                                                         ' {\n'
+                                                         '   return true;\n'
+                                                         ' }\n'
+                                                         ' void constant_fold(const ConstantFolder &folder);\n'
+                                                         ' virtual int get_feature()\n'
+                                                         ' {\n'
+                                                         '   return NODE_FEATURE_BUMP;\n'
+                                                         ' }\n'
+                                                         '\n'
+                                                         ' NodeNormalMapSpace space;\n'
+                                                         ' ustring attribute;\n'
+                                                         ' float3 vector;\n'
+                                                         ' float midlevel;\n'
+                                                         ' float scale;\n'
+                                                         '};\n'
+                                                         '\n'
+                                                         'CCL_NAMESPACE_END\n'
+                                                         '\n'
+                                                         '#endif /* __NODES_H__ */\n'
+                                                         '\n')) as mf:
+
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
-                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
                                                            'public:SHADER_NODE_CLASS(NodeNameNode)'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1;'
@@ -329,12 +356,38 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_node_class_level_0_correct_formatting(self):
         self.mock_gui.get_node_group_level.return_value = 0
-        with patch('builtins.open', mock_open()) as mf:
+        with patch('builtins.open', mock_open(read_data='};\n'
+                                                        '\n'
+                                                        'class VectorDisplacementNode : public ShaderNode {\n'
+                                                         'public:\n'
+                                                         ' SHADER_NODE_CLASS(VectorDisplacementNode)\n'
+                                                         ' void attributes(Shader *shader, AttributeRequestSet *attributes);\n'
+                                                         ' bool has_attribute_dependency()\n'
+                                                         ' {\n'
+                                                         '   return true;\n'
+                                                         ' }\n'
+                                                         ' void constant_fold(const ConstantFolder &folder);\n'
+                                                         ' virtual int get_feature()\n'
+                                                         ' {\n'
+                                                         '   return NODE_FEATURE_BUMP;\n'
+                                                         ' }\n'
+                                                         '\n'
+                                                         ' NodeNormalMapSpace space;\n'
+                                                         ' ustring attribute;\n'
+                                                         ' float3 vector;\n'
+                                                         ' float midlevel;\n'
+                                                         ' float scale;\n'
+                                                         '};\n'
+                                                         '\n'
+                                                         'CCL_NAMESPACE_END\n'
+                                                         '\n'
+                                                         '#endif /* __NODES_H__ */\n'
+                                                         '\n')) as mf:
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
-                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
                                                            'public:SHADER_NODE_CLASS(NodeNameNode)'
                                                            'float socket1;'
                                                            'bool box1, box2;'
@@ -343,12 +396,38 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_node_class_no_check_boxes_correct_formatting(self):
         self.mock_gui.get_node_check_boxes.return_value = []
         self.mock_gui.node_has_check_box.return_value = False
-        with patch('builtins.open', mock_open()) as mf:
+        with patch('builtins.open', mock_open(read_data='};\n'
+                                                        '\n'
+                                                        'class VectorDisplacementNode : public ShaderNode {\n'
+                                                         'public:\n'
+                                                         ' SHADER_NODE_CLASS(VectorDisplacementNode)\n'
+                                                         ' void attributes(Shader *shader, AttributeRequestSet *attributes);\n'
+                                                         ' bool has_attribute_dependency()\n'
+                                                         ' {\n'
+                                                         '   return true;\n'
+                                                         ' }\n'
+                                                         ' void constant_fold(const ConstantFolder &folder);\n'
+                                                         ' virtual int get_feature()\n'
+                                                         ' {\n'
+                                                         '   return NODE_FEATURE_BUMP;\n'
+                                                         ' }\n'
+                                                         '\n'
+                                                         ' NodeNormalMapSpace space;\n'
+                                                         ' ustring attribute;\n'
+                                                         ' float3 vector;\n'
+                                                         ' float midlevel;\n'
+                                                         ' float scale;\n'
+                                                         '};\n'
+                                                         '\n'
+                                                         'CCL_NAMESPACE_END\n'
+                                                         '\n'
+                                                         '#endif /* __NODES_H__ */\n'
+                                                         '\n')) as mf:
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
-                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
                                                            'public:SHADER_NODE_CLASS(NodeNameNode)'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1;'
@@ -357,12 +436,38 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_node_class_no_dropdowns_correct_formatting(self):
         self.mock_gui.get_node_dropdown_property1_name.return_value = None
         self.mock_gui.get_node_dropdown_property2_name.return_value = None
-        with patch('builtins.open', mock_open()) as mf:
+        with patch('builtins.open', mock_open(read_data='};\n'
+                                                        '\n'
+                                                        'class VectorDisplacementNode : public ShaderNode {\n'
+                                                         'public:\n'
+                                                         ' SHADER_NODE_CLASS(VectorDisplacementNode)\n'
+                                                         ' void attributes(Shader *shader, AttributeRequestSet *attributes);\n'
+                                                         ' bool has_attribute_dependency()\n'
+                                                         ' {\n'
+                                                         '   return true;\n'
+                                                         ' }\n'
+                                                         ' void constant_fold(const ConstantFolder &folder);\n'
+                                                         ' virtual int get_feature()\n'
+                                                         ' {\n'
+                                                         '   return NODE_FEATURE_BUMP;\n'
+                                                         ' }\n'
+                                                         '\n'
+                                                         ' NodeNormalMapSpace space;\n'
+                                                         ' ustring attribute;\n'
+                                                         ' float3 vector;\n'
+                                                         ' float midlevel;\n'
+                                                         ' float scale;\n'
+                                                         '};\n'
+                                                         '\n'
+                                                         'CCL_NAMESPACE_END\n'
+                                                         '\n'
+                                                         '#endif /* __NODES_H__ */\n'
+                                                         '\n')) as mf:
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
-                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
                                                            'public:SHADER_NODE_CLASS(NodeNameNode)'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1;'
@@ -370,12 +475,38 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_node_class_no_sockets_correct_formatting(self):
         self.mock_gui.get_node_sockets.return_value = []
-        with patch('builtins.open', mock_open()) as mf:
+        with patch('builtins.open', mock_open(read_data='};\n'
+                                                        '\n'
+                                                        'class VectorDisplacementNode : public ShaderNode {\n'
+                                                         'public:\n'
+                                                         ' SHADER_NODE_CLASS(VectorDisplacementNode)\n'
+                                                         ' void attributes(Shader *shader, AttributeRequestSet *attributes);\n'
+                                                         ' bool has_attribute_dependency()\n'
+                                                         ' {\n'
+                                                         '   return true;\n'
+                                                         ' }\n'
+                                                         ' void constant_fold(const ConstantFolder &folder);\n'
+                                                         ' virtual int get_feature()\n'
+                                                         ' {\n'
+                                                         '   return NODE_FEATURE_BUMP;\n'
+                                                         ' }\n'
+                                                         '\n'
+                                                         ' NodeNormalMapSpace space;\n'
+                                                         ' ustring attribute;\n'
+                                                         ' float3 vector;\n'
+                                                         ' float midlevel;\n'
+                                                         ' float scale;\n'
+                                                         '};\n'
+                                                         '\n'
+                                                         'CCL_NAMESPACE_END\n'
+                                                         '\n'
+                                                         '#endif /* __NODES_H__ */\n'
+                                                         '\n')) as mf:
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
-                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
                                                            'public:SHADER_NODE_CLASS(NodeNameNode)'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'bool box1, box2;'
@@ -387,12 +518,38 @@ class TestCodeGeneration(unittest.TestCase):
         self.mock_gui.get_node_dropdown_property2_name.return_value = None
         self.mock_gui.get_node_check_boxes.return_value = []
         self.mock_gui.node_has_check_box.return_value = False
-        with patch('builtins.open', mock_open()) as mf:
+        with patch('builtins.open', mock_open(read_data='};\n'
+                                                        '\n'
+                                                        'class VectorDisplacementNode : public ShaderNode {\n'
+                                                         'public:\n'
+                                                         ' SHADER_NODE_CLASS(VectorDisplacementNode)\n'
+                                                         ' void attributes(Shader *shader, AttributeRequestSet *attributes);\n'
+                                                         ' bool has_attribute_dependency()\n'
+                                                         ' {\n'
+                                                         '   return true;\n'
+                                                         ' }\n'
+                                                         ' void constant_fold(const ConstantFolder &folder);\n'
+                                                         ' virtual int get_feature()\n'
+                                                         ' {\n'
+                                                         '   return NODE_FEATURE_BUMP;\n'
+                                                         ' }\n'
+                                                         '\n'
+                                                         ' NodeNormalMapSpace space;\n'
+                                                         ' ustring attribute;\n'
+                                                         ' float3 vector;\n'
+                                                         ' float midlevel;\n'
+                                                         ' float scale;\n'
+                                                         '};\n'
+                                                         '\n'
+                                                         'CCL_NAMESPACE_END\n'
+                                                         '\n'
+                                                         '#endif /* __NODES_H__ */\n'
+                                                         '\n')) as mf:
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
-                self.assertTrue(mf.mock_calls[-2][1][0] == 'class NodeNameNode : public ShaderNode {'
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
                                                            'public:SHADER_NODE_CLASS(NodeNameNode)'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}};')
 
