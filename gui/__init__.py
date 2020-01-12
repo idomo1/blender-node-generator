@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
-from tkinter import ttk
 import copy
 
 
@@ -23,48 +22,34 @@ class GUI:
         self.window.title(self._window_title)
         self.window.geometry(self._window_size)
 
-        tab_control = ttk.Notebook(self.window)
+        tab_control = Notebook(self.window)
 
         # General Tab
-        general_tab = ttk.Frame(tab_control)
+        general_tab = Frame(tab_control)
         tab_control.add(general_tab, text='General')
         tab_control.pack(expand=1, fill='both')
         self._general_GUI = GeneralGUI(general_tab)
         self._general_GUI.display()
 
-        # Dropdown Tab 1
-        dropdown_tab1 = ttk.Frame(tab_control)
-        tab_control.add(dropdown_tab1, text='Dropdown 1')
+        # Property Tab
+        prop_tab = Frame(tab_control)
+        tab_control.add(prop_tab, text='Properties')
         tab_control.pack(expand=1, fill='both')
-        self._dropdown_GUI1 = DropdownGUI(dropdown_tab1)
-        self._dropdown_GUI1.display()
-
-        # Dropdown Tab 2
-        dropdown_tab2 = ttk.Frame(tab_control)
-        tab_control.add(dropdown_tab2, text='Dropdown 2')
-        tab_control.pack(expand=1, fill='both')
-        self._dropdown_GUI2 = DropdownGUI(dropdown_tab2)
-        self._dropdown_GUI2.display()
-
-        # CheckBox Tab
-        check_box_tab = ttk.Frame(tab_control)
-        tab_control.add(check_box_tab, text='Check Boxes')
-        tab_control.pack(expand=1, fill='both')
-        self._check_box_GUI = CheckBoxGUI(check_box_tab)
-        self._check_box_GUI.display()
+        self._prop_GUI = PropertiesGUI(prop_tab)
+        self._prop_GUI.display()
 
         # Sockets Tab
-        sockets_tab = ttk.Frame(tab_control)
+        sockets_tab = Frame(tab_control)
         tab_control.add(sockets_tab, text='Socket Definitions')
         tab_control.pack(expand=1, fill='both')
         self._socket_GUI = SocketDefinitionsGUI(sockets_tab)
         self._socket_GUI.display()
 
         # Socket Availability Tab
-        socket_tab = ttk.Frame(tab_control)
+        socket_tab = Frame(tab_control)
         tab_control.add(socket_tab, text='Socket Availability')
         tab_control.pack(expand=1, fill='both')
-        self._socket_avail_GUI = SocketAvailabilityGUI(socket_tab, self._dropdown_GUI1, self._dropdown_GUI2, self._socket_GUI)
+        self._socket_avail_GUI = SocketAvailabilityGUI(socket_tab, self._prop_GUI, self._socket_GUI)
         self._socket_avail_GUI.display()
 
         # Generate Button
@@ -75,8 +60,7 @@ class GUI:
 
     def _is_input_valid(self):
         return self._general_GUI.is_input_valid() and \
-               self._dropdown_GUI1.is_input_valid() and \
-               self._check_box_GUI.is_input_valid()
+               self._prop_GUI.is_input_valid()
 
     def get_source_path(self):
         return self._general_GUI.get_source_path()
@@ -94,38 +78,19 @@ class GUI:
         return self._general_GUI.get_node_group_level()
 
     def node_has_properties(self):
-        return len(self._dropdown_GUI1.get_dropdown_properties()) > 0 or len(self._dropdown_GUI2.get_dropdown_properties()) > 0
+        return len(self._prop_GUI.get_props()) > 0
 
     def node_has_check_box(self):
-        return len(self._check_box_GUI.get_check_box_properties()) > 0
+        return len(list(filter(lambda p: p.get()['type'] == 'Boolean', self._prop_GUI.get_props()))) > 0
 
     def get_node_sockets(self):
         return self._socket_GUI.get_io()
 
-    def get_node_check_boxes(self):
-        return self._check_box_GUI.get_check_box_properties()
-
-    def get_node_check_box_count(self):
-        return self._check_box_GUI.get_check_box_count()
-
-    def get_node_dropdown_property1_name(self):
-        return self._dropdown_GUI1.get_dropdown_name()
-
-    def get_node_dropdown_property2_name(self):
-        return self._dropdown_GUI2.get_dropdown_name()
-
-    def get_node_dropdown1_properties(self):
-        """Returns None if the dropdown is disabled or has no options"""
-        properties = self._dropdown_GUI1.get_dropdown_properties()
-        return properties if self._dropdown_GUI1.is_enabled() and len(properties) > 0 else None
-
-    def get_node_dropdown2_properties(self):
-        """Returns None if the dropdown is disabled or has no options"""
-        properties = self._dropdown_GUI2.get_dropdown_properties()
-        return properties if self._dropdown_GUI2.is_enabled() and len(properties) > 0 else None
-
     def get_poll(self):
         return self._general_GUI.get_poll()
+
+    def get_props(self):
+        return self._prop_GUI.get_props()
 
     def generate_node(self):
         if self._is_input_valid():
@@ -235,129 +200,6 @@ class GeneralGUI:
         return True
 
 
-class DropdownGUI:
-    """GUI for configuring a nodes dropdown menus"""
-    def __init__(self, tab):
-        self._row_i = 0  # Counts the rows which have been filled, methods are responsible for incrementing this value
-        self.window = tab
-        self._enabled = IntVar()
-        self._properties = []
-
-    def _add_dropdown_property(self):
-        """Adds a new dropdown property"""
-        property = RemovableTextInput(self.window, 'Property')
-        self._properties.append(property)
-        self._properties[-1].grid(row=self._row_i)
-        self._row_i += 1
-
-    def _toggle_enabled(self):
-        self._add_property_button['state'] = DISABLED if str(self._add_property_button['state']) == 'normal' else NORMAL
-        self._name['state'] = DISABLED if str(self._name['state']) == 'normal' else NORMAL
-        for component in self._properties:
-            component.toggle_enabled()
-
-    def _dropdown_properties_display(self):
-        Label(self.window, text='Enabled').grid(row=self._row_i)
-        Checkbutton(self.window, variable=self._enabled, command=self._toggle_enabled).grid(row=self._row_i, column=1)
-
-        Label(self.window, text='Name').grid(row=self._row_i, column=2)
-        self._name = Entry(self.window)
-        self._name.grid(row=self._row_i, column=3)
-        self._row_i += 1
-
-        self._add_property_button = Button(self.window, text='Add Property', command=self._add_dropdown_property)
-        self._add_property_button.grid(row=self._row_i, column=1)
-        self._row_i += 1
-
-    def display(self):
-        self._dropdown_properties_display()
-        self._toggle_enabled()  # Initially disabled
-
-    def get_dropdown_properties(self):
-        """Returns emplty list of not enabled"""
-        if self.is_enabled():
-            return list(filter(lambda p: p is not None, map(lambda p: p.get_input(), self._properties)))
-        else:
-            return []
-
-    def get_dropdown_name(self):
-        if self.is_enabled():
-            return self._name.get()
-
-    def is_enabled(self):
-        return self._enabled.get()
-
-    def is_input_valid(self):
-        return True
-
-
-class CheckBoxGUI:
-    """GUI for configuring a nodes check boxes"""
-    def __init__(self, tab):
-        self._row_i = 0  # Counts the rows which have been filled, methods are responsible for incrementing this value
-        self.window = tab
-        self._check_box_menus = []
-        self._default_values = []
-
-    def _check_box_input_display(self):
-        """Input for check box properties"""
-        frame = Frame(self.window, pad=5)
-
-        name_label = Label(frame, text='Checkbox Label')
-        name_label.grid(row=self._row_i)
-        name_input = Entry(frame)
-        name_input.grid(row=self._row_i, column=1)
-
-        value_label = Label(frame, text='Default Value')
-        value_label.grid(row=self._row_i, column=2)
-
-        self._default_values.append(IntVar())
-        default_value = Checkbutton(frame, var=self._default_values[-1])
-        default_value.grid(row=self._row_i, column=3)
-
-        frame.grid(column=0)
-        return frame
-
-    def _update_check_box_menus(self, event):
-        """Adds windows to enter options based on the no. of check boxes required"""
-        for check_box in self._check_box_menus:
-            check_box.destroy()
-        self._default_values.clear()
-        self._check_box_menus = [self._check_box_input_display() for _ in range(int(self._count_input.get()))]
-
-    def _check_box_count_display(self):
-        """Input for the no. of check box's the new node needs"""
-        self._count_input = Combobox(self.window)
-        self._count_input['values'] = [i for i in range(15)]
-        self._count_input.current(0)
-        self._count_input.bind("<<ComboboxSelected>>", self._update_check_box_menus)
-        Label(self.window, text='Node Dropdown Count', pad=3).grid(row=self._row_i)
-        self._row_i += 1
-        self._count_input.grid(row=self._row_i, column=1)
-        self._row_i += 1
-
-    def display(self):
-        self._check_box_count_display()
-
-    def get_check_box_count(self):
-        return int(self._count_input.get())
-
-    def get_check_box_properties(self):
-        check_box_properties = [{} for _ in range(self.get_check_box_count())]
-        for i, check_box in enumerate(self._check_box_menus):
-            check_box_properties[i]["name"] = check_box.children['!entry'].get()
-            check_box_properties[i]["default"] = self._default_values[i].get()
-
-        return check_box_properties
-
-    def is_input_valid(self):
-        count = self.get_check_box_count()
-        if count < 0 or count > 15:
-            messagebox.showerror('Bad Input', 'Check box count must be between 0-15')
-            return False
-        return True
-
-
 class SocketDefinitionsGUI:
     """GUI for entering input and output sockets for the node"""
     def __init__(self, tab):
@@ -376,17 +218,16 @@ class SocketDefinitionsGUI:
         self._row_i += 1
 
     def get_io(self):
-        return list(filter(lambda p: p is not None, map(lambda p: p.get_input(), self._ios)))
+        return list(filter(lambda p: p is not None, map(lambda p: p.get(), self._ios)))
 
 
 class SocketAvailabilityGUI:
     """Socket availability"""
-    def __init__(self, tab, dropdown_GUI1, dropdown_GUI2, IO_GUI):
+    def __init__(self, tab, props_GUI, IO_GUI):
         self._row_i = 0
         self.window = tab
         self._maps = {}
-        self._dropdown1_GUI = dropdown_GUI1
-        self._dropdown2_GUI = dropdown_GUI2
+        self._props_GUI = props_GUI
         self._IO_GUI = IO_GUI
 
     def _remove_existing_menu(self):
@@ -397,7 +238,14 @@ class SocketAvailabilityGUI:
 
     def _update_options(self, event=None):
         """For when dropdown options are changed"""
-        self._dropdown['values'] = self._dropdown1_GUI.get_dropdown_properties() + self._dropdown2_GUI.get_dropdown_properties()
+        values = []
+        for prop in self._props_GUI.get_props():
+            if prop['type'] == "Enum":
+                values += prop['options']
+            elif prop['type'] == "Boolean":
+                values.append(prop['name'] + ":True")
+                values.append(prop['name'] + ":False")
+        self._dropdown['values'] = values
 
     def _display_mapping(self, map_key):
         self._remove_existing_menu()
@@ -410,12 +258,8 @@ class SocketAvailabilityGUI:
         sockets = self._IO_GUI.get_io()
         for key in list(self._maps[self._dropdown.get()].keys()):
             for socket in sockets:
-                if type(socket) is dict:
-                    if key == socket['name']:
-                        break
-                else:
-                    if key == socket:
-                        break
+                if key == socket['name']:
+                    break
             else:
                 del self._maps[self._dropdown.get()][key]
 
@@ -427,17 +271,13 @@ class SocketAvailabilityGUI:
                 var.set(True)
                 self._maps[self._dropdown.get()] = dict()
             for i, socket in enumerate(sockets):
-                self._maps[self._dropdown.get()][socket if type(socket) is not dict else socket['name']] = vars[i]
+                self._maps[self._dropdown.get()][socket['name']] = vars[i]
         else:
             for socket in sockets:
-                if type(socket) is dict and socket['name'] not in self._maps[self._dropdown.get()]:
+                if socket['name'] not in self._maps[self._dropdown.get()]:
                     var = BooleanVar()
                     var.set(True)
                     self._maps[self._dropdown.get()][socket['name']] = var
-                elif type(socket) is not dict and socket not in self._maps[self._dropdown.get()]:
-                    var = BooleanVar()
-                    var.set(True)
-                    self._maps[self._dropdown.get()][socket] = var
         self._remove_deleted_sockets()
         self._display_mapping(self._dropdown.get())
 
@@ -445,7 +285,7 @@ class SocketAvailabilityGUI:
         Button(self.window, text='Refresh', command=self._update_options).grid(row=self._row_i)
         self._row_i += 1
         self._dropdown = Combobox(self.window)
-        self._dropdown['values'] = self._dropdown1_GUI.get_dropdown_properties()
+        self._update_options()
         self._dropdown.bind('<<ComboboxSelected>>', self._on_selected)
         self._dropdown.grid(row=self._row_i)
         self._row_i += 1
@@ -472,8 +312,181 @@ class RemovableTextInput(Frame):
         for component in self.children.values():
             component['state'] = DISABLED if str(component['state']) == 'normal' else NORMAL
 
-    def get_input(self):
+    def get(self):
         return self.children['!entry'].get() if '!entry' in self.children else None
+
+
+class PropertiesGUI:
+    def __init__(self, tab):
+        self._window = tab
+        self._row_i = 0
+        self._props = []
+
+    def _add_property(self):
+        prop = PropertyInput(self._window, self._row_i)
+        prop.grid(row=self._row_i, pady=5)
+        self._row_i += 1
+        self._props.append(prop)
+
+    def display(self):
+        Button(self._window, text="Add Property", command=self._add_property).grid(row=self._row_i)
+        self._row_i += 1
+
+    def is_input_valid(self):
+        # TODO
+        return True
+
+    def get_props(self):
+        return [prop.get() for prop in self._props]
+
+
+class PropertyInput(Frame):
+    """Input data required for a property"""
+    def __init__(self, window, row_i):
+        super().__init__(window)
+        self._row_i = row_i
+
+        self.type_components = []   # Holds type specific GUI components
+
+        self.col_i = 0
+        # Type
+        Label(self, text="Type").grid(row=self._row_i, column=self.col_i)
+        self.col_i += 1
+        self.type = Combobox(self)
+        self.type['values'] = ['Boolean', 'Int', 'Float', 'String', 'Enum']
+        self.type.bind("<<ComboboxSelected>>", self._type_options_display)
+        self.type.current(4)
+        self.type.grid(row=self._row_i, column=self.col_i)
+        self.col_i += 1
+        # Sub-Type
+        sub_type = Combobox(self)
+        sub_type['values'] = ['None', 'File Path', 'Dir Path', 'FileName', 'Byte String', 'Password', 'Pixel',
+                              'Unsigned', 'Percentage', 'Factor', 'Angle', 'Time', 'Distance', 'Distance Camera',
+                              'Color', 'Translation', 'Direction', 'Velocity', 'Acceleration', 'Matrix', 'Euler',
+                              'Quaternion', 'Axis Angle', 'XYZ', 'XYZ Length', 'Color Gamma', 'Coords', 'Layer',
+                              'Layer Member', 'Power']
+        sub_type.current(0)
+        sub_type.grid(row=self._row_i, column=self.col_i)
+        self.col_i += 1
+        # Name
+        Label(self, text="Name").grid(row=self._row_i, column=self.col_i)
+        self.col_i += 1
+        Entry(self).grid(row=self._row_i, column=self.col_i)
+        self.col_i += 1
+
+        self._type_options_display()
+
+    def _clear_type_inputs(self):
+        """Clears existing type specific input components"""
+        for item in self.type_components:
+            item.destroy()
+        self.type_components.clear()
+
+    def _type_options_display(self, event=None):
+        """Display type specific inputs"""
+        self._clear_type_inputs()
+        type = self.type.get()
+
+        if type == "Boolean":
+            self.default = BooleanVar()
+            label = Label(self, text="Default Value")
+            label.grid(row=self._row_i, column=self.col_i)
+            self.col_i += 1
+            self.type_components.append(label)
+            entry = Checkbutton(self, variable=self.default)
+            entry.grid(row=self._row_i, column=self.col_i)
+            self.col_i += 1
+            self.type_components.append(entry)
+        elif type == "Int" or type == "Float":
+            min_label = Label(self, text="Min")
+            min_label.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(min_label)
+            self.col_i += 1
+
+            min_entry = Entry(self)
+            min_entry.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(min_entry)
+            self.col_i += 1
+
+            max_label = Label(self, text="Max")
+            max_label.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(max_label)
+            self.col_i += 1
+
+            max_entry = Entry(self)
+            max_entry.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(max_entry)
+            self.col_i += 1
+
+            default_label = Label(self, text="Default")
+            default_label.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(default_label)
+            self.col_i += 1
+
+            default_entry = Entry(self)
+            default_entry.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(default_entry)
+            self.col_i += 1
+        elif type == "String":
+            label = Label(self, text="Size")
+            label.grid(row=self._row_i, column=self.col_i)
+            self.col_i += 1
+            self.type_components.append(label)
+
+            entry = Entry(self)
+            entry.grid(row=self._row_i, column=self.col_i)
+            self.col_i += 1
+            self.type_components.append(entry)
+        elif type == "Enum":
+            options_label = Label(self, text="Options")
+            options_label.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(options_label)
+            self.col_i += 1
+            options_entry = Entry(self)
+            options_entry.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(options_entry)
+            self.col_i += 1
+
+            default_label = Label(self, text="Default")
+            default_label.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(default_label)
+            self.col_i += 1
+            default_entry = Entry(self)
+            default_entry.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(default_entry)
+            self.col_i += 1
+        else:
+            raise Exception("Invalid Property Type")
+
+        button = Button(self, text="Remove", command=self.destroy)
+        button.grid(row=self._row_i, column=self.col_i)
+        self.type_components.append(button)
+        self.col_i += 1
+
+    def get(self):
+        prop = {'type': self.children['!combobox'].get(),
+                'sub-type': self.children['!combobox2'].get(),
+                'name': self.children['!entry'].get().lower()}
+        type = self.type.get()
+        if type == "Boolean":
+            prop['default'] = 0 if self.default.get() == "False" else 1
+        elif type == "Int":
+            prop['min'] = int(self.type_components[1].get())
+            prop['max'] = int(self.type_components[3].get())
+            prop['default'] = int(self.type_components[5].get())
+        elif type == "Float":
+            prop['min'] = float(self.type_components[1].get())
+            prop['max'] = float(self.type_components[3].get())
+            prop['default'] = float(self.type_components[5].get())
+        elif type == "String":
+            prop['size'] = int(self.type_components[1].get())
+            prop['default'] = '""'
+        elif type == "Enum":
+            prop['options'] = self.type_components[1].get().replace(', ', ',').split(',')
+            prop['default'] = '"{0}"'.format(self.type_components[3].get())
+        else:
+            raise Exception("Invalid Property Type")
+        return prop
 
 
 class RemovableSocketDefinitionInput(Frame):
@@ -488,13 +501,13 @@ class RemovableSocketDefinitionInput(Frame):
         type = Combobox(self)
         type['values'] = ["Input", "Output"]
         type.current(0)
-        type.grid(row=0, column = col_i)
+        type.grid(row=0, column=col_i)
         col_i += 1
 
         Label(self, text='type').grid(row=0, column=col_i)
         col_i += 1
         data_type = Combobox(self)
-        data_type['values'] = ["float", "vector", "color", "slider", "int"]
+        data_type['values'] = ["Float", "Vector", "RGBA", "Shader", "Boolean", "Int", "String"]
         data_type.current(0)
         data_type.grid(row=0, column=col_i)
         col_i += 1
@@ -529,7 +542,7 @@ class RemovableSocketDefinitionInput(Frame):
         Button(self, text='Remove', command=self.destroy).grid(row=0, column=col_i)
         col_i += 1
 
-    def get_input(self):
+    def get(self):
         """Returns None if the input has been destroyed"""
         return {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(), 'data_type': self.children['!combobox2'].get(),
                 'min': self.children['!entry2'].get(), 'max': self.children['!entry3'].get(),
