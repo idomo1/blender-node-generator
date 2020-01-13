@@ -336,8 +336,15 @@ class PropertiesGUI:
         # TODO
         return True
 
+    def _sort_props(self, props):
+        """Sorts props by type order required for constructing rna props"""
+        type_value = {"Enum": 0, "Boolean": 1, "Int": 0, "Float": 2, "String": 3}
+        props.sort(key=lambda p: type_value[p['type']])
+        return props
+
     def get_props(self):
-        return [prop.get() for prop in self._props]
+        props = [prop.get() for prop in self._props if prop is not None]
+        return self._sort_props(props)
 
 
 class PropertyInput(Frame):
@@ -464,29 +471,30 @@ class PropertyInput(Frame):
         self.col_i += 1
 
     def get(self):
-        prop = {'type': self.children['!combobox'].get(),
-                'sub-type': self.children['!combobox2'].get(),
-                'name': self.children['!entry'].get().lower()}
-        type = self.type.get()
-        if type == "Boolean":
-            prop['default'] = 0 if self.default.get() == "False" else 1
-        elif type == "Int":
-            prop['min'] = int(self.type_components[1].get())
-            prop['max'] = int(self.type_components[3].get())
-            prop['default'] = int(self.type_components[5].get())
-        elif type == "Float":
-            prop['min'] = float(self.type_components[1].get())
-            prop['max'] = float(self.type_components[3].get())
-            prop['default'] = float(self.type_components[5].get())
-        elif type == "String":
-            prop['size'] = int(self.type_components[1].get())
-            prop['default'] = '""'
-        elif type == "Enum":
-            prop['options'] = self.type_components[1].get().replace(', ', ',').split(',')
-            prop['default'] = '"{0}"'.format(self.type_components[3].get())
-        else:
-            raise Exception("Invalid Property Type")
-        return prop
+        if self.winfo_exists():
+            prop = {'type': self.children['!combobox'].get(),
+                    'sub-type': self.children['!combobox2'].get(),
+                    'name': self.children['!entry'].get().lower()}
+            type = self.type.get()
+            if type == "Boolean":
+                prop['default'] = 0 if self.default.get() == "False" else 1
+            elif type == "Int":
+                prop['min'] = int(self.type_components[1].get())
+                prop['max'] = int(self.type_components[3].get())
+                prop['default'] = int(self.type_components[5].get())
+            elif type == "Float":
+                prop['min'] = float(self.type_components[1].get())
+                prop['max'] = float(self.type_components[3].get())
+                prop['default'] = float(self.type_components[5].get())
+            elif type == "String":
+                prop['size'] = int(self.type_components[1].get())
+                prop['default'] = '""'
+            elif type == "Enum":
+                prop['options'] = self.type_components[1].get().replace(', ', ',').split(',')
+                prop['default'] = '"{0}"'.format(self.type_components[3].get())
+            else:
+                raise Exception("Invalid Property Type")
+            return prop
 
 
 class RemovableSocketDefinitionInput(Frame):

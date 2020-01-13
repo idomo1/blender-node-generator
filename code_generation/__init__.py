@@ -155,7 +155,72 @@ class CodeGenerator:
 
     def _add_rna_properties(self):
         """rna_nodetree.c"""
-        pass
+        if self._gui.node_has_properties():
+            file_path = path.join(self._gui.get_source_path(), "source", "blender", "makesrna", "intern", "rna_nodetree.c")
+            with open(file_path, 'r+') as f:
+                props = []
+                s_custom_i = 1
+                f_custom_i = 3
+                uses_dna = CodeGeneratorUtil.uses_dna(self._gui.get_props(), self._gui.get_node_type())
+                for prop in self._gui.get_props():
+                    if not uses_dna:
+                        if prop['type'] == "Enum" or prop['type'] == "Int":
+                            custom_i = s_custom_i
+                            s_custom_i += 1
+                        elif prop['type'] == "Boolean":
+                            custom_i = s_custom_i
+                        elif prop['type'] == "Float":
+                            custom_i = f_custom_i
+                            f_custom_i += 1
+                    if prop['type'] == "Enum":
+                        enum_name = 'rna_enum_node_{tex}{name}_items'.\
+                            format(tex='tex_' if self._gui.get_node_type() == "Texture" else '',
+                                   name=CodeGeneratorUtil.string_lower_underscored(prop['name']))
+
+                    props.append('prop = RNA_def_property(srna, "{name}", PROP_{TYPE}, PROP_{SUBTYPE});'
+                                 'RNA_def_property_{type}_sdna(prop, NULL, "{sdna}"{enum});'
+                                 '{enum_items}'
+                                 '{prop_range}'
+                                 'RNA_def_property_ui_text(prop, "{Name}", "{desc}");'
+                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");'.
+                        format(
+                        name=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                        TYPE=CodeGeneratorUtil.string_upper_underscored(prop['type']),
+                        SUBTYPE=CodeGeneratorUtil.string_upper_underscored(prop['sub-type']),
+                        type=CodeGeneratorUtil.string_lower_underscored(prop['type']),
+                        sdna=CodeGeneratorUtil.string_lower_underscored(prop['name']if uses_dna else "custom{index}".format(index=custom_i)),
+                        enum=', SHD_{NAME}_{PROP}'.format(NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
+                                                        PROP=CodeGeneratorUtil.string_upper_underscored(prop['name']))
+                                                            if prop['type'] == "Boolean" else '',
+                        enum_items='RNA_def_property_enum_items(prop, {enum_name});'.format(enum_name=enum_name) if prop['type'] == "Enum" else '',
+                        prop_range='RNA_def_property_range(prop, {min}, {max});'.format(min=prop['min'], max=prop['max']) if prop['type'] == "Int" or prop['type'] == "Float" else '',
+                        Name=CodeGeneratorUtil.string_capitalized_spaced(prop['name']),
+                        desc=""))
+
+                func = 'static void def_sh_{tex}{name}(StructRNA *srna)\n' \
+                       '{{\n' \
+                       'PropertyRNA *prop;\n\n' \
+                       '{sdna}' \
+                       '{props}\n' \
+                       '}}\n\n'.format(tex="tex_" if self._gui.get_node_type() == "Texture" else '',
+                                     name=self._gui.get_node_name().replace(" ", "_").lower(),
+                                     sdna='RNA_def_struct_sdna_from(srna, "Node{Tex}{Name}", "storage");\ndef_sh_tex(srna);\n\n'.\
+                                     format(Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                                            Tex="Tex" if self._gui.get_node_type() == "Texture" else "")
+                                     if self._gui.get_node_type() == "Texture" else '',
+                                     props="\n\n".join(props))
+                lines = f.readlines()
+                for i, line in enumerate(lines):
+                    if line == '/* -- Compositor Nodes ------------------------------------------------------ */\n':
+                        break
+                else:
+                    raise Exception("Reached end of file without match")
+                lines.insert(i, func)
+
+                f.seek(0, SEEK_SET)
+                f.writelines(lines)
+                f.truncate()
+            CodeGeneratorUtil.apply_clang_formatting(file_path)
 
     def _add_node_definition(self):
         """NOD_static_types.h"""
@@ -374,3 +439,4 @@ class CodeGenerator:
         self._add_node_drawing()
         self._add_cycles_class()
         self._add_node_register()
+        self._add_rna_properties()
