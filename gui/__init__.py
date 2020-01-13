@@ -9,6 +9,7 @@ class GUI:
     Handles the GUI for entering data
     code_generator is a class which accepts the gui in the constructor
     """
+
     def __init__(self, code_generator):
         self._window_title = 'Blender Node Generator'
         self._window_size = '1200x500'
@@ -102,10 +103,10 @@ class GUI:
 
 class GeneralGUI:
     def __init__(self, tab):
-        self._row_i = 0 # Counts the rows which have been filled, methods are responsible for incrementing this value
+        self._row_i = 0  # Counts the rows which have been filled, methods are responsible for incrementing this value
         self._window = tab
         self._node_groups = ['Input', 'Output', 'Shader', 'Texture', 'Color', 'Vector', 'Converter', 'Script', 'Group',
-                            'Layout']
+                             'Layout']
         self._node_types = ['Shader', 'Texture', 'Curves', 'Bsdf', 'BsdfBase', 'ImageSlotTexture', 'Volume']
         self._poll_enabled = BooleanVar()
 
@@ -202,6 +203,7 @@ class GeneralGUI:
 
 class SocketDefinitionsGUI:
     """GUI for entering input and output sockets for the node"""
+
     def __init__(self, tab):
         self.window = tab
         self._row_i = 0
@@ -223,6 +225,7 @@ class SocketDefinitionsGUI:
 
 class SocketAvailabilityGUI:
     """Socket availability"""
+
     def __init__(self, tab, props_GUI, IO_GUI):
         self._row_i = 0
         self.window = tab
@@ -296,7 +299,8 @@ class SocketAvailabilityGUI:
 
     def get_maps(self):
         self._remove_deleted_sockets()
-        return {dropdown: {socket: value.get() for socket, value in self._maps[dropdown].items()} for dropdown in self._maps}
+        return {dropdown: {socket: value.get() for socket, value in self._maps[dropdown].items()} for dropdown in
+                self._maps}
 
 
 class RemovableTextInput(Frame):
@@ -349,11 +353,12 @@ class PropertiesGUI:
 
 class PropertyInput(Frame):
     """Input data required for a property"""
+
     def __init__(self, window, row_i):
         super().__init__(window)
         self._row_i = row_i
 
-        self.type_components = []   # Holds type specific GUI components
+        self.type_components = []  # Holds type specific GUI components
 
         self.col_i = 0
         # Type
@@ -499,6 +504,7 @@ class PropertyInput(Frame):
 
 class RemovableSocketDefinitionInput(Frame):
     """Node IO Template"""
+
     def __init__(self, window, label):
         super().__init__(window)
 
@@ -552,6 +558,7 @@ class RemovableSocketDefinitionInput(Frame):
 
     def get(self):
         """Returns None if the input has been destroyed"""
-        return {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(), 'data_type': self.children['!combobox2'].get(),
+        return {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(),
+                'data_type': self.children['!combobox2'].get(),
                 'min': self.children['!entry2'].get(), 'max': self.children['!entry3'].get(),
                 'default': self.children['!entry4'].get()} if self.winfo_exists() else None
