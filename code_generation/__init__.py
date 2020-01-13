@@ -22,11 +22,33 @@ class CodeGeneratorUtil:
         subprocess.call(['clang-format', file_path, '-i'])
 
     @staticmethod
-    def uses_rna(props, node_type):
-        """Whether the node requires an RNA struct"""
-        dropdowns = list(filter(lambda p: p['type'] == 'Enum', props))
-        check_boxes = list(filter(lambda p: p['type'] == 'Boolean', props))
-        return len(dropdowns) > 2 or (len(dropdowns) == 2 and len(check_boxes) > 0) or node_type == "Texture"
+    def uses_dna(props, node_type):
+        """Whether the node requires an DNA struct
+            DNA struct is required if props can't fit in shorts custom1/2 and floats custom3/4"""
+        if node_type == "Texture":
+            return True
+
+        float_count = 0
+        enum_count = 0
+        bool_count = 0
+        int_count = 0
+        for prop in props:
+            if prop['type'] == "Float":
+                float_count += 1
+            elif prop['type'] == "Enum":
+                enum_count += 1
+            elif prop['type'] == "Boolean":
+                bool_count += 1
+            elif prop['type'] == "Int":
+                int_count += 1
+            elif prop['type'] == "String":
+                return True
+        if enum_count > 2 or float_count > 2 or bool_count > 16 or int_count > 2:
+            return True
+        if enum_count + int_count > 2 or (enum_count + int_count == 2 and bool_count > 0):
+            return True
+
+        return False
 
     @staticmethod
     def dna_padding_size(props):
@@ -88,9 +110,8 @@ class CodeGenerator:
     def _add_dna_node_type(self):
         """
         DNA_node_types.h
-        For texture nodes
         """
-        if CodeGeneratorUtil.uses_rna(self._gui.get_props(), self._gui.get_node_type()):
+        if CodeGeneratorUtil.uses_dna(self._gui.get_props(), self._gui.get_node_type()):
             dna_path = path.join(self._gui.get_source_path(), "source", "blender", "makesdna", "DNA_node_types.h")
             with open(dna_path, 'r+') as f:
                 props = defaultdict(list)
