@@ -182,7 +182,7 @@ class CodeGenerator:
                             format(tex='tex_' if self._gui.get_node_type() == "Texture" else '',
                                    name=CodeGeneratorUtil.string_lower_underscored(prop['name']))
 
-                    props.append('prop = RNA_def_property(srna, "{name}", PROP_{TYPE}, PROP_{SUBTYPE});'
+                    props.append('prop = RNA_def_property(srna, "{name}", PROP_{TYPE}, {SUBTYPE});'
                                  'RNA_def_property_{type}_sdna(prop, NULL, "{sdna}"{enum});'
                                  '{enum_items}'
                                  '{prop_range}'
@@ -191,7 +191,7 @@ class CodeGenerator:
                         format(
                         name=CodeGeneratorUtil.string_lower_underscored(prop['name']),
                         TYPE=CodeGeneratorUtil.string_upper_underscored(prop['type']),
-                        SUBTYPE=CodeGeneratorUtil.string_upper_underscored(prop['sub-type']),
+                        SUBTYPE=prop['sub-type'],
                         type=CodeGeneratorUtil.string_lower_underscored(prop['type']),
                         sdna=CodeGeneratorUtil.string_lower_underscored(
                             prop['name'] if uses_dna else "custom{index}".format(index=custom_i)),
@@ -401,9 +401,7 @@ class CodeGenerator:
             lines = f.readlines()
             cat_line_i = 0
             for i, line in enumerate(lines):
-                if re.search('SH_NEW_' + (
-                        'OP_' if self._gui.get_node_group() == 'Color' else '') + self._gui.get_node_group().upper(),
-                             line):
+                if re.search('SH_NEW_' + self._gui.get_node_group().upper(), line):
                     cat_line_i = i
                     break
             else:

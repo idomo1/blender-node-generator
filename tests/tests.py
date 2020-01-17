@@ -93,15 +93,15 @@ class TestCodeGeneration(unittest.TestCase):
         self.mock_gui.get_node_group_level.return_value = 3
         self.mock_gui.get_node_check_box_count.return_value = 2
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "None", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "None", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "None", "default": 1},
-            {"name": "int1", "type": "Int", "sub-type": "None", "default": 0, "min": -1, "max": 1},
-            {"name": "float1", "type": "Float", "sub-type": "None", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "None", "size": 64, "default": '""'}]
+            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         self.mock_gui.node_has_properties.return_value = True
         self.mock_gui.node_has_check_box.return_value = True
         self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data_type': "Float",
@@ -848,13 +848,13 @@ class TestCodeGeneration(unittest.TestCase):
                                 '}\n\n' in mf.mock_calls[-3][1][0])
 
     def test_write_rna_properties_no_enums_correct_formatting(self):
-        self.mock_gui.get_props.return_value = [{"name": "box1", "type": "Boolean", "sub-type": "None", "default": 0},
-                                                {"name": "box2", "type": "Boolean", "sub-type": "None", "default": 1},
-                                                {"name": "int1", "type": "Int", "sub-type": "None", "default": 0,
+        self.mock_gui.get_props.return_value = [{"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                                                {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
+                                                {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0,
                                                  "min": -1, "max": 1},
-                                                {"name": "float1", "type": "Float", "sub-type": "None", "default": 0.0,
+                                                {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0,
                                                  "min": -1.0, "max": 1.0},
-                                                {"name": "string1", "type": "String", "sub-type": "None", "size": 64,
+                                                {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64,
                                                  "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
@@ -900,13 +900,13 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_bools_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "None", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "int1", "type": "Int", "sub-type": "None", "default": 0, "min": -1, "max": 1},
-            {"name": "float1", "type": "Float", "sub-type": "None", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "None", "size": 64, "default": '""'}]
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -953,14 +953,14 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_ints_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "None", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "None", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "None", "default": 1},
-            {"name": "float1", "type": "Float", "sub-type": "None", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "None", "size": 64, "default": '""'}]
+            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1011,14 +1011,14 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_string_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "None", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "None", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "None", "default": 1},
-            {"name": "int1", "type": "Int", "sub-type": "None", "default": 0, "min": -1, "max": 1},
-            {"name": "float1", "type": "Float", "sub-type": "None", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1070,14 +1070,14 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_floats_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "None", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "None", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "None", "default": 1},
-            {"name": "int1", "type": "Int", "sub-type": "None", "default": 0, "min": -1, "max": 1},
-            {"name": "string1", "type": "String", "sub-type": "None", "size": 64, "default": '""'}]
+            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1137,9 +1137,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_one_enum_bool_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "None", "default": 0}]
+            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1168,10 +1168,10 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_one_enum_bool_float_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "None", "default": 0},
-            {"name": "float1", "type": "Float", "sub-type": "None", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1206,9 +1206,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_two_enum_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "None", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
@@ -1239,12 +1239,12 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_two_enum_float_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "None", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "None", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "float1", "type": "Float", "sub-type": "None", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "float2", "type": "Float", "sub-type": "None", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "float2", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
                                                         '/* -- Compositor Nodes ------------------------------------------------------ */\n'

@@ -105,8 +105,8 @@ class GeneralGUI:
     def __init__(self, tab):
         self._row_i = 0  # Counts the rows which have been filled, methods are responsible for incrementing this value
         self._window = tab
-        self._node_groups = ['Input', 'Output', 'Shader', 'Texture', 'Color', 'Vector', 'Converter', 'Script', 'Group',
-                             'Layout']
+        self._node_groups = ['Input', 'Output', 'Shader', 'Texture', 'OP_Color', 'OP_Vector', 'Converter', 'Script',
+                             'Group', 'Layout']
         self._node_types = ['Shader', 'Texture', 'Curves', 'Bsdf', 'BsdfBase', 'ImageSlotTexture', 'Volume']
         self._poll_enabled = BooleanVar()
 
@@ -372,11 +372,15 @@ class PropertyInput(Frame):
         self.col_i += 1
         # Sub-Type
         sub_type = Combobox(self)
-        sub_type['values'] = ['None', 'File Path', 'Dir Path', 'FileName', 'Byte String', 'Password', 'Pixel',
-                              'Unsigned', 'Percentage', 'Factor', 'Angle', 'Time', 'Distance', 'Distance Camera',
-                              'Color', 'Translation', 'Direction', 'Velocity', 'Acceleration', 'Matrix', 'Euler',
-                              'Quaternion', 'Axis Angle', 'XYZ', 'XYZ Length', 'Color Gamma', 'Coords', 'Layer',
-                              'Layer Member', 'Power']
+        sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
+                              'PROP_PASSWORD', 'PROP_PIXEL',
+                              'PROP_UNSIGNED', 'PROP_PERCENTAGE', 'PROP_FACTOR', 'PROP_ANGLE', 'PROP_TIME',
+                              'PROP_DISTANCE', 'PROP_DISTANCE_CAMERA',
+                              'PROP_COLOR', 'PROP_TRANSLATION', 'PROP_DIRECTION', 'PROP_VELOCITY', 'PROP_ACCELERATION',
+                              'PROP_MATRIX', 'PROP_EULER',
+                              'PROP_QUATERNION', 'PROP_AXISANGLE', 'PROP_XYZ', 'PROP_XYZ_LENGTH', 'PROP_COLOR_GAMMA',
+                              'PROP_COORDS', 'PROP_LAYER',
+                              'PROP_LAYER_MEMBER', 'PROP_POWER']
         sub_type.current(0)
         sub_type.grid(row=self._row_i, column=self.col_i)
         self.col_i += 1
@@ -518,12 +522,34 @@ class RemovableSocketDefinitionInput(Frame):
         type.grid(row=0, column=col_i)
         col_i += 1
 
-        Label(self, text='type').grid(row=0, column=col_i)
+        Label(self, text='Type').grid(row=0, column=col_i)
         col_i += 1
         data_type = Combobox(self)
         data_type['values'] = ["Float", "Vector", "RGBA", "Shader", "Boolean", "Int", "String"]
         data_type.current(0)
         data_type.grid(row=0, column=col_i)
+        col_i += 1
+
+        sub_type = Combobox(self)
+        sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
+                              'PROP_PASSWORD', 'PROP_PIXEL',
+                              'PROP_UNSIGNED', 'PROP_PERCENTAGE', 'PROP_FACTOR', 'PROP_ANGLE', 'PROP_TIME',
+                              'PROP_DISTANCE', 'PROP_DISTANCE_CAMERA',
+                              'PROP_COLOR', 'PROP_TRANSLATION', 'PROP_DIRECTION', 'PROP_VELOCITY', 'PROP_ACCELERATION',
+                              'PROP_MATRIX', 'PROP_EULER',
+                              'PROP_QUATERNION', 'PROP_AXISANGLE', 'PROP_XYZ', 'PROP_XYZ_LENGTH', 'PROP_COLOR_GAMMA',
+                              'PROP_COORDS', 'PROP_LAYER',
+                              'PROP_LAYER_MEMBER', 'PROP_POWER']
+        sub_type.current(0)
+        sub_type.grid(row=0, column=col_i)
+        col_i += 1
+
+        Label(self, text='Flag').grid(row=0, column=col_i)
+        col_i += 1
+        flag = Combobox(self)
+        flag['values'] = ["None", "SOCK_HIDE_VALUE", "SOCK_NO_INTERNAL_LINK"]
+        flag.current(0)
+        flag.grid(row=0, column=col_i)
         col_i += 1
 
         Label(self, text='Name').grid(row=0, column=col_i)
@@ -560,5 +586,7 @@ class RemovableSocketDefinitionInput(Frame):
         """Returns None if the input has been destroyed"""
         return {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(),
                 'data_type': self.children['!combobox2'].get(),
+                'sub-type': self.children['!combobox3'].get(),
+                'flag': self.children['!combobox4'].get(),
                 'min': self.children['!entry2'].get(), 'max': self.children['!entry3'].get(),
                 'default': self.children['!entry4'].get()} if self.winfo_exists() else None
