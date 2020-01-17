@@ -443,7 +443,8 @@ class CodeGenerator:
                 props=''.join('{type} {name} = {default},'.format(type=type_conversion[prop['type']],
                                                                   name=CodeGeneratorUtil.string_lower_underscored(
                                                                       prop['name']),
-                                                                  default=prop['default']) for prop in props),
+                                                                  default=prop['default']) for prop in props if
+                              prop['type'] != 'String'),
                 in_sockets=''.join(['{type} {name} = {default},'.format(type=type_conversion[socket['data_type']],
                                                                         name=socket['name'],
                                                                         default=socket['default'])

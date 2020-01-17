@@ -120,7 +120,6 @@ class TestCodeGeneration(unittest.TestCase):
                               'int box2 = 1,'
                               'int int1 = 0,'
                               'float float1 = 0.0,'
-                              'string string1 = "",'
                               'float socket1 = 0.0,'
                               'output float socket2 = 0.0){}')]
 
@@ -146,7 +145,6 @@ class TestCodeGeneration(unittest.TestCase):
                               'int box2 = 1,'
                               'int int1 = 0,'
                               'float float1 = 0.0,'
-                              'string string1 = "",'
                               'float socket1 = 0.0,'
                               'output float socket2 = 0.0){}')]
 
