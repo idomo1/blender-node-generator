@@ -93,6 +93,9 @@ class GUI:
     def get_props(self):
         return self._prop_GUI.get_props()
 
+    def is_texture_node(self):
+        return self.get_node_type() == 'Texture'
+
     def generate_node(self):
         if self._is_input_valid():
             code_generator = self.CodeGenerator(self)

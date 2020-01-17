@@ -102,6 +102,7 @@ class TestCodeGeneration(unittest.TestCase):
             {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
             {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+        self.mock_gui.is_texture_node.return_value = False
         self.mock_gui.node_has_properties.return_value = True
         self.mock_gui.node_has_check_box.return_value = True
         self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data_type': "Float",
@@ -133,6 +134,7 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_osl_file_texture_correct_formatting(self):
         """Test OSL function generation is correct for texture node"""
         self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
 
         m = mock.Mock()
         calls = [call().write('#include "stdosl.h"\n\n'),
@@ -375,6 +377,7 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_drawnode_texture_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
         with patch('builtins.open', mock_open(read_data=
                                               'static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)\n'
                                               '{\n'
@@ -721,6 +724,7 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_texture_node_register_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
         with patch('builtins.open', mock_open(read_data='void register_node_type_sh_tex_ies(void);\n'
                                                         'void register_node_type_sh_tex_white_noise(void);\n'
                                                         'void register_node_type_sh_tex_truchet(void);\n'
@@ -791,6 +795,7 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_tex_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 

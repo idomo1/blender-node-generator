@@ -102,7 +102,7 @@ class CodeGenerator:
                 print("Node ID not found")
             last = int(file_text[last_i - 5:last_i - 2])
             name_underscored = "_".join(self._gui.get_node_name().split(" "))
-            line = "#define SH_NODE_{0}{1} {2}\n".format("TEX_" if self._gui.get_node_type() == "Texture" else "",
+            line = "#define SH_NODE_{0}{1} {2}\n".format("TEX_" if self._gui.is_texture_node() else "",
                                                          name_underscored.upper(), str(last + 1))
             file_text = file_text[:last_i - 1] + line + file_text[last_i - 1:]
 
@@ -179,7 +179,7 @@ class CodeGenerator:
                             f_custom_i += 1
                     if prop['type'] == "Enum":
                         enum_name = 'rna_enum_node_{tex}{name}_items'. \
-                            format(tex='tex_' if self._gui.get_node_type() == "Texture" else '',
+                            format(tex='tex_' if self._gui.is_texture_node() else '',
                                    name=CodeGeneratorUtil.string_lower_underscored(prop['name']))
 
                     props.append('prop = RNA_def_property(srna, "{name}", PROP_{TYPE}, {SUBTYPE});'
@@ -214,13 +214,13 @@ class CodeGenerator:
                        'PropertyRNA *prop;\n\n' \
                        '{sdna}' \
                        '{props}\n' \
-                       '}}\n\n'.format(tex="tex_" if self._gui.get_node_type() == "Texture" else '',
+                       '}}\n\n'.format(tex="tex_" if self._gui.is_texture_node() else '',
                                        name=self._gui.get_node_name().replace(" ", "_").lower(),
                                        sdna='RNA_def_struct_sdna_from(srna, "Node{Tex}{Name}", "storage");\ndef_sh_tex(srna);\n\n'. \
                                        format(Name=CodeGeneratorUtil.string_capitalized_no_space(
                                            self._gui.get_node_name()),
-                                           Tex="Tex" if self._gui.get_node_type() == "Texture" else "")
-                                       if self._gui.get_node_type() == "Texture" else '',
+                                           Tex="Tex" if self._gui.is_texture_node() else "")
+                                       if self._gui.is_texture_node() else '',
                                        props="\n\n".join(props))
                 lines = f.readlines()
                 for i, line in enumerate(lines):
@@ -242,13 +242,13 @@ class CodeGenerator:
             lines = f.readlines()
 
             node_definition = 'DefNode(ShaderNode,     ' + \
-                              'SH_NODE_' + "_".join(("TEX" if self._gui.get_node_type() == "Texture" else "",
+                              'SH_NODE_' + "_".join(("TEX" if self._gui.is_texture_node() else "",
                                                      CodeGeneratorUtil.string_upper_underscored(
                                                          self._gui.get_node_name()))) + \
                               ',' + ('def_sh_' + CodeGeneratorUtil.string_lower_underscored(
                 self._gui.get_node_name()) if self._gui.node_has_properties() else '0') + \
                               ', ' + (
-                                  'Tex' if self._gui.get_node_type() == "Texture" else '') + CodeGeneratorUtil.string_capitalized_no_space(
+                                  'Tex' if self._gui.is_texture_node() else '') + CodeGeneratorUtil.string_capitalized_no_space(
                 self._gui.get_node_name()) + \
                               ', ' + CodeGeneratorUtil.string_capitalized_spaced(
                 self._gui.get_node_name()) + ',  ""   ' + ")"
@@ -285,11 +285,11 @@ class CodeGenerator:
                 lines.insert(line_i, func)
 
                 case = [
-                    "case SH_NODE_{tex}{name}:\n".format(tex="TEX_" if self._gui.get_node_type() == "Texture" else "",
+                    "case SH_NODE_{tex}{name}:\n".format(tex="TEX_" if self._gui.is_texture_node() else "",
                                                          name=CodeGeneratorUtil.string_upper_underscored(
                                                              self._gui.get_node_name())),
                     "ntype->draw_buttons = node_shader_buts_{tex}{name};\n".format(
-                        tex="tex_" if self._gui.get_node_type() == "Texture" else "",
+                        tex="tex_" if self._gui.is_texture_node() else "",
                         name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name())),
                     "break;\n"]
 
@@ -319,7 +319,7 @@ class CodeGenerator:
         with open(file_path, 'r+') as f:
 
             func = 'void register_node_type_sh_{tex}{name}(void);\n'. \
-                format(tex="tex_" if self._gui.get_node_type() == "Texture" else '',
+                format(tex="tex_" if self._gui.is_texture_node() else '',
                        name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()))
 
             f.seek(0, SEEK_END)
@@ -362,7 +362,7 @@ class CodeGenerator:
                    "{node_group}" \
                    "{props}" \
                    "}};".format(name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
-                                tex="Texture" if self._gui.get_node_type() == "Texture" else "",
+                                tex="Texture" if self._gui.is_texture_node() else "",
                                 type=self._gui.get_node_type(),
                                 node_group="virtual int get_group(){{return NODE_GROUP_LEVEL_{level};}}".
                                 format(
@@ -410,7 +410,7 @@ class CodeGenerator:
             for i in range(cat_line_i, len(lines)):
                 if re.search(']\)', lines[i]):
                     lines.insert(i, '        NodeItem("ShaderNode{0}{1}"{2})\n'.format(
-                        "Tex" if self._gui.get_node_type() == "Texture" else "",
+                        "Tex" if self._gui.is_texture_node() else "",
                         CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
                         (', poll={0}'.format(self._gui.get_poll()) if self._gui.get_poll() is not None else '')))
                     lines[i - 1] = lines[i - 1][:len(lines[i - 1]) - 1] + ',\n'
@@ -438,8 +438,8 @@ class CodeGenerator:
 
             function = "shader node_{name}{tex}({mapping}{props}{in_sockets}{out_sockets}){{}}".format(
                 name=node_name_underscored,
-                tex='_texture' if self._gui.get_node_type() == 'Texture' else '',
-                mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),' if self._gui.get_node_type() == 'Texture' else '',
+                tex='_texture' if self._gui.is_texture_node() else '',
+                mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),' if self._gui.is_texture_node() else '',
                 props=''.join('{type} {name} = {default},'.format(type=type_conversion[prop['type']],
                                                                   name=CodeGeneratorUtil.string_lower_underscored(
                                                                       prop['name']),
