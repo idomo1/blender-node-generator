@@ -439,18 +439,19 @@ class CodeGenerator:
             function = "shader node_{name}{tex}({mapping}{props}{in_sockets}{out_sockets}){{}}".format(
                 name=node_name_underscored,
                 tex='_texture' if self._gui.is_texture_node() else '',
-                mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),' if self._gui.is_texture_node() else '',
-                props=''.join('{type} {name} = {default},'.format(type=type_conversion[prop['type']],
-                                                                  name=CodeGeneratorUtil.string_lower_underscored(
-                                                                      prop['name']),
-                                                                  default=prop['default']) for prop in props if
-                              prop['type'] != 'String'),
-                in_sockets=''.join(['{type} {name} = {default},'.format(type=type_conversion[socket['data_type']],
+                mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),'
+                if self._gui.is_texture_node() else '',
+                props=''.join('{type} {name} = {default},'.format(
+                    type=type_conversion[prop['type']],
+                    name=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                    default='"{default}"'.format(default=prop['default']) if prop['type'] == 'Enum' else prop['default'])
+                              for prop in props if prop['type'] != 'String'),
+                in_sockets=''.join(['{type} {name} = {default},'.format(type=type_conversion[socket['data-type']],
                                                                         name=socket['name'],
                                                                         default=socket['default'])
                                     for socket in sockets if socket['type'] == 'Input']),
                 out_sockets=','.join(
-                    ['output {type} {name} = {default}'.format(type=type_conversion[socket['data_type']],
+                    ['output {type} {name} = {default}'.format(type=type_conversion[socket['data-type']],
                                                                name=socket['name'],
                                                                default=socket['default'])
                      for socket in sockets if socket['type'] == 'Output']))

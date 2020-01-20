@@ -94,9 +94,9 @@ class TestCodeGeneration(unittest.TestCase):
         self.mock_gui.get_node_check_box_count.return_value = 2
         self.mock_gui.get_props.return_value = [
             {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
-             "default": '"prop1"'},
+             "default": 'prop1'},
             {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
-             "default": '"prop3"'},
+             "default": 'prop3'},
             {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
             {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
             {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},

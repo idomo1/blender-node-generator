@@ -503,7 +503,7 @@ class PropertyInput(Frame):
                 prop['default'] = '""'
             elif type == "Enum":
                 prop['options'] = self.type_components[1].get().replace(', ', ',').split(',')
-                prop['default'] = '"{0}"'.format(self.type_components[3].get())
+                prop['default'] = self.type_components[3].get()
             else:
                 raise Exception("Invalid Property Type")
             return prop
