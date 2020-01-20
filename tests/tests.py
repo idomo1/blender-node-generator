@@ -97,18 +97,20 @@ class TestCodeGeneration(unittest.TestCase):
              "default": 'prop1'},
             {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'},
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
             {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
             {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         self.mock_gui.is_texture_node.return_value = False
         self.mock_gui.node_has_properties.return_value = True
         self.mock_gui.node_has_check_box.return_value = True
-        self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data_type': "Float",
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.0"},
-                                                       {'type': "Output", 'name': "socket2", 'data_type': "Float",
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.0"}]
+        self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
+                                                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                                                       {'type': "Output", 'name': "socket2", 'data-type': "Float",
+                                                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
 
     def test_write_osl_file_correct_formatting(self):
         """Test OSL function generation is correct for paramaters"""
@@ -116,12 +118,12 @@ class TestCodeGeneration(unittest.TestCase):
         calls = [call().write('#include "stdosl.h"\n\n'),
                  call().write('shader node_node_name(string dropdown1 = "prop1",'
                               'string dropdown2 = "prop3",'
+                              'int int1 = 0,'
                               'int box1 = 0,'
                               'int box2 = 1,'
-                              'int int1 = 0,'
                               'float float1 = 0.0,'
-                              'float socket1 = 0.0,'
-                              'output float socket2 = 0.0){}')]
+                              'float socket1 = 0.5,'
+                              'output float socket2 = 0.5){}')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
@@ -141,12 +143,12 @@ class TestCodeGeneration(unittest.TestCase):
                               'matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),'
                               'string dropdown1 = "prop1",'
                               'string dropdown2 = "prop3",'
+                              'int int1 = 0,'
                               'int box1 = 0,'
                               'int box2 = 1,'
-                              'int int1 = 0,'
                               'float float1 = 0.0,'
-                              'float socket1 = 0.0,'
-                              'output float socket2 = 0.0){}')]
+                              'float socket1 = 0.5,'
+                              'output float socket2 = 0.5){}')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
@@ -282,7 +284,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            '  char _pad[4];\n'
                                                            '} NodeTexMagic;\n'
                                                            '\n'
-                                                           'typedef struct NodeTexNodeName {NodeTexBase base; int dropdown1, dropdown2, box1, box2, int1; float float1; char string1[64];} NodeTexNodeName;\n'
+                                                           'typedef struct NodeTexNodeName {NodeTexBase base; int dropdown1, dropdown2, int1, box1, box2; float float1; char string1[64];} NodeTexNodeName;\n'
                                                            '\n'
                                                            'typedef struct NodeShaderAttribute {\n'
                                                            '  char name[64];\n'
@@ -364,9 +366,9 @@ class TestCodeGeneration(unittest.TestCase):
                 'static void node_shader_buts_node_name(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)'
                 '{uiItemR(layout, ptr, "dropdown1", 0, "", ICON_NONE);'
                 'uiItemR(layout, ptr, "dropdown2", 0, "", ICON_NONE);'
+                'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "float1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "string1", 0, IFACE_("String1"), ICON_NONE);'
                 '}\n\n' in mf.mock_calls[-3][1][0]
@@ -402,9 +404,9 @@ class TestCodeGeneration(unittest.TestCase):
                 'static void node_shader_buts_node_name(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)'
                 '{uiItemR(layout, ptr, "dropdown1", 0, "", ICON_NONE);'
                 'uiItemR(layout, ptr, "dropdown2", 0, "", ICON_NONE);'
+                'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "float1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "string1", 0, IFACE_("String1"), ICON_NONE);'
                 '}\n\n' in mf.mock_calls[-3][1][0]
@@ -763,6 +765,12 @@ class TestCodeGeneration(unittest.TestCase):
                                 'RNA_def_property_ui_text(prop, "Dropdown2", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
+                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
+                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
+                                'RNA_def_property_range(prop, -1, 1);'
+                                'RNA_def_property_ui_text(prop, "Int1", "");'
+                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
+
                                 'prop = RNA_def_property(srna, "box1", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box1", SHD_NODE_NAME_BOX1);'
                                 'RNA_def_property_ui_text(prop, "Box1", "");'
@@ -771,12 +779,6 @@ class TestCodeGeneration(unittest.TestCase):
                                 'prop = RNA_def_property(srna, "box2", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box2", SHD_NODE_NAME_BOX2);'
                                 'RNA_def_property_ui_text(prop, "Box2", "");'
-                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
-
-                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
-                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
-                                'RNA_def_property_range(prop, -1, 1);'
-                                'RNA_def_property_ui_text(prop, "Int1", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
                                 'prop = RNA_def_property(srna, "float1", PROP_FLOAT, PROP_NONE);'
@@ -822,6 +824,12 @@ class TestCodeGeneration(unittest.TestCase):
                                 'RNA_def_property_ui_text(prop, "Dropdown2", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
+                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
+                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
+                                'RNA_def_property_range(prop, -1, 1);'
+                                'RNA_def_property_ui_text(prop, "Int1", "");'
+                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
+
                                 'prop = RNA_def_property(srna, "box1", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box1", SHD_NODE_NAME_BOX1);'
                                 'RNA_def_property_ui_text(prop, "Box1", "");'
@@ -830,12 +838,6 @@ class TestCodeGeneration(unittest.TestCase):
                                 'prop = RNA_def_property(srna, "box2", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box2", SHD_NODE_NAME_BOX2);'
                                 'RNA_def_property_ui_text(prop, "Box2", "");'
-                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
-
-                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
-                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
-                                'RNA_def_property_range(prop, -1, 1);'
-                                'RNA_def_property_ui_text(prop, "Int1", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
                                 'prop = RNA_def_property(srna, "float1", PROP_FLOAT, PROP_NONE);'
@@ -851,14 +853,14 @@ class TestCodeGeneration(unittest.TestCase):
                                 '}\n\n' in mf.mock_calls[-3][1][0])
 
     def test_write_rna_properties_no_enums_correct_formatting(self):
-        self.mock_gui.get_props.return_value = [{"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                                                {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                                                {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0,
-                                                 "min": -1, "max": 1},
-                                                {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0,
-                                                 "min": -1.0, "max": 1.0},
-                                                {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64,
-                                                 "default": '""'}]
+        self.mock_gui.get_props.return_value = [
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0,
+             "min": -1.0, "max": 1.0},
+            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64,
+             "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -873,6 +875,12 @@ class TestCodeGeneration(unittest.TestCase):
                 self.assertTrue('static void def_sh_node_name(StructRNA *srna)\n'
                                 '{\n'
                                 'PropertyRNA *prop;\n\n'
+                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
+                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
+                                'RNA_def_property_range(prop, -1, 1);'
+                                'RNA_def_property_ui_text(prop, "Int1", "");'
+                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
+
                                 'prop = RNA_def_property(srna, "box1", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box1", SHD_NODE_NAME_BOX1);'
                                 'RNA_def_property_ui_text(prop, "Box1", "");'
@@ -881,12 +889,6 @@ class TestCodeGeneration(unittest.TestCase):
                                 'prop = RNA_def_property(srna, "box2", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box2", SHD_NODE_NAME_BOX2);'
                                 'RNA_def_property_ui_text(prop, "Box2", "");'
-                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
-
-                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
-                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
-                                'RNA_def_property_range(prop, -1, 1);'
-                                'RNA_def_property_ui_text(prop, "Int1", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
                                 'prop = RNA_def_property(srna, "float1", PROP_FLOAT, PROP_NONE);'
@@ -1018,9 +1020,9 @@ class TestCodeGeneration(unittest.TestCase):
              "default": '"prop1"'},
             {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
             {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
@@ -1048,6 +1050,12 @@ class TestCodeGeneration(unittest.TestCase):
                                 'RNA_def_property_ui_text(prop, "Dropdown2", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
+                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
+                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
+                                'RNA_def_property_range(prop, -1, 1);'
+                                'RNA_def_property_ui_text(prop, "Int1", "");'
+                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
+
                                 'prop = RNA_def_property(srna, "box1", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box1", SHD_NODE_NAME_BOX1);'
                                 'RNA_def_property_ui_text(prop, "Box1", "");'
@@ -1056,12 +1064,6 @@ class TestCodeGeneration(unittest.TestCase):
                                 'prop = RNA_def_property(srna, "box2", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box2", SHD_NODE_NAME_BOX2);'
                                 'RNA_def_property_ui_text(prop, "Box2", "");'
-                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
-
-                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
-                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
-                                'RNA_def_property_range(prop, -1, 1);'
-                                'RNA_def_property_ui_text(prop, "Int1", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
                                 'prop = RNA_def_property(srna, "float1", PROP_FLOAT, PROP_NONE);'
@@ -1077,9 +1079,9 @@ class TestCodeGeneration(unittest.TestCase):
              "default": '"prop1"'},
             {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
+            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
             {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
@@ -1107,6 +1109,12 @@ class TestCodeGeneration(unittest.TestCase):
                                 'RNA_def_property_ui_text(prop, "Dropdown2", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
+                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
+                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
+                                'RNA_def_property_range(prop, -1, 1);'
+                                'RNA_def_property_ui_text(prop, "Int1", "");'
+                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
+
                                 'prop = RNA_def_property(srna, "box1", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box1", SHD_NODE_NAME_BOX1);'
                                 'RNA_def_property_ui_text(prop, "Box1", "");'
@@ -1115,12 +1123,6 @@ class TestCodeGeneration(unittest.TestCase):
                                 'prop = RNA_def_property(srna, "box2", PROP_BOOLEAN, PROP_NONE);'
                                 'RNA_def_property_boolean_sdna(prop, NULL, "box2", SHD_NODE_NAME_BOX2);'
                                 'RNA_def_property_ui_text(prop, "Box2", "");'
-                                'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
-
-                                'prop = RNA_def_property(srna, "int1", PROP_INT, PROP_NONE);'
-                                'RNA_def_property_int_sdna(prop, NULL, "int1");'
-                                'RNA_def_property_range(prop, -1, 1);'
-                                'RNA_def_property_ui_text(prop, "Int1", "");'
                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");\n\n'
 
                                 'prop = RNA_def_property(srna, "string1", PROP_STRING, PROP_NONE);'
