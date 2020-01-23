@@ -345,7 +345,7 @@ class PropertiesGUI:
 
     def _sort_props(self, props):
         """Sorts props by type order required for constructing rna props"""
-        type_value = {"Enum": 0, "Boolean": 1, "Int": 0, "Float": 2, "String": 3}
+        type_value = {"Enum": 0, "Boolean": 2, "Int": 1, "Float": 3, "String": 4}
         props.sort(key=lambda p: type_value[p['type']])
         return props
 
