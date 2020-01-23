@@ -588,7 +588,7 @@ class RemovableSocketDefinitionInput(Frame):
     def get(self):
         """Returns None if the input has been destroyed"""
         return {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(),
-                'data_type': self.children['!combobox2'].get(),
+                'data-type': self.children['!combobox2'].get(),
                 'sub-type': self.children['!combobox3'].get(),
                 'flag': self.children['!combobox4'].get(),
                 'min': self.children['!entry2'].get(), 'max': self.children['!entry3'].get(),
