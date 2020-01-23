@@ -350,7 +350,7 @@ class PropertiesGUI:
         return props
 
     def get_props(self):
-        props = [prop.get() for prop in self._props if prop is not None]
+        props = [prop.get() for prop in self._props if prop.get() is not None]
         return self._sort_props(props)
 
 
