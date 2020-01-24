@@ -111,6 +111,26 @@ class TestCodeGeneration(unittest.TestCase):
                                                        {'type': "Output", 'name': "socket2", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+        self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
+                                                                    'prop-avail': [('dropdown1=prop1', True),
+                                                                                   ('dropdown1=prop2', True),
+                                                                                   ('dropdown2=prop3', True),
+                                                                                   ('dropdown2=prop4', True),
+                                                                                   ('box1=True', True),
+                                                                                   ('box1=False', True),
+                                                                                   ('box2=True', True),
+                                                                                   ('box2=False', True)]},
+                                                                   {'socket-name': 'socket2', 'socket-type': 'out',
+                                                                    'prop-avail': [('dropdown1=prop1', True),
+                                                                                   ('dropdown1=prop2', True),
+                                                                                   ('dropdown2=prop3', True),
+                                                                                   ('dropdown2=prop4', False),
+                                                                                   ('box1=True', False),
+                                                                                   ('box1=False', True),
+                                                                                   ('box2=True', True),
+                                                                                   ('box2=False', True)]}
+                                                                   ]
+        self.mock_gui.socket_availability_changes.return_value = True
 
     def test_write_osl_file_correct_formatting(self):
         """Test OSL function generation is correct for paramaters"""

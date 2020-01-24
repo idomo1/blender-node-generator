@@ -85,7 +85,7 @@ class GUI:
         return len(list(filter(lambda p: p.get()['type'] == 'Boolean', self._prop_GUI.get_props()))) > 0
 
     def get_node_sockets(self):
-        return self._socket_GUI.get_io()
+        return self._socket_GUI.get_sockets()
 
     def get_poll(self):
         return self._general_GUI.get_poll()
@@ -93,8 +93,20 @@ class GUI:
     def get_props(self):
         return self._prop_GUI.get_props()
 
+    def get_socket_availability_maps(self):
+        return self._socket_avail_GUI.get_maps()
+
     def is_texture_node(self):
         return self.get_node_type() == 'Texture'
+
+    def socket_availability_changes(self):
+        """Returns whether the socket availability of the node changes based on
+        the nodes properties values"""
+        for map in self._socket_avail_GUI.get_maps():
+            for prop, avail in map['prop-avail']:
+                if not avail:
+                    return True
+        return False
 
     def generate_node(self):
         if self._is_input_valid():
@@ -212,17 +224,17 @@ class SocketDefinitionsGUI:
         self._row_i = 0
         self._ios = []
 
-    def _add_node_io(self):
+    def _add_node_socket(self):
         io = RemovableSocketDefinitionInput(self.window, 'IO')
         self._ios.append(io)
         io.grid(row=self._row_i)
         self._row_i += 1
 
     def display(self):
-        Button(self.window, text='Add I/O', command=self._add_node_io).grid(row=self._row_i)
+        Button(self.window, text='Add I/O', command=self._add_node_socket).grid(row=self._row_i)
         self._row_i += 1
 
-    def get_io(self):
+    def get_sockets(self):
         return list(filter(lambda p: p is not None, map(lambda p: p.get(), self._ios)))
 
 
@@ -244,46 +256,59 @@ class SocketAvailabilityGUI:
 
     def _update_options(self, event=None):
         """For when dropdown options are changed"""
-        values = []
-        for prop in self._props_GUI.get_props():
-            if prop['type'] == "Enum":
-                values += prop['options']
-            elif prop['type'] == "Boolean":
-                values.append(prop['name'] + ":True")
-                values.append(prop['name'] + ":False")
-        self._dropdown['values'] = values
+        self._dropdown['values'] = [socket['name'] for socket in self._IO_GUI.get_sockets()]
 
     def _display_mapping(self, map_key):
         self._remove_existing_menu()
-        for socket in self._maps[map_key]:
-            Label(self.window, text=socket).grid(row=self._row_i)
-            Checkbutton(self.window, var=self._maps[map_key][socket]).grid(row=self._row_i, column=1)
+        for prop in self._maps[map_key]:
+            Label(self.window, text=prop).grid(row=self._row_i)
+            Checkbutton(self.window, var=self._maps[map_key][prop]).grid(row=self._row_i, column=1)
             self._row_i += 1
 
     def _remove_deleted_sockets(self):
-        sockets = self._IO_GUI.get_io()
+        props = self._props_GUI.get_props()
         for key in list(self._maps[self._dropdown.get()].keys()):
-            for socket in sockets:
-                if key == socket['name']:
-                    break
+            for prop in props:
+                if prop['type'] == 'Boolean':
+                    if key == prop['name'] + '=True' or key == prop['name'] + '=False':
+                        break
+                elif prop['type'] == 'Enum':
+                    if key in [prop['name'] + '=' + option for option in prop['options']]:
+                        break
             else:
                 del self._maps[self._dropdown.get()][key]
 
     def _on_selected(self, event):
-        sockets = self._IO_GUI.get_io()
-        if self._dropdown.get() not in self._maps:
-            vars = [BooleanVar() for _ in range(len(sockets))]
+        props = self._props_GUI.get_props()
+        if self._dropdown.get() not in self._maps.keys():
+            options = []
+            for prop in props:
+                if prop['type'] == 'Boolean':
+                    options.append(prop['name'] + '=True')
+                    options.append(prop['name'] + '=False')
+                elif prop['type'] == 'Enum':
+                    options.extend([(prop['name'] + '=' + option) for option in prop['options']])
+            vars = [BooleanVar() for _ in range(len(options))]
             for var in vars:
                 var.set(True)
                 self._maps[self._dropdown.get()] = dict()
-            for i, socket in enumerate(sockets):
-                self._maps[self._dropdown.get()][socket['name']] = vars[i]
+            for i, option in enumerate(options):
+                self._maps[self._dropdown.get()][option] = vars[i]
         else:
-            for socket in sockets:
-                if socket['name'] not in self._maps[self._dropdown.get()]:
-                    var = BooleanVar()
-                    var.set(True)
-                    self._maps[self._dropdown.get()][socket['name']] = var
+            for prop in props:
+                if prop['type'] == 'Boolean':
+                    if prop['name'] + '=True' not in self._maps[self._dropdown.get()].keys():
+                        var = BooleanVar()
+                        var.set(True)
+                        self._maps[self._dropdown.get()][prop['name'] + '=True'] = var
+                        var = BooleanVar()
+                        var.set(True)
+                        self._maps[self._dropdown.get()][prop['name'] + '=False'] = var
+                    elif prop['type'] == 'Enum':
+                        for option in prop['options']:
+                            var = BooleanVar()
+                            var.set(True)
+                            self._maps[self._dropdown.get()][prop['name'] + '=' + option] = var
         self._remove_deleted_sockets()
         self._display_mapping(self._dropdown.get())
 
@@ -296,14 +321,14 @@ class SocketAvailabilityGUI:
         self._dropdown.grid(row=self._row_i)
         self._row_i += 1
 
-    def get_map(self, name):
-        self._remove_deleted_sockets()
-        return copy.deepcopy(self._maps[name])
-
     def get_maps(self):
         self._remove_deleted_sockets()
-        return {dropdown: {socket: value.get() for socket, value in self._maps[dropdown].items()} for dropdown in
-                self._maps}
+        sockets = self._IO_GUI.get_sockets()
+        return [{'socket-name': socket_name,
+                 'socket-type': 'in' if next(socket for socket in sockets if socket['name'] == socket_name)
+                                        ['type'] == 'Input' else 'out',
+                 'prop-avail': [(prop, value.get()) for prop, value in self._maps[socket_name].items()]}
+                for socket_name in self._maps.keys()]
 
 
 class RemovableTextInput(Frame):
@@ -489,7 +514,7 @@ class PropertyInput(Frame):
                     'name': self.children['!entry'].get().lower()}
             type = self.type.get()
             if type == "Boolean":
-                prop['default'] = 0 if self.default.get() == "False" else 1
+                prop['default'] = int(self.default.get())
             elif type == "Int":
                 prop['min'] = int(self.type_components[1].get())
                 prop['max'] = int(self.type_components[3].get())
