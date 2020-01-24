@@ -2074,6 +2074,242 @@ class TestCodeGeneration(unittest.TestCase):
                                 'nodeRegisterType(&ntype);'
                                 '}\n')
 
+    def test_add_cycles_class_instance_correct_formatting(self):
+        with patch('builtins.open', mock_open(read_data=
+            'static ShaderNode *add_node(Scene *scene,\n'
+            'BL::RenderEngine &b_engine,\n'
+            'BL::BlendData &b_data,\n'
+            'BL::Depsgraph &b_depsgraph,\n'
+            'BL::Scene &b_scene,\n'
+            'ShaderGraph *graph,\n'
+            'BL::ShaderNodeTree &b_ntree,\n'
+            'BL::ShaderNode &b_node)\n'
+            '{\n'
+            'ShaderNode *node = NULL;\n\n'
+
+            '/* existing blender nodes */\n'
+            'if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {\n'
+            'BL::ShaderNodeRGBCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'RGBCurvesNode *curves = new RGBCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, true);\n'
+            'curvemapping_minmax(mapping, true, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            'if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {\n'
+            'BL::ShaderNodeVectorCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'VectorCurvesNode *curves = new VectorCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, false);\n'
+            'curvemapping_minmax(mapping, false, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            '  else if (b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {\n'
+            'BL::ShaderNodeVectorDisplacement b_disp_node(b_node);\n'
+            'VectorDisplacementNode *disp = new VectorDisplacementNode();\n'
+            'disp->space = (NodeNormalMapSpace)b_disp_node.space();\n'
+            'disp->attribute = "";\n'
+            'node = disp;\n'
+            '}\n\n'
+            'if (node) {\n'
+            'node->name = b_node.name();\n'
+            'graph->add(node);\n'
+            '}\n'
+            'return node;\n'
+            '}\n'
+            )) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class_instance()
+
+                self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeNodeName)) {'
+                                'BL::ShaderNodeNodeName b_node_name_node(b_node);'
+                                'NodeNameNode *node_name = new NodeNameNode();'
+                                'node_name->dropdown1 = b_node_name_node.dropdown1();'
+                                'node_name->dropdown2 = b_node_name_node.dropdown2();'
+                                'node_name->int1 = b_node_name_node.int1();'
+                                'node_name->box1 = b_node_name_node.box1();'
+                                'node_name->box2 = b_node_name_node.box2();'
+                                'node_name->float1 = b_node_name_node.float1();'
+                                'node_name->string1 = b_node_name_node.string1();'
+                                'node = node_name;'
+                                '}\n' in mf.mock_calls[-3][1][0])
+
+    def test_add_cycles_class_instance_texture_node_correct_formatting(self):
+        self.mock_gui.is_texture_node.return_value = True
+        with patch('builtins.open', mock_open(read_data=
+            'static ShaderNode *add_node(Scene *scene,\n'
+            'BL::RenderEngine &b_engine,\n'
+            'BL::BlendData &b_data,\n'
+            'BL::Depsgraph &b_depsgraph,\n'
+            'BL::Scene &b_scene,\n'
+            'ShaderGraph *graph,\n'
+            'BL::ShaderNodeTree &b_ntree,\n'
+            'BL::ShaderNode &b_node)\n'
+            '{\n'
+            'ShaderNode *node = NULL;\n\n'
+
+            '/* existing blender nodes */\n'
+            'if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {\n'
+            'BL::ShaderNodeRGBCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'RGBCurvesNode *curves = new RGBCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, true);\n'
+            'curvemapping_minmax(mapping, true, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            'if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {\n'
+            'BL::ShaderNodeVectorCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'VectorCurvesNode *curves = new VectorCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, false);\n'
+            'curvemapping_minmax(mapping, false, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            '  else if (b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {\n'
+            'BL::ShaderNodeVectorDisplacement b_disp_node(b_node);\n'
+            'VectorDisplacementNode *disp = new VectorDisplacementNode();\n'
+            'disp->space = (NodeNormalMapSpace)b_disp_node.space();\n'
+            'disp->attribute = "";\n'
+            'node = disp;\n'
+            '}\n\n'
+            'if (node) {\n'
+            'node->name = b_node.name();\n'
+            'graph->add(node);\n'
+            '}\n'
+            'return node;\n'
+            '}\n'
+            )) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class_instance()
+
+                self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
+                                'BL::ShaderNodeTexNodeName b_tex_node_name_node(b_node);'
+                                'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
+                                'node_name->dropdown1 = b_tex_node_name_node.dropdown1();'
+                                'node_name->dropdown2 = b_tex_node_name_node.dropdown2();'
+                                'node_name->int1 = b_tex_node_name_node.int1();'
+                                'node_name->box1 = b_tex_node_name_node.box1();'
+                                'node_name->box2 = b_tex_node_name_node.box2();'
+                                'node_name->float1 = b_tex_node_name_node.float1();'
+                                'node_name->string1 = b_tex_node_name_node.string1();'
+                                'BL::TexMapping b_texture_mapping(b_tex_node_name_node.texture_mapping());'
+                                'get_tex_mapping(&node_name->tex_mapping, b_texture_mapping);'
+                                'node = node_name;'
+                                '}\n' in mf.mock_calls[-3][1][0])
+
+    def test_add_cycles_class_instance_no_props_correct_formatting(self):
+        self.mock_gui.get_props.return_value = []
+        with patch('builtins.open', mock_open(read_data=
+            'static ShaderNode *add_node(Scene *scene,\n'
+            'BL::RenderEngine &b_engine,\n'
+            'BL::BlendData &b_data,\n'
+            'BL::Depsgraph &b_depsgraph,\n'
+            'BL::Scene &b_scene,\n'
+            'ShaderGraph *graph,\n'
+            'BL::ShaderNodeTree &b_ntree,\n'
+            'BL::ShaderNode &b_node)\n'
+            '{\n'
+            'ShaderNode *node = NULL;\n\n'
+
+            '/* existing blender nodes */\n'
+            'if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {\n'
+            'BL::ShaderNodeRGBCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'RGBCurvesNode *curves = new RGBCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, true);\n'
+            'curvemapping_minmax(mapping, true, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            'if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {\n'
+            'BL::ShaderNodeVectorCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'VectorCurvesNode *curves = new VectorCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, false);\n'
+            'curvemapping_minmax(mapping, false, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            '  else if (b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {\n'
+            'BL::ShaderNodeVectorDisplacement b_disp_node(b_node);\n'
+            'VectorDisplacementNode *disp = new VectorDisplacementNode();\n'
+            'disp->space = (NodeNormalMapSpace)b_disp_node.space();\n'
+            'disp->attribute = "";\n'
+            'node = disp;\n'
+            '}\n\n'
+            'if (node) {\n'
+            'node->name = b_node.name();\n'
+            'graph->add(node);\n'
+            '}\n'
+            'return node;\n'
+            '}\n'
+            )) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class_instance()
+
+                self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeNodeName)) {'
+                                'node = new NodeNameNode();'
+                                '}\n' in mf.mock_calls[-3][1][0])
+
+    def test_add_cycles_class_instance_texture_node_no_props_correct_formatting(self):
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.get_props.return_value = []
+        with patch('builtins.open', mock_open(read_data=
+            'static ShaderNode *add_node(Scene *scene,\n'
+            'BL::RenderEngine &b_engine,\n'
+            'BL::BlendData &b_data,\n'
+            'BL::Depsgraph &b_depsgraph,\n'
+            'BL::Scene &b_scene,\n'
+            'ShaderGraph *graph,\n'
+            'BL::ShaderNodeTree &b_ntree,\n'
+            'BL::ShaderNode &b_node)\n'
+            '{\n'
+            'ShaderNode *node = NULL;\n\n'
+
+            '/* existing blender nodes */\n'
+            'if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {\n'
+            'BL::ShaderNodeRGBCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'RGBCurvesNode *curves = new RGBCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, true);\n'
+            'curvemapping_minmax(mapping, true, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            'if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {\n'
+            'BL::ShaderNodeVectorCurve b_curve_node(b_node);\n'
+            'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+            'VectorCurvesNode *curves = new VectorCurvesNode();\n'
+            'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, false);\n'
+            'curvemapping_minmax(mapping, false, &curves->min_x, &curves->max_x);\n'
+            'node = curves;\n'
+            '}\n'
+            '  else if (b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {\n'
+            'BL::ShaderNodeVectorDisplacement b_disp_node(b_node);\n'
+            'VectorDisplacementNode *disp = new VectorDisplacementNode();\n'
+            'disp->space = (NodeNormalMapSpace)b_disp_node.space();\n'
+            'disp->attribute = "";\n'
+            'node = disp;\n'
+            '}\n\n'
+            'if (node) {\n'
+            'node->name = b_node.name();\n'
+            'graph->add(node);\n'
+            '}\n'
+            'return node;\n'
+            '}\n'
+            )) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class_instance()
+
+                self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
+                                'BL::ShaderNodeTexNodeName b_tex_node_name_node(b_node);'
+                                'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
+                                'BL::TexMapping b_texture_mapping(b_tex_node_name_node.texture_mapping());'
+                                'get_tex_mapping(&node_name->tex_mapping, b_texture_mapping);'
+                                'node = node_name;'
+                                '}\n' in mf.mock_calls[-3][1][0])
+
 
 if __name__ == "__main__":
     unittest.main()

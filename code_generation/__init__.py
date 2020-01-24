@@ -864,7 +864,68 @@ class CodeGenerator:
 
     def _add_cycles_class_instance(self):
         """blender_shader.cpp"""
-        pass
+        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "blender", "blender_shader.cpp")
+        with open(file_path, 'r+') as f:
+            props = self._gui.get_props()
+            text = 'else if (b_node.is_a(&RNA_ShaderNode{Tex}{Name})) {{' \
+                   'BL::ShaderNode{Tex}{Name} b_{tex}{name}_node(b_node);' \
+                   '{Name}{Texture}Node *{name} = new {Name}{Texture}Node();' \
+                   '{props}' \
+                   '{texture_mapping}' \
+                   'node = {name};' \
+                   '}}\n'.format(
+                Tex='Tex' if self._gui.is_texture_node() else '',
+                Name=CodeGeneratorUtil.string_capitalized_no_space(
+                    self._gui.get_node_name()),
+                tex='tex_' if self._gui.is_texture_node() else '',
+                name=CodeGeneratorUtil.string_lower_underscored(
+                    self._gui.get_node_name()),
+                Texture='Texture' if self._gui.is_texture_node() else '',
+                props=''.join(
+                    ['{name}->{prop} = b_{tex}{name}_node.{prop}();'.format(
+                        name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                        prop=prop['name'],
+                        tex='tex_' if self._gui.is_texture_node() else '') for prop in props]),
+                texture_mapping='BL::TexMapping b_texture_mapping(b_tex_{name}_node.texture_mapping());'
+                                'get_tex_mapping(&{name}->tex_mapping, b_texture_mapping);'.format(
+                    name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name())) if self._gui.is_texture_node() else '') \
+                if len(props) > 0 or self._gui.is_texture_node() else  \
+                'else if (b_node.is_a(&RNA_ShaderNode{Name})) {{' \
+                'node = new {Name}Node();}}\n'.format(Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()))
+
+            file_text = f.read()
+            # Find start of function
+            function_i = re.search(r'static ShaderNode \*add_node\(Scene \*scene,', file_text)
+
+            # Find end of function
+            if not function_i:
+                raise Exception("Match not found")
+
+            i = function_i.span()[1]
+            while file_text[i] != '{':
+                i += 1
+            bracket_stack = 1
+            while bracket_stack > 0:
+                i += 1
+                if file_text[i] == '{':
+                    bracket_stack += 1
+                elif file_text[i] == '}':
+                    bracket_stack -= 1
+
+            # Go back to last else if
+            seen_brackets = 0
+            while seen_brackets < 2:
+                i -= 1
+                if file_text[i] == '}':
+                    seen_brackets += 1
+
+            # Insert text into file
+            file_text = file_text[:i + 2] + text + file_text[i + 2:]
+
+            f.seek(0)
+            f.write(file_text)
+            f.truncate()
+        CodeGeneratorUtil.apply_clang_formatting(file_path)
 
     def _add_cycles_node(self):
         """nodes.cpp"""
@@ -955,3 +1016,4 @@ class CodeGenerator:
         self._add_node_register()
         self._add_rna_properties()
         self._add_shader_node_file()
+        self._add_cycles_class_instance()
