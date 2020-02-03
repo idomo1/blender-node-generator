@@ -234,8 +234,14 @@ class SocketDefinitionsGUI:
         Button(self.window, text='Add I/O', command=self._add_node_socket).grid(row=self._row_i)
         self._row_i += 1
 
+    def _sort_sockets(self, sockets):
+        """Sorts sockets"""
+        order = {'in': 0, 'out': 1}
+        sockets.sort(key=lambda s:order[s['type']])
+        return sockets
+
     def get_sockets(self):
-        return list(filter(lambda p: p is not None, map(lambda p: p.get(), self._ios)))
+        return self._sort_sockets(list(filter(lambda p: p is not None, map(lambda p: p.get(), self._ios))))
 
 
 class SocketAvailabilityGUI:
