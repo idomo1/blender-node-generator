@@ -99,6 +99,11 @@ class GUI:
     def is_texture_node(self):
         return self.get_node_type() == 'Texture'
 
+    def uses_texture_mapping(self):
+        # Will probably be exposed in GUI eventually
+        return self.is_texture_node() and len([socket for socket in self._socket_GUI.get_sockets() if
+                                               socket['type'] == 'Input' and socket['data-type'] == 'Vector']) > 0
+
     def socket_availability_changes(self):
         """Returns whether the socket availability of the node changes based on
         the nodes properties values"""
@@ -237,7 +242,7 @@ class SocketDefinitionsGUI:
     def _sort_sockets(self, sockets):
         """Sorts sockets"""
         order = {'in': 0, 'out': 1}
-        sockets.sort(key=lambda s:order[s['type']])
+        sockets.sort(key=lambda s: order[s['type']])
         return sockets
 
     def get_sockets(self):

@@ -357,7 +357,7 @@ class CodeGenerator:
                 self._gui.get_node_name()),
             texture_mapping='BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);'
                             'BKE_texture_colormapping_default(&tex->base.color_mapping);'
-            if self._gui.is_texture_node() else '',
+            if self._gui.uses_texture_mapping() else '',
             prop_init=prop_init,
             set_storage='node->storage = {struct};'.format(struct=struct) if uses_dna else '')
         return init_func
@@ -504,7 +504,7 @@ class CodeGenerator:
             tex='tex_' if self._gui.is_texture_node() else '',
             name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
             texture_mapping='node_shader_gpu_default_tex_coord(mat, node, &in[0].link);node_shader_gpu_tex_mapping(mat, node, in, out);\n\n'
-            if self._gui.is_texture_node() else '',
+            if self._gui.uses_texture_mapping() else '',
             func_names=names,
             dna=dna,
             func_name=func_name,
@@ -801,11 +801,13 @@ class CodeGenerator:
                 texture_mapping='BL::TexMapping b_texture_mapping(b_tex_{name}_node.texture_mapping());'
                                 'get_tex_mapping(&{name}->tex_mapping, b_texture_mapping);'.format(
                     name=CodeGeneratorUtil.string_lower_underscored(
-                        self._gui.get_node_name())) if self._gui.is_texture_node() else '') \
-                if len(props) > 0 or self._gui.is_texture_node() else \
-                'else if (b_node.is_a(&RNA_ShaderNode{Name})) {{' \
-                'node = new {Name}Node();}}\n'.format(
-                    Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()))
+                        self._gui.get_node_name())) if self._gui.uses_texture_mapping() else '') \
+                if len(props) > 0 or self._gui.uses_texture_mapping() else \
+                'else if (b_node.is_a(&RNA_ShaderNode{Tex}{Name})) {{' \
+                'node = new {Name}{Texture}Node();}}\n'.format(
+                    Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                    Tex='Tex' if self._gui.is_texture_node() else '',
+                    Texture='Texture' if self._gui.is_texture_node() else '')
 
             file_text = f.read()
             # Find start of function
@@ -886,13 +888,14 @@ class CodeGenerator:
             props = self._gui.get_props()
             sockets = self._gui.get_node_sockets()
 
-            type_conversion = {"Boolean": "int", "String": "string", "Int": "int", "Float": "float", "Enum": "string"}
+            type_conversion = {"Boolean": "int", "String": "string", "Int": "int", "Float": "float", "Enum": "string",
+                               "Vector": "point"}
 
             function = "shader node_{name}{tex}({mapping}{props}{in_sockets}{out_sockets}){{}}".format(
                 name=node_name_underscored,
                 tex='_texture' if self._gui.is_texture_node() else '',
                 mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),'
-                if self._gui.is_texture_node() else '',
+                if self._gui.uses_texture_mapping() else '',
                 props=''.join('{type} {name} = {default},'.format(
                     type=type_conversion[prop['type']],
                     name=CodeGeneratorUtil.string_lower_underscored(prop['name']),
@@ -901,12 +904,16 @@ class CodeGenerator:
                               for prop in props if prop['type'] != 'String'),
                 in_sockets=''.join(['{type} {name} = {default},'.format(type=type_conversion[socket['data-type']],
                                                                         name=socket['name'],
-                                                                        default=socket['default'])
+                                                                        default=socket['default'] if socket[
+                                                                                                         'data-type'] is not 'Vector' else 'point({0})'.format(
+                                                                            socket['default'].replace(',', ', ')))
                                     for socket in sockets if socket['type'] == 'Input']),
                 out_sockets=','.join(
                     ['output {type} {name} = {default}'.format(type=type_conversion[socket['data-type']],
                                                                name=socket['name'],
-                                                               default=socket['default'])
+                                                               default=socket['default'] if socket[
+                                                                                                'data-type'] is not 'Vector' else 'point({0})'.format(
+                                                                   socket['default'].replace(',', ', ')))
                      for socket in sockets if socket['type'] == 'Output']))
 
             osl_f.write(function)
