@@ -241,7 +241,7 @@ class SocketDefinitionsGUI:
 
     def _sort_sockets(self, sockets):
         """Sorts sockets"""
-        order = {'in': 0, 'out': 1}
+        order = {'Input': 0, 'Output': 1}
         sockets.sort(key=lambda s: order[s['type']])
         return sockets
 
