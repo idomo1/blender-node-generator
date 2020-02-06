@@ -564,7 +564,7 @@ class RemovableSocketDefinitionInput(Frame):
         Label(self, text='Type').grid(row=0, column=col_i)
         col_i += 1
         data_type = Combobox(self)
-        data_type['values'] = ["Float", "Vector", "RGBA", "Shader", "Boolean", "Int", "String"]
+        data_type['values'] = ["Float", "Vector", "RGBA", "Shader", "Int", "String"]
         data_type.current(0)
         data_type.grid(row=0, column=col_i)
         col_i += 1
