@@ -1,4 +1,4 @@
-from . import CodeGeneratorUtil
+from . import code_generator_util
 
 
 class SVMCompilationManager:
@@ -20,9 +20,9 @@ class SVMCompilationManager:
         for prop in self._props:
             if prop['type'] == 'Float':
                 names.append(
-                    '__float_as_int({name})'.format(name=CodeGeneratorUtil.string_lower_underscored(prop['name'])))
+                    '__float_as_int({name})'.format(name=code_generator_util.string_lower_underscored(prop['name'])))
             elif prop['type'] != 'String':
-                names.append(CodeGeneratorUtil.string_lower_underscored(prop['name']))
+                names.append(code_generator_util.string_lower_underscored(prop['name']))
         for socket in self._sockets:
             names.append('{name}_stack_offset'.format(name=socket['name']))
         return names
@@ -68,9 +68,9 @@ class SVMCompilationManager:
         """Generate retrieving """
         return ''.join('Shader{Type} *{name}_{type} = {type}put("{Name}");'.format(
             Type=socket['type'].capitalize(),
-            name=CodeGeneratorUtil.string_lower_underscored(socket['name']),
+            name=code_generator_util.string_lower_underscored(socket['name']),
             type=socket['type'][:-3].lower(),
-            Name=CodeGeneratorUtil.string_capitalized_spaced(socket['name'])) for socket in self._sockets)
+            Name=code_generator_util.string_capitalized_spaced(socket['name'])) for socket in self._sockets)
 
     def _generate_stack_offsets(self):
 
@@ -83,19 +83,19 @@ class SVMCompilationManager:
         for socket in self._sockets:
             if socket['data-type'] == 'Vector' and self._is_texture_node and is_first_vector(socket, self._sockets):
                 stack_offsets.append('int {name}_stack_offset = tex_mapping.compile_begin(compiler, {name}_in);'.format(
-                    name=CodeGeneratorUtil.string_lower_underscored(socket['name'])))
+                    name=code_generator_util.string_lower_underscored(socket['name'])))
             elif socket['data-type'] == 'Float' and socket['type'] == 'Input':
                 stack_offsets.append('int {name}_stack_offset = compiler.stack_assign_if_linked({name}_in);'.format(
-                    name=CodeGeneratorUtil.string_lower_underscored(socket['name'])))
+                    name=code_generator_util.string_lower_underscored(socket['name'])))
             else:
                 stack_offsets.append('int {name}_stack_offset = compiler.stack_assign({name}_{type});'.format(
-                    name=CodeGeneratorUtil.string_lower_underscored(socket['name']),
+                    name=code_generator_util.string_lower_underscored(socket['name']),
                     type=socket_type_map[socket['type']]))
         return ''.join(stack_offsets)
 
     def _generate_float_optimizations(self):
         """Generate code for passing floats directly to shader for optimization"""
-        inputs = ['__float_as_int({socket})'.format(socket=CodeGeneratorUtil.string_lower_underscored(socket['name']))
+        inputs = ['__float_as_int({socket})'.format(socket=code_generator_util.string_lower_underscored(socket['name']))
                   for socket in self._sockets if socket['data-type'] == 'Float' and socket['type'] == 'Input']
 
         return ''.join('compiler.add_node({params});'.format(
@@ -106,7 +106,7 @@ class SVMCompilationManager:
         return 'compiler.add_node(NODE_{TEX}{NAME}, ' \
                '{params});{optimizations}'.format(
             TEX='TEX_' if self._is_texture_node else '',
-            NAME=CodeGeneratorUtil.string_upper_underscored(self._node_name),
+            NAME=code_generator_util.string_upper_underscored(self._node_name),
             params=self._generate_svm_params(),
             optimizations=self._generate_float_optimizations())
 
@@ -119,11 +119,11 @@ class SVMCompilationManager:
                '{{' \
                '{body}' \
                '{texture_mapping}' \
-               '}}\n\n'.format(Name=CodeGeneratorUtil.string_capitalized_no_space(self._node_name),
+               '}}\n\n'.format(Name=code_generator_util.string_capitalized_no_space(self._node_name),
                                Tex='Texture' if self._is_texture_node else '',
                                body='\n\n'.join(
                                    [self._generate_get_sockets(), self._generate_stack_offsets(),
                                     self._generate_add_node()]),
                                texture_mapping='\n\ntex_mapping.compile_end(compiler, {name}_in, {name}_stack_offset);'.format(
-                                   name=CodeGeneratorUtil.string_lower_underscored(first_input_vector['name'])
+                                   name=code_generator_util.string_lower_underscored(first_input_vector['name'])
                                ) if self._uses_texture_mapping else '')

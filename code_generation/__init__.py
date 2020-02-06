@@ -2,7 +2,7 @@ from os import path, SEEK_END, SEEK_SET
 import re
 from collections import defaultdict
 
-from . import CodeGeneratorUtil
+from . import code_generator_util
 from .svm_code_generator import SVMCompilationManager
 
 
@@ -37,7 +37,7 @@ class CodeGenerator:
         """
         DNA_node_types.h
         """
-        if CodeGeneratorUtil.uses_dna(self._gui.get_props(), self._gui.get_node_type()):
+        if code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type()):
             dna_path = path.join(self._gui.get_source_path(), "source", "blender", "makesdna", "DNA_node_types.h")
             with open(dna_path, 'r+') as f:
                 props = defaultdict(list)
@@ -55,10 +55,10 @@ class CodeGenerator:
                     '{key} {names}'.format(key=key, names=", ".join(names)) for key, names in props.items()) + ";"
 
                 struct = 'typedef struct NodeTex{name} {{NodeTexBase base; {props}{pad}}} NodeTex{name};\n\n'.format(
-                    name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                    name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                     props=props_definitions,
-                    pad=' char _pad[{size}];'.format(size=CodeGeneratorUtil.dna_padding_size(self._gui.get_props())) \
-                        if CodeGeneratorUtil.dna_padding_size(self._gui.get_props()) != 0 else '')
+                    pad=' char _pad[{size}];'.format(size=code_generator_util.dna_padding_size(self._gui.get_props())) \
+                        if code_generator_util.dna_padding_size(self._gui.get_props()) != 0 else '')
                 text = f.read()
                 match = re.search('} NodeTex'[::-1], text[::-1])  # Reversed to find last occurrence
                 if match:
@@ -76,7 +76,7 @@ class CodeGenerator:
                     f.truncate()
                 else:
                     print("No matches found")
-            CodeGeneratorUtil.apply_clang_formatting(dna_path)
+            code_generator_util.apply_clang_formatting(dna_path)
 
             # TODO - Add enums
 
@@ -89,7 +89,7 @@ class CodeGenerator:
                 props = []
                 s_custom_i = 1
                 f_custom_i = 3
-                uses_dna = CodeGeneratorUtil.uses_dna(self._gui.get_props(), self._gui.get_node_type())
+                uses_dna = code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type())
                 for prop in self._gui.get_props():
                     if not uses_dna:
                         if prop['type'] == "Enum" or prop['type'] == "Int":
@@ -103,7 +103,7 @@ class CodeGenerator:
                     if prop['type'] == "Enum":
                         enum_name = 'rna_enum_node_{tex}{name}_items'. \
                             format(tex='tex_' if self._gui.is_texture_node() else '',
-                                   name=CodeGeneratorUtil.string_lower_underscored(prop['name']))
+                                   name=code_generator_util.string_lower_underscored(prop['name']))
 
                     props.append('prop = RNA_def_property(srna, "{name}", PROP_{TYPE}, {SUBTYPE});'
                                  'RNA_def_property_{type}_sdna(prop, NULL, "{sdna}"{enum});'
@@ -112,15 +112,15 @@ class CodeGenerator:
                                  'RNA_def_property_ui_text(prop, "{Name}", "{desc}");'
                                  'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");'.
                         format(
-                        name=CodeGeneratorUtil.string_lower_underscored(prop['name']),
-                        TYPE=CodeGeneratorUtil.string_upper_underscored(prop['type']),
+                        name=code_generator_util.string_lower_underscored(prop['name']),
+                        TYPE=code_generator_util.string_upper_underscored(prop['type']),
                         SUBTYPE=prop['sub-type'],
-                        type=CodeGeneratorUtil.string_lower_underscored(prop['type']),
-                        sdna=CodeGeneratorUtil.string_lower_underscored(
+                        type=code_generator_util.string_lower_underscored(prop['type']),
+                        sdna=code_generator_util.string_lower_underscored(
                             prop['name'] if uses_dna else "custom{index}".format(index=custom_i)),
                         enum=', SHD_{NAME}_{PROP}'.format(
-                            NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
-                            PROP=CodeGeneratorUtil.string_upper_underscored(prop['name']))
+                            NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                            PROP=code_generator_util.string_upper_underscored(prop['name']))
                         if prop['type'] == "Boolean" else '',
                         enum_items='RNA_def_property_enum_items(prop, {enum_name});'.format(enum_name=enum_name) if
                         prop['type'] == "Enum" else '',
@@ -129,7 +129,7 @@ class CodeGenerator:
                                                                                                                 'type'] == "Int" or
                                                                                                             prop[
                                                                                                                 'type'] == "Float" else '',
-                        Name=CodeGeneratorUtil.string_capitalized_spaced(prop['name']),
+                        Name=code_generator_util.string_capitalized_spaced(prop['name']),
                         desc=""))
 
                 func = 'static void def_sh_{tex}{name}(StructRNA *srna)\n' \
@@ -140,7 +140,7 @@ class CodeGenerator:
                        '}}\n\n'.format(tex="tex_" if self._gui.is_texture_node() else '',
                                        name=self._gui.get_node_name().replace(" ", "_").lower(),
                                        sdna='RNA_def_struct_sdna_from(srna, "Node{Tex}{Name}", "storage");\ndef_sh_tex(srna);\n\n'. \
-                                       format(Name=CodeGeneratorUtil.string_capitalized_no_space(
+                                       format(Name=code_generator_util.string_capitalized_no_space(
                                            self._gui.get_node_name()),
                                            Tex="Tex" if self._gui.is_texture_node() else "")
                                        if self._gui.is_texture_node() else '',
@@ -156,7 +156,7 @@ class CodeGenerator:
                 f.seek(0, SEEK_SET)
                 f.writelines(lines)
                 f.truncate()
-            CodeGeneratorUtil.apply_clang_formatting(file_path)
+            code_generator_util.apply_clang_formatting(file_path)
 
     def _add_node_definition(self):
         """NOD_static_types.h"""
@@ -166,14 +166,14 @@ class CodeGenerator:
 
             node_definition = 'DefNode(ShaderNode,     ' + \
                               'SH_NODE_' + "_".join(("TEX" if self._gui.is_texture_node() else "",
-                                                     CodeGeneratorUtil.string_upper_underscored(
+                                                     code_generator_util.string_upper_underscored(
                                                          self._gui.get_node_name()))) + \
-                              ',' + ('def_sh_' + CodeGeneratorUtil.string_lower_underscored(
+                              ',' + ('def_sh_' + code_generator_util.string_lower_underscored(
                 self._gui.get_node_name()) if self._gui.node_has_properties() else '0') + \
                               ', ' + (
-                                  'Tex' if self._gui.is_texture_node() else '') + CodeGeneratorUtil.string_capitalized_no_space(
+                                  'Tex' if self._gui.is_texture_node() else '') + code_generator_util.string_capitalized_no_space(
                 self._gui.get_node_name()) + \
-                              ', ' + CodeGeneratorUtil.string_capitalized_spaced(
+                              ', ' + code_generator_util.string_capitalized_spaced(
                 self._gui.get_node_name()) + ',  ""   ' + ")"
             print(node_definition)
 
@@ -192,7 +192,7 @@ class CodeGenerator:
                             name = '""'
                         elif prop['type'] == "String":
                             name = 'IFACE_("{name}")'.format(
-                                name=CodeGeneratorUtil.string_capitalized_spaced(prop['name']))
+                                name=code_generator_util.string_capitalized_spaced(prop['name']))
                         prop_lines.append(
                             'uiItemR(layout, ptr, "{propname}", 0, {name}, ICON_NONE);'.format(propname=prop['name'],
                                                                                                name=name))
@@ -200,7 +200,7 @@ class CodeGenerator:
                     draw_props = ''.join(prop_lines)
                 func = 'static void node_shader_buts_{name}(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)' \
                        '{{{props}}}\n\n'.format(
-                    name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                    name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                     props=draw_props)
                 lines = f.readlines()
                 line_i = lines.index("static void node_shader_set_butfunc(bNodeType *ntype)\n") - 1
@@ -209,11 +209,11 @@ class CodeGenerator:
 
                 case = [
                     "case SH_NODE_{tex}{name}:\n".format(tex="TEX_" if self._gui.is_texture_node() else "",
-                                                         name=CodeGeneratorUtil.string_upper_underscored(
+                                                         name=code_generator_util.string_upper_underscored(
                                                              self._gui.get_node_name())),
                     "ntype->draw_buttons = node_shader_buts_{tex}{name};\n".format(
                         tex="tex_" if self._gui.is_texture_node() else "",
-                        name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name())),
+                        name=code_generator_util.string_lower_underscored(self._gui.get_node_name())),
                     "break;\n"]
 
                 for i in range(line_i, len(lines)):
@@ -230,7 +230,7 @@ class CodeGenerator:
                 f.seek(0)
                 f.writelines(lines)
                 f.truncate()
-        CodeGeneratorUtil.apply_clang_formatting(drawnode_path)
+        code_generator_util.apply_clang_formatting(drawnode_path)
 
     def _generate_node_shader_sockets(self):
         """
@@ -245,9 +245,9 @@ class CodeGenerator:
         out = []
         for sock in sockets:
             socket_text = '{{SOCK_{TYPE}, {input_count}, N_("{Name}"), {default}, {min}, {max}{subtype}{flag}}},'.format(
-                TYPE=sock['data-type'].upper(), Name=CodeGeneratorUtil.string_capitalized_spaced(sock['name']),
+                TYPE=sock['data-type'].upper(), Name=code_generator_util.string_capitalized_spaced(sock['name']),
                 input_count=1 if sock['type'] == 'Input' else 0,
-                default=CodeGeneratorUtil.fill_socket_default(sock['default']), min=sock['min'] + 'f',
+                default=code_generator_util.fill_socket_default(sock['default']), min=sock['min'] + 'f',
                 max=sock['max'] + 'f',
                 subtype=(', ' + sock['sub-type']) if sock['sub-type'] != 'PROP_NONE' or sock[
                     'flag'] != "None" else '',
@@ -259,14 +259,14 @@ class CodeGenerator:
         if len(sockets_in) > 0:
             in_sockets_text = 'static bNodeSocketTemplate sh_node_{tex}{name}_in[] = {{{sockets}{{-1, 0, ""}},}};\n\n'.format(
                 tex="tex_" if self._gui.is_texture_node() else "",
-                name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                 sockets="".join(sockets_in))
             out.append(in_sockets_text)
 
         if len(sockets_out) > 0:
             out_sockets_text = 'static bNodeSocketTemplate sh_node_{tex}{name}_out[] = {{{sockets}{{-1, 0, ""}},}};\n\n'.format(
                 tex="tex_" if self._gui.is_texture_node() else "",
-                name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                 sockets="".join(sockets_out))
             out.append(out_sockets_text)
         return ''.join(out)
@@ -282,7 +282,7 @@ class CodeGenerator:
 
         props = self._gui.get_props()
         prop_init = ''
-        uses_dna = CodeGeneratorUtil.uses_dna(self._gui.get_props(), self._gui.get_node_type())
+        uses_dna = code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type())
         if uses_dna:
             struct = 'tex' if self._gui.is_texture_node() else 'attr'
             defaults = []
@@ -290,21 +290,21 @@ class CodeGenerator:
                 if prop['type'] == 'Enum':
                     defaults.append('{struct}->{prop} = {default};'.format(
                         struct=struct,
-                        prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                        prop=code_generator_util.string_lower_underscored(prop['name']),
                         default='SHD_{NAME}_{PROP}'.format(
-                            NAME=CodeGeneratorUtil.string_upper_underscored(
+                            NAME=code_generator_util.string_upper_underscored(
                                 self._gui.get_node_name()),
-                            PROP=CodeGeneratorUtil.string_upper_underscored(
+                            PROP=code_generator_util.string_upper_underscored(
                                 prop['default']))))
                 elif prop['type'] == 'Boolean' or prop['type'] == 'Int':
                     defaults.append('{struct}->{prop} = {default};'.format(
                         struct=struct,
-                        prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                        prop=code_generator_util.string_lower_underscored(prop['name']),
                         default=prop['default']))
                 elif prop['type'] == 'Float':
                     defaults.append('{struct}->{prop} = {default};'.format(
                         struct=struct,
-                        prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                        prop=code_generator_util.string_lower_underscored(prop['name']),
                         default='{default}f'.format(default=prop['default'])))
             prop_init = ''.join(defaults)
         else:  # Use custom
@@ -316,9 +316,9 @@ class CodeGenerator:
                 if prop['type'] == 'Enum':
                     defaults.append('node->custom{i} = {default};'.format(i=s_custom_i,
                                                                           default='SHD_{NAME}_{PROP}'.format(
-                                                                              NAME=CodeGeneratorUtil.string_upper_underscored(
+                                                                              NAME=code_generator_util.string_upper_underscored(
                                                                                   self._gui.get_node_name()),
-                                                                              PROP=CodeGeneratorUtil.string_upper_underscored(
+                                                                              PROP=code_generator_util.string_upper_underscored(
                                                                                   prop['default']))))
                     s_custom_i += 1
                 elif prop['type'] == 'Int':
@@ -347,14 +347,14 @@ class CodeGenerator:
                     '{set_storage}' \
                     '}}\n\n'.format(
             tex='tex_' if self._gui.is_texture_node() else '',
-            name=CodeGeneratorUtil.string_lower_underscored(
+            name=code_generator_util.string_lower_underscored(
                 self._gui.get_node_name()),
             Tex='Tex' if self._gui.is_texture_node() else '',
             get_storage='Node{Tex}{Name} *{struct} = MEM_callocN(sizeof(Node{Tex}{Name}), "Node{Tex}{Name}");'.format(
                 Tex='Tex' if self._gui.is_texture_node() else '',
-                Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                 struct=struct) if uses_dna else '',
-            Name=CodeGeneratorUtil.string_capitalized_no_space(
+            Name=code_generator_util.string_capitalized_no_space(
                 self._gui.get_node_name()),
             texture_mapping='BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);'
                             'BKE_texture_colormapping_default(&tex->base.color_mapping);'
@@ -371,10 +371,10 @@ class CodeGenerator:
         props = self._gui.get_props()
         dropdowns = list(filter(lambda p: p['type'] == 'Enum', props))
         dropdown_count = len(dropdowns)
-        uses_dna = CodeGeneratorUtil.uses_dna(props, self._gui.get_node_type())
+        uses_dna = code_generator_util.uses_dna(props, self._gui.get_node_type())
         names = ''
         func_name = 'node_{tex}{name}'.format(tex='tex_' if self._gui.is_texture_node() else '',
-                                              name=CodeGeneratorUtil.string_lower_underscored(
+                                              name=code_generator_util.string_lower_underscored(
                                                   self._gui.get_node_name()))
         if dropdown_count == 1:
             prop = dropdowns[0]
@@ -383,11 +383,11 @@ class CodeGenerator:
                     '{funcs}' \
                     '}};\n\n'.format(funcs=''.join('"node_{tex}{name}_{option}",'.format(
                 tex='tex_' if self._gui.is_texture_node() else '',
-                name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
-                option=CodeGeneratorUtil.string_lower_underscored(option)) for option in prop['options']))
+                name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
+                option=code_generator_util.string_lower_underscored(option)) for option in prop['options']))
             func_name = 'names[{struct}->{name}]'.format(
                 struct='tex' if self._gui.is_texture_node() else 'attr',
-                name=CodeGeneratorUtil.string_lower_underscored(
+                name=code_generator_util.string_lower_underscored(
                     dropdowns[0]['name'])) if uses_dna else 'names[node->custom1]'
         elif dropdown_count == 2:
             names = 'static const char *names[][{count}] = {{' \
@@ -395,17 +395,17 @@ class CodeGenerator:
                     '}};\n\n'.format(count=len(dropdowns[0]['options']),
                                      funcs=''.join(['[SHD_{NAME}_{OPTION}] = '
                                                     '{{"",{func_names}}},'.format(
-                                         NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
-                                         OPTION=CodeGeneratorUtil.string_upper_underscored(option1),
+                                         NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                                         OPTION=code_generator_util.string_upper_underscored(option1),
                                          func_names=''.join('"node_{name}_{option1}_{option2}",'.format(
-                                             name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                                             name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                                              option1=option1, option2=option2)
                                                             for option2 in dropdowns[1]['options']))
                                          for option1 in dropdowns[0]['options']]))
             func_name = 'names[{struct}->{drop1}][{struct}->{drop2}]'.format(
                 struct='tex' if self._gui.is_texture_node() else 'attr',
-                drop1=CodeGeneratorUtil.string_lower_underscored(dropdowns[0]['name']),
-                drop2=CodeGeneratorUtil.string_lower_underscored(
+                drop1=code_generator_util.string_lower_underscored(dropdowns[0]['name']),
+                drop2=code_generator_util.string_lower_underscored(
                     dropdowns[1]['name'])) if uses_dna else 'names[node->custom1][node->custom2]'
         elif dropdown_count > 2:
             names = '/* GLSL function names to be implemented here */\n\n'
@@ -415,7 +415,7 @@ class CodeGenerator:
         if uses_dna:
             struct = 'tex' if self._gui.is_texture_node() else 'attr'
             for prop in props:
-                prop_name = CodeGeneratorUtil.string_lower_underscored(prop['name'])
+                prop_name = code_generator_util.string_lower_underscored(prop['name'])
                 if prop['type'] == 'Boolean':
                     retrieved_props.append('float {name} = ({struct}->{name}) ? 1.0f : 0.0f;'.format(
                         name=prop_name,
@@ -430,7 +430,7 @@ class CodeGenerator:
             f_custom_i = 3
             boolean_bit = 0
             for prop in props:
-                prop_name = CodeGeneratorUtil.string_lower_underscored(prop['name'])
+                prop_name = code_generator_util.string_lower_underscored(prop['name'])
                 if prop['type'] == 'Boolean':
                     # Need to get individual bits if multiple bools
                     if len([prop for prop in props if prop['type'] == 'Boolean']) > 1:
@@ -457,16 +457,16 @@ class CodeGenerator:
                                                                                     i=s_custom_i))
                     s_custom_i += 1
         other_params = ', ' + ', '.join(
-            'GPU_constant(&{prop})'.format(prop=CodeGeneratorUtil.string_lower_underscored(prop['name'])) for
+            'GPU_constant(&{prop})'.format(prop=code_generator_util.string_lower_underscored(prop['name'])) for
             prop in list(filter(lambda p: p['type'] != 'Enum' and p['type'] != 'String', props))) \
             if len(props) - dropdown_count > 0 else ''
 
         assertions = []
         custom_i = 1
         for prop in dropdowns:
-            if CodeGeneratorUtil.uses_dna(props, self._gui.get_node_type()):
+            if code_generator_util.uses_dna(props, self._gui.get_node_type()):
                 assertions.append('BLI_assert({struct}->{prop} >= 0 && {struct}->{prop} < {option_count});'.format(
-                    struct=struct, prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                    struct=struct, prop=code_generator_util.string_lower_underscored(prop['name']),
                     option_count=len(prop['options']) + 1))
             else:
                 assertions.append('BLI_assert(node->custom{i} >= 0 && node->custom{i} < {option_count});'.format(
@@ -485,7 +485,7 @@ class CodeGenerator:
               '{assertions}'.format(
             get_struct='Node{Tex}{Name} *{struct} = (Node{Tex}{Name} *)node->storage;'.format(
                 Tex='Tex' if self._gui.is_texture_node() else '',
-                Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                 struct=struct) if len(props) - dropdown_count > 0 else '',
             get_props=''.join(retrieved_props),
             assertions=''.join(assertions))
@@ -502,7 +502,7 @@ class CodeGenerator:
                    'return GPU_stack_link(mat, node, {func_name}, in, out{other_params});' \
                    '}}\n\n'.format(
             tex='tex_' if self._gui.is_texture_node() else '',
-            name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+            name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
             texture_mapping='node_shader_gpu_default_tex_coord(mat, node, &in[0].link);node_shader_gpu_tex_mapping(mat, node, in, out);\n\n'
             if self._gui.uses_texture_mapping() else '',
             func_names=names,
@@ -527,7 +527,7 @@ class CodeGenerator:
         for map in self._gui.get_socket_availability_maps():
             if any(not available for prop, available in map['prop-avail']):
                 type = map['socket-type']
-                Name = CodeGeneratorUtil.string_capitalized_no_space(map['socket-name'])
+                Name = code_generator_util.string_capitalized_no_space(map['socket-name'])
                 socket_get = 'bNodeSocket *{type}{Name}Sock = nodeFindSocket(node, SOCK_{TYPE}, "{Name}");'.format(
                     type=type,
                     Name=Name,
@@ -540,25 +540,25 @@ class CodeGenerator:
                 constraints = []
                 avail_count = sum(avail for prop, avail in map['prop-avail'])
                 invert_avail = avail_count / len(map['prop-avail']) < 0.5
-                if CodeGeneratorUtil.uses_dna(props, self._gui.get_node_type()):
+                if code_generator_util.uses_dna(props, self._gui.get_node_type()):
                     for prop, avail in map['prop-avail']:
                         prop_name, value = prop.split('=')
                         is_enum = not (value == 'False' or value == 'True')
                         if not invert_avail and not avail:
                             constraints.append('{struct}->{prop} != {value}'.format(
                                 struct=struct,
-                                prop=CodeGeneratorUtil.string_lower_underscored(prop_name),
+                                prop=code_generator_util.string_lower_underscored(prop_name),
                                 value='SHD_{NAME}_{OPTION}'.format(
-                                    NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
-                                    OPTION=CodeGeneratorUtil.string_upper_underscored(value))
+                                    NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                                    OPTION=code_generator_util.string_upper_underscored(value))
                                 if is_enum else int(value == 'True')))
                         elif invert_avail and avail:
                             constraints.append('{struct}->{prop} == {value}'.format(
                                 struct=struct,
-                                prop=CodeGeneratorUtil.string_lower_underscored(prop_name),
+                                prop=code_generator_util.string_lower_underscored(prop_name),
                                 value='SHD_{NAME}_{OPTION}'.format(
-                                    NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
-                                    OPTION=CodeGeneratorUtil.string_upper_underscored(value))
+                                    NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                                    OPTION=code_generator_util.string_upper_underscored(value))
                                 if is_enum else int(value == 'True')))
                 else:
                     bool_count = len(list(filter(lambda p: p['type'] == 'Boolean', props)))
@@ -592,10 +592,10 @@ class CodeGenerator:
                             else:
                                 constraints.append('node->custom{i} != {value}'.format(
                                     i=s_custom_i,
-                                    prop=CodeGeneratorUtil.string_lower_underscored(prop_name),
+                                    prop=code_generator_util.string_lower_underscored(prop_name),
                                     value='SHD_{NAME}_{OPTION}'.format(
-                                        NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
-                                        OPTION=CodeGeneratorUtil.string_upper_underscored(value))
+                                        NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                                        OPTION=code_generator_util.string_upper_underscored(value))
                                     if is_enum else int(value == 'True')))
                         elif invert_avail and avail:
                             if not is_enum and bool_count > 1:
@@ -607,10 +607,10 @@ class CodeGenerator:
                             else:
                                 constraints.append('node->custom{i} == {value}'.format(
                                     i=s_custom_i,
-                                    prop=CodeGeneratorUtil.string_lower_underscored(prop_name),
+                                    prop=code_generator_util.string_lower_underscored(prop_name),
                                     value='SHD_{NAME}_{OPTION}'.format(
-                                        NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
-                                        OPTION=CodeGeneratorUtil.string_upper_underscored(value))
+                                        NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                                        OPTION=code_generator_util.string_upper_underscored(value))
                                     if is_enum else int(value == 'True')))
                 socket_availability.append('nodeSetSocketAvailability({socket}, {constraints});'.format(
                     socket='{type}{Name}Sock'.format(type=type, Name=Name),
@@ -622,7 +622,7 @@ class CodeGenerator:
             out_sockets.append('\n\n')
         get_struct = 'Node{Tex}{Name} *{struct} = (Node{Tex}{Name} *)node->storage;\n\n'.format(
             Tex='Tex' if self._gui.is_texture_node() else '',
-            Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+            Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
             struct='tex' if self._gui.is_texture_node() else 'attr')
 
         socket_availability_func = 'static void node_shader_update_{tex}{name}(bNodeTree *UNUSED(ntree), bNode *node)' \
@@ -633,10 +633,10 @@ class CodeGenerator:
                                    '{availability}' \
                                    '}}\n\n'.format(
             tex='tex_' if self._gui.is_texture_node() else '',
-            name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+            name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
             in_sockets=''.join(in_sockets),
             out_sockets=''.join(out_sockets),
-            struct=get_struct if CodeGeneratorUtil.uses_dna(props, self._gui.get_node_type()) else '',
+            struct=get_struct if code_generator_util.uses_dna(props, self._gui.get_node_type()) else '',
             availability=''.join(socket_availability))
         return socket_availability_func
 
@@ -652,26 +652,26 @@ class CodeGenerator:
                         '{update}\n\n' \
                         'nodeRegisterType(&ntype);' \
                         '}}\n'.format(tex='tex_' if self._gui.is_texture_node() else '',
-                                      name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                                      name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                                       TEX='TEX_' if self._gui.is_texture_node() else '',
-                                      NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()),
-                                      Name=CodeGeneratorUtil.string_capitalized_spaced(self._gui.get_node_name()),
+                                      NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                                      Name=code_generator_util.string_capitalized_spaced(self._gui.get_node_name()),
                                       CLASS=self._gui.get_node_group().upper(),
                                       init='node_type_init(&ntype, node_shader_init_{tex}{name});'.format(
                                           tex='tex_' if self._gui.is_texture_node() else '',
-                                          name=CodeGeneratorUtil.string_lower_underscored(
+                                          name=code_generator_util.string_lower_underscored(
                                               self._gui.get_node_name())) if self._gui.node_has_properties() else '',
                                       storage='node_type_storage(&ntype, "Node{Tex}{Name}", node_free_standard_storage, node_copy_standard_storage);'.format(
                                           Tex='Tex' if self._gui.is_texture_node() else '',
-                                          Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name())
+                                          Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name())
                                       )
-                                      if CodeGeneratorUtil.uses_dna(
+                                      if code_generator_util.uses_dna(
                                           self._gui.get_props(),
                                           self._gui.get_node_type()) else 'node_type_storage(&ntype, "", NULL, NULL);',
                                       Tex='Tex' if self._gui.is_texture_node() else '',
                                       update='node_type_update(&ntype, node_shader_update_{tex}{name});'.format(
                                           tex='tex_' if self._gui.is_texture_node() else '',
-                                          name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()))
+                                          name=code_generator_util.string_lower_underscored(self._gui.get_node_name()))
                                       if self._gui.socket_availability_changes() else '')
         return register_text
 
@@ -680,13 +680,13 @@ class CodeGenerator:
         file_path = path.join(self._gui.get_source_path(), "source", "blender", "nodes", "shader", "nodes",
                               "node_shader_{tex}{name}.c".format(
                                   tex="tex_" if self._gui.is_texture_node() else "",
-                                  name=CodeGeneratorUtil.string_lower_underscored(
+                                  name=code_generator_util.string_lower_underscored(
                                       self._gui.get_node_name())))
         with open(file_path, "w") as f:
-            CodeGeneratorUtil.write_license(f)
+            code_generator_util.write_license(f)
 
             file_lines = ['', '#include "../node_shader_util.h"\n\n', '/**************** {NAME} ****************/\n\n'.
-                format(NAME=CodeGeneratorUtil.string_upper_underscored(self._gui.get_node_name()))]
+                format(NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()))]
 
             file_lines.append(self._generate_node_shader_sockets())
 
@@ -700,7 +700,7 @@ class CodeGenerator:
 
             f.writelines(file_lines)
 
-        CodeGeneratorUtil.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path)
 
     def _add_node_register(self):
         """NOD_shader.h"""
@@ -709,7 +709,7 @@ class CodeGenerator:
 
             func = 'void register_node_type_sh_{tex}{name}(void);\n'. \
                 format(tex="tex_" if self._gui.is_texture_node() else '',
-                       name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()))
+                       name=code_generator_util.string_lower_underscored(self._gui.get_node_name()))
 
             f.seek(0, SEEK_END)
             f.seek(f.tell() - 500, SEEK_SET)
@@ -750,7 +750,7 @@ class CodeGenerator:
                    "SHADER_NODE_CLASS({name}Node)" \
                    "{node_group}" \
                    "{props}" \
-                   "}};".format(name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                   "}};".format(name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                                 tex="Texture" if self._gui.is_texture_node() else "",
                                 type=self._gui.get_node_type(),
                                 node_group="virtual int get_group(){{return NODE_GROUP_LEVEL_{level};}}".
@@ -772,7 +772,7 @@ class CodeGenerator:
 
                     #endif /* __NODES_H__ */
                     """)
-        CodeGeneratorUtil.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path)
 
     def _add_cycles_class_instance(self):
         """blender_shader.cpp"""
@@ -787,25 +787,25 @@ class CodeGenerator:
                    'node = {name};' \
                    '}}\n'.format(
                 Tex='Tex' if self._gui.is_texture_node() else '',
-                Name=CodeGeneratorUtil.string_capitalized_no_space(
+                Name=code_generator_util.string_capitalized_no_space(
                     self._gui.get_node_name()),
                 tex='tex_' if self._gui.is_texture_node() else '',
-                name=CodeGeneratorUtil.string_lower_underscored(
+                name=code_generator_util.string_lower_underscored(
                     self._gui.get_node_name()),
                 Texture='Texture' if self._gui.is_texture_node() else '',
                 props=''.join(
                     ['{name}->{prop} = b_{tex}{name}_node.{prop}();'.format(
-                        name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                        name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                         prop=prop['name'],
                         tex='tex_' if self._gui.is_texture_node() else '') for prop in props]),
                 texture_mapping='BL::TexMapping b_texture_mapping(b_tex_{name}_node.texture_mapping());'
                                 'get_tex_mapping(&{name}->tex_mapping, b_texture_mapping);'.format(
-                    name=CodeGeneratorUtil.string_lower_underscored(
+                    name=code_generator_util.string_lower_underscored(
                         self._gui.get_node_name())) if self._gui.uses_texture_mapping() else '') \
                 if len(props) > 0 or self._gui.uses_texture_mapping() else \
                 'else if (b_node.is_a(&RNA_ShaderNode{Tex}{Name})) {{' \
                 'node = new {Name}{Texture}Node();}}\n'.format(
-                    Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                    Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                     Tex='Tex' if self._gui.is_texture_node() else '',
                     Texture='Texture' if self._gui.is_texture_node() else '')
 
@@ -841,7 +841,7 @@ class CodeGenerator:
             f.seek(0)
             f.write(file_text)
             f.truncate()
-        CodeGeneratorUtil.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path)
 
     def _add_cycles_node(self):
         """nodes.cpp"""
@@ -859,7 +859,7 @@ class CodeGenerator:
                 return 'ustring()'
             elif item[key] == 'Vector':
                 return 'make_float3({default})'.format(
-                    default=CodeGeneratorUtil.fill_socket_default(item['default'], 3))
+                    default=code_generator_util.fill_socket_default(item['default'], 3))
 
         def format_prop_default(prop):
             return format_default(prop, 'type')
@@ -884,20 +884,20 @@ class CodeGenerator:
             for prop in props:
                 if prop['type'] == 'Enum':
                     socket_defs.append('static NodeEnum {name}_enum;'.format(
-                        name=CodeGeneratorUtil.string_lower_underscored(prop['name'])))
+                        name=code_generator_util.string_lower_underscored(prop['name'])))
                     socket_defs.extend(['{prop}_enum.insert("{OPTION}", {i});'.format(
                         prop=prop['name'],
-                        OPTION=CodeGeneratorUtil.string_upper_underscored(option),
+                        OPTION=code_generator_util.string_upper_underscored(option),
                         i=i + 1) for i, option in enumerate(prop['options'])])
                     socket_defs.append('SOCKET_ENUM({prop}, "{Prop}", {prop}_enum, {default});\n\n'.format(
-                        prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
-                        Prop=CodeGeneratorUtil.string_capitalized_spaced(prop['name']),
+                        prop=code_generator_util.string_lower_underscored(prop['name']),
+                        Prop=code_generator_util.string_capitalized_spaced(prop['name']),
                         default=format_prop_default(prop)))
                 else:
                     socket_defs.append('SOCKET_{TYPE}({prop}, "{Prop}", {default});'.format(
                         TYPE=prop['type'].upper(),
-                        prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
-                        Prop=CodeGeneratorUtil.string_capitalized_spaced(prop['name']),
+                        prop=code_generator_util.string_lower_underscored(prop['name']),
+                        Prop=code_generator_util.string_capitalized_spaced(prop['name']),
                         default=format_prop_default(prop)))
             socket_defs.append('\n\n')
 
@@ -908,8 +908,8 @@ class CodeGenerator:
                 socket_defs.append('SOCKET_{TYPE}_{DATA_TYPE}({name}, "{Name}", {default}{texture_mapping});'.format(
                     TYPE=socket['type'][:-3].upper(),
                     DATA_TYPE=data_type_map[socket['data-type']],
-                    name=CodeGeneratorUtil.string_lower_underscored(socket['name']),
-                    Name=CodeGeneratorUtil.string_capitalized_spaced(socket['name']),
+                    name=code_generator_util.string_lower_underscored(socket['name']),
+                    Name=code_generator_util.string_capitalized_spaced(socket['name']),
                     default=format_socket_default(socket),
                     texture_mapping=', SocketType::LINK_TEXTURE_GENERATED' if self._gui.uses_texture_mapping() and
                                                                               socket['data-type'] == 'Vector' and
@@ -933,14 +933,14 @@ class CodeGenerator:
                    '{osl_params}' \
                    'compiler.add(this, "node_{name}{texture}");' \
                    '}}\n\n'.format(
-                NodeName=CodeGeneratorUtil.string_capitalized_spaced(self._gui.get_node_name()),
+                NodeName=code_generator_util.string_capitalized_spaced(self._gui.get_node_name()),
                 space=' ' if self._gui.is_texture_node() else '',
                 Texture='Texture' if self._gui.is_texture_node() else '',
-                Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
-                name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
+                name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                 texture='_texture' if self._gui.is_texture_node() else '',
                 texture_mapping='TEXTURE_MAPPING_DEFINE({Name}{Texture}Node);\n\n'.format(
-                    Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                    Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                     Texture='Texture' if self._gui.is_texture_node() else ''
                 ) if self._gui.uses_texture_mapping() else '',
                 sockets=''.join(socket_defs),
@@ -963,7 +963,7 @@ class CodeGenerator:
             f.write(node)
 
             f.write('CCL_NAMESPACE_END\n\n')
-        CodeGeneratorUtil.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path)
 
     def _add_to_node_menu(self):
         """nodeitems_builtins.py"""
@@ -983,7 +983,7 @@ class CodeGenerator:
                 if re.search(']\)', lines[i]):
                     lines.insert(i, '        NodeItem("ShaderNode{0}{1}"{2})\n'.format(
                         "Tex" if self._gui.is_texture_node() else "",
-                        CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                        code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                         (', poll={0}'.format(self._gui.get_poll()) if self._gui.get_poll() is not None else '')))
                     lines[i - 1] = lines[i - 1][:len(lines[i - 1]) - 1] + ',\n'
                     break
@@ -996,11 +996,11 @@ class CodeGenerator:
 
     def _add_osl_shader(self):
         """"""
-        node_name_underscored = CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name())
+        node_name_underscored = code_generator_util.string_lower_underscored(self._gui.get_node_name())
         osl_path = path.join(self._gui.get_source_path(), "intern", "cycles", "kernel", "shaders",
                              "node_" + node_name_underscored + ".osl")
         with open(osl_path, "w+") as osl_f:
-            CodeGeneratorUtil.write_license(osl_f)
+            code_generator_util.write_license(osl_f)
             osl_f.write('#include "stdosl.h"\n\n')
 
             props = self._gui.get_props()
@@ -1016,7 +1016,7 @@ class CodeGenerator:
                 if self._gui.uses_texture_mapping() else '',
                 props=''.join('{type} {name} = {default},'.format(
                     type=type_conversion[prop['type']],
-                    name=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                    name=code_generator_util.string_lower_underscored(prop['name']),
                     default='"{default}"'.format(default=prop['default']) if prop['type'] == 'Enum' else prop[
                         'default'])
                               for prop in props if prop['type'] != 'String'),
@@ -1035,7 +1035,7 @@ class CodeGenerator:
                      for socket in sockets if socket['type'] == 'Output']))
 
             osl_f.write(function)
-        CodeGeneratorUtil.apply_clang_formatting(osl_path)
+        code_generator_util.apply_clang_formatting(osl_path)
 
     def _add_svm_shader(self):
         """"""

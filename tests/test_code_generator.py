@@ -76,7 +76,7 @@ class TestCodeGeneration(unittest.TestCase):
                               'output float socket2 = 0.5){}')]
 
         with patch('builtins.open', mock_open(m)) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_osl_shader()
 
@@ -100,7 +100,7 @@ class TestCodeGeneration(unittest.TestCase):
                               'output float socket2 = 0.5){}')]
 
         with patch('builtins.open', mock_open(m)) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_osl_shader()
 
@@ -131,7 +131,7 @@ class TestCodeGeneration(unittest.TestCase):
                               'output float socket2 = 0.5){}')]
 
         with patch('builtins.open', mock_open(m)) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_osl_shader()
 
@@ -248,7 +248,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         'typedef struct NodeShaderAttribute {\n'
                                                         '  char name[64];\n'
                                                         '} NodeShaderAttribute;\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_dna_node_type()
 
@@ -289,7 +289,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         'typedef struct NodeShaderAttribute {\n'
                                                         '  char name[64];\n'
                                                         '} NodeShaderAttribute;\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_dna_node_type()
 
@@ -338,7 +338,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               '           break;\n'
                                               '   }\n'
                                               '}\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_node_drawing()
 
@@ -376,7 +376,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               '           break;\n'
                                               '   }\n'
                                               '}\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_node_drawing()
 
@@ -421,7 +421,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         '#endif /* __NODES_H__ */\n'
                                                         '\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
@@ -463,7 +463,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         '#endif /* __NODES_H__ */\n'
                                                         '\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
@@ -509,7 +509,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         '#endif /* __NODES_H__ */\n'
                                                         '\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
@@ -555,7 +555,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         '#endif /* __NODES_H__ */\n'
                                                         '\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
@@ -597,7 +597,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         '#endif /* __NODES_H__ */\n'
                                                         '\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
@@ -639,7 +639,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         '#endif /* __NODES_H__ */\n'
                                                         '\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
@@ -679,7 +679,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         '#endif /* __NODES_H__ */\n'
                                                         '\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class()
 
@@ -726,7 +726,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -783,7 +783,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -848,7 +848,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -899,7 +899,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -953,7 +953,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -1011,7 +1011,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -1070,7 +1070,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -1132,7 +1132,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -1164,7 +1164,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -1202,7 +1202,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -1236,7 +1236,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'static void def_cmp_alpha_over(StructRNA *srna)\n'
                                                         '{\n')) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting', mock.Mock()):
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_rna_properties()
 
@@ -2144,7 +2144,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               'return node;\n'
                                               '}\n'
                                               )) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class_instance()
 
@@ -2206,7 +2206,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               'return node;\n'
                                               '}\n'
                                               )) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class_instance()
 
@@ -2273,7 +2273,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               'return node;\n'
                                               '}\n'
                                               )) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class_instance()
 
@@ -2337,7 +2337,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               'return node;\n'
                                               '}\n'
                                               )) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class_instance()
 
@@ -2396,7 +2396,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               'return node;\n'
                                               '}\n'
                                               )) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class_instance()
 
@@ -2454,7 +2454,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               'return node;\n'
                                               '}\n'
                                               )) as mf:
-            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_cycles_class_instance()
 
@@ -2496,7 +2496,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               )) as mf:
             with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
                        mock_svm_manager):
-                with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)
                     code_gen._add_cycles_node()
 
@@ -2582,7 +2582,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               )) as mf:
             with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
                        mock_svm_manager):
-                with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)
                     code_gen._add_cycles_node()
 
@@ -2676,7 +2676,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               )) as mf:
             with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
                        mock_svm_manager):
-                with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)
                     code_gen._add_cycles_node()
 
