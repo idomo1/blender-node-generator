@@ -2408,6 +2408,330 @@ class TestCodeGeneration(unittest.TestCase):
                                 'node = node_name;'
                                 '}\n' in mf.mock_calls[-3][1][0])
 
+    def test_add_cycles_class_instance_texture_node_no_props_no_vector_correct_formatting(self):
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.get_props.return_value = []
+        with patch('builtins.open', mock_open(read_data=
+                                              'static ShaderNode *add_node(Scene *scene,\n'
+                                              'BL::RenderEngine &b_engine,\n'
+                                              'BL::BlendData &b_data,\n'
+                                              'BL::Depsgraph &b_depsgraph,\n'
+                                              'BL::Scene &b_scene,\n'
+                                              'ShaderGraph *graph,\n'
+                                              'BL::ShaderNodeTree &b_ntree,\n'
+                                              'BL::ShaderNode &b_node)\n'
+                                              '{\n'
+                                              'ShaderNode *node = NULL;\n\n'
+
+                                              '/* existing blender nodes */\n'
+                                              'if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {\n'
+                                              'BL::ShaderNodeRGBCurve b_curve_node(b_node);\n'
+                                              'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+                                              'RGBCurvesNode *curves = new RGBCurvesNode();\n'
+                                              'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, true);\n'
+                                              'curvemapping_minmax(mapping, true, &curves->min_x, &curves->max_x);\n'
+                                              'node = curves;\n'
+                                              '}\n'
+                                              'if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {\n'
+                                              'BL::ShaderNodeVectorCurve b_curve_node(b_node);\n'
+                                              'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+                                              'VectorCurvesNode *curves = new VectorCurvesNode();\n'
+                                              'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, false);\n'
+                                              'curvemapping_minmax(mapping, false, &curves->min_x, &curves->max_x);\n'
+                                              'node = curves;\n'
+                                              '}\n'
+                                              '  else if (b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {\n'
+                                              'BL::ShaderNodeVectorDisplacement b_disp_node(b_node);\n'
+                                              'VectorDisplacementNode *disp = new VectorDisplacementNode();\n'
+                                              'disp->space = (NodeNormalMapSpace)b_disp_node.space();\n'
+                                              'disp->attribute = "";\n'
+                                              'node = disp;\n'
+                                              '}\n\n'
+                                              'if (node) {\n'
+                                              'node->name = b_node.name();\n'
+                                              'graph->add(node);\n'
+                                              '}\n'
+                                              'return node;\n'
+                                              '}\n'
+                                              )) as mf:
+            with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class_instance()
+
+                self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
+                                'node = new NodeNameTextureNode();'
+                                '}\n' in mf.mock_calls[-3][1][0])
+
+    def test_add_cycles_node_correct_formatting(self):
+        mock_svm_manager = mock.Mock()
+        mock_svm_manager.return_value = 'void NodeNameNode::compile(SVMCompiler &compiler){' \
+                                        'ShaderInput *socket1_in = input("Socket1");' \
+                                        'ShaderOutput *socket2_out = output("Socket2");\n\n' \
+                                        'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);' \
+                                        'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n' \
+                                        'compiler.add_node(NODE_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), ' \
+                                        'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), ' \
+                                        'socket2_stack_offset' \
+                                        ');' \
+                                        'compiler.add_node(__float_as_int(socket1));' \
+                                        '}\n\n'
+        with patch('builtins.open', mock_open(read_data=
+                                              'void VectorDisplacementNode::compile(OSLCompiler &compiler)\n'
+                                              '{\n'
+                                              'if (space == NODE_NORMAL_MAP_TANGENT) {\n'
+                                              '  if (attribute.empty()) {\n'
+                                              '    compiler.parameter("attr_name", ustring("geom:tangent"));\n'
+                                              '    compiler.parameter("attr_sign_name", ustring("geom:tangent_sign"));\n'
+                                              '  }\n'
+                                              '  else {\n'
+                                              '    compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));\n'
+                                              '    compiler.parameter("attr_sign_name",\n'
+                                              '                       ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));\n'
+                                              '  }\n'
+                                              '}\n\n'
+                                              'compiler.parameter(this, "space");\n'
+                                              'compiler.add(this, "node_vector_displacement");\n'
+                                              '}\n\n'
+                                              'CCL_NAMESPACE_END\n\n'
+                                              )) as mf:
+            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+                       mock_svm_manager):
+                with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                    code_gen = CodeGenerator(self.mock_gui)
+                    code_gen._add_cycles_node()
+
+                    self.assertTrue(mf.mock_calls[-3][1][0] == '/* Node Name */\n\n'
+                                                               'NODE_DEFINE(NodeNameNode){'
+                                                               'NodeType *type = NodeType::add("node_name", create, NodeType::SHADER);\n\n'
+                                                               'static NodeEnum dropdown1_enum;'
+                                                               'dropdown1_enum.insert("PROP1", 1);'
+                                                               'dropdown1_enum.insert("PROP2", 2);'
+                                                               'SOCKET_ENUM(dropdown1, "Dropdown1", dropdown1_enum, 1);\n\n'
+                                                               'static NodeEnum dropdown2_enum;'
+                                                               'dropdown2_enum.insert("PROP3", 1);'
+                                                               'dropdown2_enum.insert("PROP4", 2);'
+                                                               'SOCKET_ENUM(dropdown2, "Dropdown2", dropdown2_enum, 1);\n\n'
+                                                               'SOCKET_INT(int1, "Int1", 0);'
+                                                               'SOCKET_BOOLEAN(box1, "Box1", false);'
+                                                               'SOCKET_BOOLEAN(box2, "Box2", true);'
+                                                               'SOCKET_FLOAT(float1, "Float1", 0.0f);'
+                                                               'SOCKET_STRING(string1, "String1", ustring());\n\n'
+                                                               'SOCKET_IN_FLOAT(socket1, "Socket1", 0.5f);'
+                                                               'SOCKET_OUT_FLOAT(socket2, "Socket2", 0.5f);\n\n'
+                                                               'return type;'
+                                                               '}\n\n'
+                                                               'NodeNameNode::NodeNameNode() : ShaderNode(node_type)'
+                                                               '{'
+                                                               '}\n\n'
+                                                               'void NodeNameNode::compile(SVMCompiler &compiler){'
+                                                               'ShaderInput *socket1_in = input("Socket1");'
+                                                               'ShaderOutput *socket2_out = output("Socket2");\n\n'
+                                                               'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
+                                                               'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n'
+                                                               'compiler.add_node(NODE_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
+                                                               'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), '
+                                                               'socket2_stack_offset'
+                                                               ');'
+                                                               'compiler.add_node(__float_as_int(socket1));'
+                                                               '}\n\n'
+                                                               'void NodeNameNode::compile(OSLCompiler &compiler)'
+                                                               '{'
+                                                               'compiler.parameter(this, "dropdown1");'
+                                                               'compiler.parameter(this, "dropdown2");'
+                                                               'compiler.parameter(this, "int1");'
+                                                               'compiler.parameter(this, "box1");'
+                                                               'compiler.parameter(this, "box2");'
+                                                               'compiler.parameter(this, "float1");'
+                                                               'compiler.add(this, "node_node_name");'
+                                                               '}\n\n'
+                                    )
+
+    def test_add_cycles_node_texture_node_no_vector_correct_formatting(self):
+        mock_svm_manager = mock.Mock()
+        mock_svm_manager.return_value = 'void NodeNameTextureNode::compile(SVMCompiler &compiler){' \
+                                        'ShaderInput *socket1_in = input("Socket1");' \
+                                        'ShaderOutput *socket2_out = output("Socket2");\n\n' \
+                                        'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);' \
+                                        'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n' \
+                                        'compiler.add_node(NODE_TEX_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), ' \
+                                        'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), ' \
+                                        'socket2_stack_offset' \
+                                        ');' \
+                                        'compiler.add_node(__float_as_int(socket1));' \
+                                        '}\n\n'
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.get_node_type.return_value = "Texture"
+        with patch('builtins.open', mock_open(read_data=
+                                              'void VectorDisplacementNode::compile(OSLCompiler &compiler)\n'
+                                              '{\n'
+                                              'if (space == NODE_NORMAL_MAP_TANGENT) {\n'
+                                              '  if (attribute.empty()) {\n'
+                                              '    compiler.parameter("attr_name", ustring("geom:tangent"));\n'
+                                              '    compiler.parameter("attr_sign_name", ustring("geom:tangent_sign"));\n'
+                                              '  }\n'
+                                              '  else {\n'
+                                              '    compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));\n'
+                                              '    compiler.parameter("attr_sign_name",\n'
+                                              '                       ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));\n'
+                                              '  }\n'
+                                              '}\n\n'
+                                              'compiler.parameter(this, "space");\n'
+                                              'compiler.add(this, "node_vector_displacement");\n'
+                                              '}\n\n'
+                                              'CCL_NAMESPACE_END\n\n'
+                                              )) as mf:
+            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+                       mock_svm_manager):
+                with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                    code_gen = CodeGenerator(self.mock_gui)
+                    code_gen._add_cycles_node()
+
+                    self.assertTrue(mf.mock_calls[-3][1][0] == '/* Node Name Texture */\n\n'
+                                                               'NODE_DEFINE(NodeNameTextureNode){'
+                                                               'NodeType *type = NodeType::add("node_name_texture", create, NodeType::SHADER);\n\n'
+                                                               'static NodeEnum dropdown1_enum;'
+                                                               'dropdown1_enum.insert("PROP1", 1);'
+                                                               'dropdown1_enum.insert("PROP2", 2);'
+                                                               'SOCKET_ENUM(dropdown1, "Dropdown1", dropdown1_enum, 1);\n\n'
+                                                               'static NodeEnum dropdown2_enum;'
+                                                               'dropdown2_enum.insert("PROP3", 1);'
+                                                               'dropdown2_enum.insert("PROP4", 2);'
+                                                               'SOCKET_ENUM(dropdown2, "Dropdown2", dropdown2_enum, 1);\n\n'
+                                                               'SOCKET_INT(int1, "Int1", 0);'
+                                                               'SOCKET_BOOLEAN(box1, "Box1", false);'
+                                                               'SOCKET_BOOLEAN(box2, "Box2", true);'
+                                                               'SOCKET_FLOAT(float1, "Float1", 0.0f);'
+                                                               'SOCKET_STRING(string1, "String1", ustring());\n\n'
+                                                               'SOCKET_IN_FLOAT(socket1, "Socket1", 0.5f);'
+                                                               'SOCKET_OUT_FLOAT(socket2, "Socket2", 0.5f);\n\n'
+                                                               'return type;'
+                                                               '}\n\n'
+                                                               'NodeNameTextureNode::NodeNameTextureNode() : TextureNode(node_type)'
+                                                               '{'
+                                                               '}\n\n'
+                                                               'void NodeNameTextureNode::compile(SVMCompiler &compiler){'
+                                                               'ShaderInput *socket1_in = input("Socket1");'
+                                                               'ShaderOutput *socket2_out = output("Socket2");\n\n'
+                                                               'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
+                                                               'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n'
+                                                               'compiler.add_node(NODE_TEX_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
+                                                               'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), '
+                                                               'socket2_stack_offset'
+                                                               ');'
+                                                               'compiler.add_node(__float_as_int(socket1));'
+                                                               '}\n\n'
+                                                               'void NodeNameTextureNode::compile(OSLCompiler &compiler)'
+                                                               '{'
+                                                               'compiler.parameter(this, "dropdown1");'
+                                                               'compiler.parameter(this, "dropdown2");'
+                                                               'compiler.parameter(this, "int1");'
+                                                               'compiler.parameter(this, "box1");'
+                                                               'compiler.parameter(this, "box2");'
+                                                               'compiler.parameter(this, "float1");'
+                                                               'compiler.add(this, "node_node_name_texture");'
+                                                               '}\n\n'
+                                    )
+
+    def test_add_cycles_node_texture_node_with_vector_correct_formatting(self):
+        mock_svm_manager = mock.Mock()
+        mock_svm_manager.return_value = 'void NodeNameTextureNode::compile(SVMCompiler &compiler){' \
+                                        'ShaderInput *vector_in = input("Vector");' \
+                                        'ShaderInput *socket1_in = input("Socket1");' \
+                                        'ShaderOutput *socket2_out = output("Socket2");\n\n' \
+                                        'int vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);' \
+                                        'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);' \
+                                        'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n' \
+                                        'compiler.add_node(NODE_TEX_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), ' \
+                                        'compiler.encode_uchar4(box2, __float_as_int(float1), vector_stack_offset, socket1_stack_offset), ' \
+                                        'socket2_stack_offset' \
+                                        ');' \
+                                        'compiler.add_node(__float_as_int(socket1));\n\n' \
+                                        'tex_mapping.compile_end(compiler, vector_in, vector_stack_offset);' \
+                                        '}\n\n'
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.uses_texture_mapping.return_value = True
+        self.mock_gui.get_node_sockets.return_value.insert(0, {'type': "Input", 'name': "vector", 'data-type': "Vector",
+                                                               'sub-type': 'PROP_NONE', 'flag': 'None',
+                                                               'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0",
+                                                               'default': "0.5,0.5,0.5"})
+        with patch('builtins.open', mock_open(read_data=
+                                              'void VectorDisplacementNode::compile(OSLCompiler &compiler)\n'
+                                              '{\n'
+                                              'if (space == NODE_NORMAL_MAP_TANGENT) {\n'
+                                              '  if (attribute.empty()) {\n'
+                                              '    compiler.parameter("attr_name", ustring("geom:tangent"));\n'
+                                              '    compiler.parameter("attr_sign_name", ustring("geom:tangent_sign"));\n'
+                                              '  }\n'
+                                              '  else {\n'
+                                              '    compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));\n'
+                                              '    compiler.parameter("attr_sign_name",\n'
+                                              '                       ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));\n'
+                                              '  }\n'
+                                              '}\n\n'
+                                              'compiler.parameter(this, "space");\n'
+                                              'compiler.add(this, "node_vector_displacement");\n'
+                                              '}\n\n'
+                                              'CCL_NAMESPACE_END\n\n'
+                                              )) as mf:
+            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+                       mock_svm_manager):
+                with patch('code_generation.CodeGeneratorUtil.apply_clang_formatting'):
+                    code_gen = CodeGenerator(self.mock_gui)
+                    code_gen._add_cycles_node()
+
+                    self.assertTrue(mf.mock_calls[-3][1][0] == '/* Node Name Texture */\n\n'
+                                                               'NODE_DEFINE(NodeNameTextureNode){'
+                                                               'NodeType *type = NodeType::add("node_name_texture", create, NodeType::SHADER);\n\n'
+                                                               'TEXTURE_MAPPING_DEFINE(NodeNameTextureNode);\n\n'
+                                                               'static NodeEnum dropdown1_enum;'
+                                                               'dropdown1_enum.insert("PROP1", 1);'
+                                                               'dropdown1_enum.insert("PROP2", 2);'
+                                                               'SOCKET_ENUM(dropdown1, "Dropdown1", dropdown1_enum, 1);\n\n'
+                                                               'static NodeEnum dropdown2_enum;'
+                                                               'dropdown2_enum.insert("PROP3", 1);'
+                                                               'dropdown2_enum.insert("PROP4", 2);'
+                                                               'SOCKET_ENUM(dropdown2, "Dropdown2", dropdown2_enum, 1);\n\n'
+                                                               'SOCKET_INT(int1, "Int1", 0);'
+                                                               'SOCKET_BOOLEAN(box1, "Box1", false);'
+                                                               'SOCKET_BOOLEAN(box2, "Box2", true);'
+                                                               'SOCKET_FLOAT(float1, "Float1", 0.0f);'
+                                                               'SOCKET_STRING(string1, "String1", ustring());\n\n'
+                                                               'SOCKET_IN_POINT(vector, "Vector", make_float3(0.5f, 0.5f, 0.5f), SocketType::LINK_TEXTURE_GENERATED);'
+                                                               'SOCKET_IN_FLOAT(socket1, "Socket1", 0.5f);'
+                                                               'SOCKET_OUT_FLOAT(socket2, "Socket2", 0.5f);\n\n'
+                                                               'return type;'
+                                                               '}\n\n'
+                                                               'NodeNameTextureNode::NodeNameTextureNode() : TextureNode(node_type)'
+                                                               '{'
+                                                               '}\n\n'
+                                                               'void NodeNameTextureNode::compile(SVMCompiler &compiler){'
+                                                               'ShaderInput *vector_in = input("Vector");'
+                                                               'ShaderInput *socket1_in = input("Socket1");'
+                                                               'ShaderOutput *socket2_out = output("Socket2");\n\n'
+                                                               'int vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);'
+                                                               'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
+                                                               'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n'
+                                                               'compiler.add_node(NODE_TEX_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
+                                                               'compiler.encode_uchar4(box2, __float_as_int(float1), vector_stack_offset, socket1_stack_offset), '
+                                                               'socket2_stack_offset'
+                                                               ');'
+                                                               'compiler.add_node(__float_as_int(socket1));\n\n'
+                                                               'tex_mapping.compile_end(compiler, vector_in, vector_stack_offset);'
+                                                               '}\n\n'
+                                                               'void NodeNameTextureNode::compile(OSLCompiler &compiler)'
+                                                               '{'
+                                                               'tex_mapping.compile(compiler);\n\n'
+                                                               'compiler.parameter(this, "dropdown1");'
+                                                               'compiler.parameter(this, "dropdown2");'
+                                                               'compiler.parameter(this, "int1");'
+                                                               'compiler.parameter(this, "box1");'
+                                                               'compiler.parameter(this, "box2");'
+                                                               'compiler.parameter(this, "float1");'
+                                                               'compiler.add(this, "node_node_name_texture");'
+                                                               '}\n\n'
+                                    )
+
 
 if __name__ == "__main__":
     unittest.main()

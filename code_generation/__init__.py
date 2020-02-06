@@ -2,7 +2,8 @@ from os import path, SEEK_END, SEEK_SET
 import re
 from collections import defaultdict
 
-from . import SVMCodeGenerator, CodeGeneratorUtil
+from . import CodeGeneratorUtil
+from .svm_code_generator import SVMCompilationManager
 
 
 class CodeGenerator:
@@ -410,7 +411,6 @@ class CodeGenerator:
             names = '/* GLSL function names to be implemented here */\n\n'
 
         # Props + Other params
-        type_map = {'Int': 'int', 'Boolean': 'bool', 'Float': 'float', 'String': ''}
         retrieved_props = []
         if uses_dna:
             struct = 'tex' if self._gui.is_texture_node() else 'attr'
@@ -845,7 +845,125 @@ class CodeGenerator:
 
     def _add_cycles_node(self):
         """nodes.cpp"""
-        pass
+
+        def format_default(item, key):
+            if item[key] == 'Enum':
+                return item['options'].index(item['default']) + 1
+            elif item[key] == 'Boolean':
+                return 'true' if item['default'] else 'false'
+            elif item[key] == 'Float':
+                return '{0}f'.format(item['default'])
+            elif item[key] == 'Int':
+                return item['default']
+            elif item[key] == 'String':
+                return 'ustring()'
+            elif item[key] == 'Vector':
+                return 'make_float3({default})'.format(
+                    default=CodeGeneratorUtil.fill_socket_default(item['default'], 3))
+
+        def format_prop_default(prop):
+            return format_default(prop, 'type')
+
+        def format_socket_default(socket):
+            return format_default(socket, 'data-type')
+
+        def is_first_vector_socket(socket):
+            if socket['data-type'] != 'Vector':
+                return False
+            return socket == [sock for sock in sockets if sock['data-type'] == 'Vector'][0]
+
+        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "render", "nodes.cpp")
+        with open(file_path, 'r+') as f:
+            props = self._gui.get_props()
+            sockets = self._gui.get_node_sockets()
+
+            svm_node_manager = SVMCompilationManager(props, sockets, self._gui.get_node_name(),
+                                                     self._gui.is_texture_node(), self._gui.uses_texture_mapping())
+
+            socket_defs = []
+            for prop in props:
+                if prop['type'] == 'Enum':
+                    socket_defs.append('static NodeEnum {name}_enum;'.format(
+                        name=CodeGeneratorUtil.string_lower_underscored(prop['name'])))
+                    socket_defs.extend(['{prop}_enum.insert("{OPTION}", {i});'.format(
+                        prop=prop['name'],
+                        OPTION=CodeGeneratorUtil.string_upper_underscored(option),
+                        i=i + 1) for i, option in enumerate(prop['options'])])
+                    socket_defs.append('SOCKET_ENUM({prop}, "{Prop}", {prop}_enum, {default});\n\n'.format(
+                        prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                        Prop=CodeGeneratorUtil.string_capitalized_spaced(prop['name']),
+                        default=format_prop_default(prop)))
+                else:
+                    socket_defs.append('SOCKET_{TYPE}({prop}, "{Prop}", {default});'.format(
+                        TYPE=prop['type'].upper(),
+                        prop=CodeGeneratorUtil.string_lower_underscored(prop['name']),
+                        Prop=CodeGeneratorUtil.string_capitalized_spaced(prop['name']),
+                        default=format_prop_default(prop)))
+            socket_defs.append('\n\n')
+
+            data_type_map = {'Int': 'INT', 'Float': 'FLOAT', 'Enum': 'ENUM', 'Vector': 'POINT', 'RGBA': 'COLOR',
+                             'Shader': 'CLOSURE', 'String': 'STRING'}
+
+            for socket in sockets:
+                socket_defs.append('SOCKET_{TYPE}_{DATA_TYPE}({name}, "{Name}", {default}{texture_mapping});'.format(
+                    TYPE=socket['type'][:-3].upper(),
+                    DATA_TYPE=data_type_map[socket['data-type']],
+                    name=CodeGeneratorUtil.string_lower_underscored(socket['name']),
+                    Name=CodeGeneratorUtil.string_capitalized_spaced(socket['name']),
+                    default=format_socket_default(socket),
+                    texture_mapping=', SocketType::LINK_TEXTURE_GENERATED' if self._gui.uses_texture_mapping() and
+                                                                              socket['data-type'] == 'Vector' and
+                                                                              is_first_vector_socket(socket) else ''))
+
+            node = '/* {NodeName}{space}{Texture} */\n\n' \
+                   'NODE_DEFINE({Name}{Texture}Node)' \
+                   '{{' \
+                   'NodeType *type = NodeType::add("{name}{texture}", create, NodeType::SHADER);\n\n' \
+                   '{texture_mapping}' \
+                   '{sockets}\n\n' \
+                   'return type;' \
+                   '}}\n\n' \
+                   '{Name}{Texture}Node::{Name}{Texture}Node() : {Type}Node(node_type)' \
+                   '{{' \
+                   '}}\n\n' \
+                   '{svm_func}' \
+                   'void {Name}{Texture}Node::compile(OSLCompiler &compiler)' \
+                   '{{' \
+                   '{tex_mapping_comp_osl}' \
+                   '{osl_params}' \
+                   'compiler.add(this, "node_{name}{texture}");' \
+                   '}}\n\n'.format(
+                NodeName=CodeGeneratorUtil.string_capitalized_spaced(self._gui.get_node_name()),
+                space=' ' if self._gui.is_texture_node() else '',
+                Texture='Texture' if self._gui.is_texture_node() else '',
+                Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                name=CodeGeneratorUtil.string_lower_underscored(self._gui.get_node_name()),
+                texture='_texture' if self._gui.is_texture_node() else '',
+                texture_mapping='TEXTURE_MAPPING_DEFINE({Name}{Texture}Node);\n\n'.format(
+                    Name=CodeGeneratorUtil.string_capitalized_no_space(self._gui.get_node_name()),
+                    Texture='Texture' if self._gui.is_texture_node() else ''
+                ) if self._gui.uses_texture_mapping() else '',
+                sockets=''.join(socket_defs),
+                Type=self._gui.get_node_type(),
+                svm_func=svm_node_manager.generate_svm_compile_func(),
+                tex_mapping_comp_osl='tex_mapping.compile(compiler);\n\n' if self._gui.uses_texture_mapping() else '',
+                osl_params=''.join('compiler.parameter(this, "{prop}");'.format(prop=prop['name']) for prop in props if
+                                   prop['type'] != 'String')
+            )
+
+            f.seek(0, SEEK_END)
+            f.seek(f.tell() - 30, SEEK_SET)
+            text = f.read()
+            match = re.search('\n\n', text)
+
+            if not match:
+                raise Exception("Match not found")
+
+            f.seek(f.tell() - 30 + match.end() + 3)
+            f.write(node)
+
+            f.write('CCL_NAMESPACE_END\n\n')
+        CodeGeneratorUtil.apply_clang_formatting(file_path)
 
     def _add_to_node_menu(self):
         """nodeitems_builtins.py"""
@@ -938,3 +1056,4 @@ class CodeGenerator:
         self._add_rna_properties()
         self._add_shader_node_file()
         self._add_cycles_class_instance()
+        self._add_cycles_node()
