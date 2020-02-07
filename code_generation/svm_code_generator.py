@@ -111,6 +111,7 @@ class SVMCompilationManager:
             optimizations=self._generate_float_optimizations())
 
     def generate_svm_compile_func(self):
+        """SVM compile function for nodes.cpp"""
         if self._uses_texture_mapping:
             first_input_vector = \
                 list(filter(lambda s: s['data-type'] == 'Vector' and s['type'] == 'Input', self._sockets))[0]
@@ -127,3 +128,197 @@ class SVMCompilationManager:
                                texture_mapping='\n\ntex_mapping.compile_end(compiler, {name}_in, {name}_stack_offset);'.format(
                                    name=code_generator_util.string_lower_underscored(first_input_vector['name'])
                                ) if self._uses_texture_mapping else '')
+
+    def _passed_params_count(self):
+        """Returns the no. of props/sockets passed to the shader"""
+        return len(list(filter(lambda p: p['data-type'] != 'String', self._props)) + self._sockets)
+
+    def _unpack_names(self):
+        def unpack_name(item):
+            name = code_generator_util.string_lower_underscored(item['name'])
+            if item['data-type'] in ['Boolean', 'Int', 'Enum']:
+                return name
+            elif item['data-type'] != 'String':
+                return '{name}_stack_offset'.format(name=name)
+
+        return [unpack_name(item) for item in self._props + self._sockets if item['data-type'] != 'String']
+
+    def _generate_offset_definitions(self):
+        names = self._unpack_names()
+
+        offset_def = 'uint {names};'
+
+        if len(names) < 4:
+            return ''
+        if len(names) == 4:
+            return offset_def.format(names=', '.join(names[2:]))
+        elif len(names) == 5:
+            return offset_def.format(names=', '.join(names[:4]))
+        elif len(names) == 6:
+            return ''.join([offset_def.format(names=', '.join(names[:3])),
+                            offset_def.format(names=', '.join(names[3:]))])
+        elif len(names) == 7:
+            return ''.join([offset_def.format(names=', '.join(names[:3])),
+                            offset_def.format(names=', '.join(names[3:6]))])
+        elif len(names) == 8 or len(names) == 9:
+            return ''.join([offset_def.format(names=', '.join(names[:4])),
+                            offset_def.format(names=', '.join(names[4:8]))])
+        elif len(names) >= 10 and len(names) <= 12:
+            return ''.join([offset_def.format(
+                names=', '.join(names[i:(i + 4) if i + 4 < len(names) else 2 * (i + 4) - len(names)]))
+                for i in range(0, len(names), 4)])
+        elif len(names) > 12:
+            raise Exception("Only 12 Props + Sockets Supported")
+        else:
+            raise Exception("Invalid number of prop + sockets {0}".format(len(names)))
+
+    def _generate_unpack(self):
+        names = self._unpack_names()
+        unpack_uchar = 'svm_unpack_uchar{count}(stack_offsets{offset_count}, {params});'
+
+        if len(names) < 4:
+            return ''
+        elif len(names) == 4:
+            return unpack_uchar.format(
+                count=2,
+                offset_count=1,
+                params=', '.join('&{name}'.format(name=name) for name in names[2:])
+            )
+        elif len(names) == 5:
+            return ''.join([unpack_uchar.format(
+                count=2,
+                offset_count=1,
+                params=', '.join('&{name}'.format(name=name) for name in names[:2])
+            ), unpack_uchar.format(
+                count=2,
+                offset_count=2,
+                params=', '.join('&{name}'.format(name=name) for name in names[2:4])
+            )])
+        elif len(names) == 6:
+            return ''.join([unpack_uchar.format(
+                count=3,
+                offset_count=1,
+                params=', '.join('&{name}'.format(name=name) for name in names[:3])
+            ), unpack_uchar.format(
+                count=3,
+                offset_count=2,
+                params=', '.join('&{name}'.format(name=name) for name in names[3:])
+            )])
+        elif len(names) == 7:
+            return ''.join([unpack_uchar.format(
+                count=3,
+                offset_count=1,
+                params=', '.join('&{name}'.format(name=name) for name in names[:3])
+            ), unpack_uchar.format(
+                count=3,
+                offset_count=2,
+                params=', '.join('&{name}'.format(name=name) for name in names[3:6])
+            )
+            ])
+        elif len(names) == 8:
+            return ''.join([unpack_uchar.format(
+                count=4,
+                offset_count=1,
+                params=', '.join('&{name}'.format(name=name) for name in names[:4])
+            ), unpack_uchar.format(
+                count=3,
+                offset_count=2,
+                params=', '.join('&{name}'.format(name=name) for name in names[4:7])
+            )
+            ])
+        elif len(names) == 9:
+            return ''.join([unpack_uchar.format(
+                count=4,
+                offset_count=1,
+                params=', '.join('&{name}'.format(name=name) for name in names[:4])
+            ), unpack_uchar.format(
+                count=4,
+                offset_count=2,
+                params=', '.join('&{name}'.format(name=name) for name in names[4:8])
+            )
+            ])
+        elif len(names) >= 10 and len(names) <= 12:
+            return ''.join([unpack_uchar.format(
+                count=4 if i + 4 <= len(names) else i + 4 - len(names),
+                offset_count=i // 4 + 1,
+                params=', '.join('&{name}'.format(
+                    name=name) for name in names[i:(i + 4) if i + 4 < len(names) else 2 * (i + 4) - len(names)]))
+                for i in range(0, len(names), 4)
+            ])
+        elif len(names) > 12:
+            raise Exception("Only 12 Props + Sockets Supported")
+        else:
+            raise Exception("Invalid number of prop + sockets {0}".format(len(names)))
+
+    def _generate_load_params(self):
+        load = ['uint4 defaults{i} = read_node(kg, offset);'.format(i=i // 4 + 1) for i in range(0, len(
+            [socket for socket in self._sockets if socket['type'] == 'Input' and socket['data-type'] == 'Float']), 4)]
+        if len(load) > 0:
+            load.append('\n\n')
+
+        float_i = 0
+        type_map = {'Float': 'float', 'Vector': 'float3', 'RGBA': 'float3', 'Int': 'int', 'Shader': 'float3'}
+        for socket in self._sockets:
+            if socket['type'] == 'Input':
+                load.append(
+                    '{type} {name} = stack_load_{type}{default}(stack, {name}_stack_offset{default_address});'.format(
+                        type=type_map[socket['data-type']],
+                        name=code_generator_util.string_lower_underscored(socket['name']),
+                        default='_default' if socket['data-type'] == 'Float' else '',
+                        default_address=', {node}.{address}'.format(
+                            node='defaults{i}'.format(i=float_i // 4 + 1),
+                            address=['x', 'y', 'z', 'w'][float_i % 4]) if socket['data-type'] == 'Float' else ''
+                    ))
+                if socket['data-type'] == 'Float':
+                    float_i += 1
+        return ''.join(load)
+
+    def _generate_shader_params(self):
+        """Parameters in shader"""
+        num_params = self._passed_params_count()
+        items = self._props + self._sockets
+        if num_params < 4:
+            params = ', '.join('uint {name}'.format(
+                name=code_generator_util.string_lower_underscored(item['name'])) for item in items)
+        elif num_params == 4:
+            params = ', '.join('uint {name}'.format(
+                name=code_generator_util.string_lower_underscored(item['name'])) for item in items[:2]
+                               ) + ', uint stack_offsets'
+        elif num_params == 5:
+            params = 'uint stack_offsets1, uint stack_offsets2, uint ' + code_generator_util.string_lower_underscored(
+                items[-1]['name'])
+        elif num_params == 6:
+            params = 'uint stack_offsets1, uint stack_offsets2'
+        elif num_params == 7 or num_params == 8 or num_params == 9:
+            params = 'uint stack_offsets1, uint stack_offsets2, uint ' + code_generator_util.string_lower_underscored(
+                items[-1]['name'])
+        elif num_params >= 10 and num_params <= 12:
+            params = 'uint stack_offsets1, uint stack_offsets2, uint stack_offsets3'
+        elif num_params > 12:
+            raise Exception("Only 12 Props + Sockets Supported")
+        else:
+            raise Exception("Invalid number of prop + sockets {0}".format(num_params))
+
+        return '{params}{offset}'.format(
+            params=params,
+            offset=', int *offset' if any(socket['data-type'] == 'Float' for socket in self._sockets) else '')
+
+    def generate_svm_shader(self):
+        """Loading passed values in svm_*.h"""
+        return 'CCL_NAMESPACE_BEGIN\n\n' \
+               'ccl_device void svm_node_{tex}{name}(KernelGlobals *kg,' \
+               'ShaderData *sd,' \
+               'float *stack,' \
+               '{params}' \
+               ')' \
+               '{{' \
+               '{offset_defs}\n\n' \
+               '{unpack_params}\n\n' \
+               '{load_params}' \
+               '}}\n\n' \
+               'CCL_NAMESPACE_END\n\n'.format(tex='tex_' if self._is_texture_node else '',
+                                              name=code_generator_util.string_lower_underscored(self._node_name),
+                                              params=self._generate_shader_params(),
+                                              offset_defs=self._generate_offset_definitions(),
+                                              unpack_params=self._generate_unpack(),
+                                              load_params=self._generate_load_params())
