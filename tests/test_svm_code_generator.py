@@ -80,7 +80,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -98,7 +99,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
                   "default": 'prop3'},
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
                  {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -117,7 +119,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
                  {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
                  {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -137,7 +140,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
                  {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
                  {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -159,7 +163,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
                  {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
                  {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -183,9 +188,12 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
                  {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
                  {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0},
+                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0},
+                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -206,9 +214,12 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
                  {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
                  {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0},
+                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0},
+                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -233,9 +244,12 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
                  {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
                  {"name": "box3", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0},
+                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0},
+                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
