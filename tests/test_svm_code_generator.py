@@ -9,15 +9,15 @@ class TestSVMCodeGenerator(unittest.TestCase):
     def setUpClass(cls):
         """Default Props/Sockets"""
         cls.props = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         cls.sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
                         'sub-type': 'PROP_NONE', 'flag': 'None',
                         'min': "-1.0", 'max': "1.0", 'default': "0.5"},
@@ -35,22 +35,22 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'socket1_stack_offset', 'socket2_stack_offset'])
 
     def test_generate_svm_params_less_than_4_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
         svm = SVMCompilationManager(props, [], '', False)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'dropdown1, dropdown2, int1')
 
     def test_generate_svm_params_5_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         svm = SVMCompilationManager(props, sockets, '', False)
@@ -60,12 +60,12 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'socket1_stack_offset')
 
     def test_generate_svm_params_6_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -77,13 +77,13 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'compiler.encode_uchar4(__float_as_int(float1), socket1_stack_offset, socket2_stack_offset)')
 
     def test_generate_svm_params_7_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -95,14 +95,14 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'socket2_stack_offset')
 
     def test_generate_svm_params_8_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -115,14 +115,14 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'socket2_stack_offset')
 
     def test_generate_svm_params_9_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -137,14 +137,14 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'socket3_stack_offset')
 
     def test_generate_svm_params_10_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -161,16 +161,16 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'compiler.encode_uchar4(socket3_stack_offset, socket4_stack_offset)')
 
     def test_generate_svm_params_11_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float2", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float3", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -184,16 +184,16 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'compiler.encode_uchar4(socket1_stack_offset, socket2_stack_offset, socket3_stack_offset)')
 
     def test_generate_svm_params_12_params_correct_formatting(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float2", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float3", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
@@ -210,17 +210,17 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'compiler.encode_uchar4(socket1_stack_offset, socket2_stack_offset, socket3_stack_offset, socket4_stack_offset)')
 
     def test_generate_svm_params_13_params_raises_exception(self):
-        props = [{"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
-                 {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
-                 {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "box3", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float2", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-                 {"name": "float3", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+                 {"name": "box3", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',

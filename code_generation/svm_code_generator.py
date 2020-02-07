@@ -18,10 +18,10 @@ class SVMCompilationManager:
         """How the props/sockets are passed to the compiler"""
         names = []
         for prop in self._props:
-            if prop['type'] == 'Float':
+            if prop['data-type'] == 'Float':
                 names.append(
                     '__float_as_int({name})'.format(name=code_generator_util.string_lower_underscored(prop['name'])))
-            elif prop['type'] != 'String':
+            elif prop['data-type'] != 'String':
                 names.append(code_generator_util.string_lower_underscored(prop['name']))
         for socket in self._sockets:
             names.append('{name}_stack_offset'.format(name=socket['name']))

@@ -82,7 +82,7 @@ class GUI:
         return len(self._prop_GUI.get_props()) > 0
 
     def node_has_check_box(self):
-        return len(list(filter(lambda p: p.get()['type'] == 'Boolean', self._prop_GUI.get_props()))) > 0
+        return len(list(filter(lambda p: p.get()['data-type'] == 'Boolean', self._prop_GUI.get_props()))) > 0
 
     def get_node_sockets(self):
         return self._socket_GUI.get_sockets()
@@ -280,10 +280,10 @@ class SocketAvailabilityGUI:
         props = self._props_GUI.get_props()
         for key in list(self._maps[self._dropdown.get()].keys()):
             for prop in props:
-                if prop['type'] == 'Boolean':
+                if prop['data-type'] == 'Boolean':
                     if key == prop['name'] + '=True' or key == prop['name'] + '=False':
                         break
-                elif prop['type'] == 'Enum':
+                elif prop['data-type'] == 'Enum':
                     if key in [prop['name'] + '=' + option for option in prop['options']]:
                         break
             else:
@@ -294,10 +294,10 @@ class SocketAvailabilityGUI:
         if self._dropdown.get() not in self._maps.keys():
             options = []
             for prop in props:
-                if prop['type'] == 'Boolean':
+                if prop['data-type'] == 'Boolean':
                     options.append(prop['name'] + '=True')
                     options.append(prop['name'] + '=False')
-                elif prop['type'] == 'Enum':
+                elif prop['data-type'] == 'Enum':
                     options.extend([(prop['name'] + '=' + option) for option in prop['options']])
             vars = [BooleanVar() for _ in range(len(options))]
             for var in vars:
@@ -307,7 +307,7 @@ class SocketAvailabilityGUI:
                 self._maps[self._dropdown.get()][option] = vars[i]
         else:
             for prop in props:
-                if prop['type'] == 'Boolean':
+                if prop['data-type'] == 'Boolean':
                     if prop['name'] + '=True' not in self._maps[self._dropdown.get()].keys():
                         var = BooleanVar()
                         var.set(True)
@@ -315,7 +315,7 @@ class SocketAvailabilityGUI:
                         var = BooleanVar()
                         var.set(True)
                         self._maps[self._dropdown.get()][prop['name'] + '=False'] = var
-                    elif prop['type'] == 'Enum':
+                    elif prop['data-type'] == 'Enum':
                         for option in prop['options']:
                             var = BooleanVar()
                             var.set(True)
@@ -382,7 +382,7 @@ class PropertiesGUI:
     def _sort_props(self, props):
         """Sorts props by type order required for constructing rna props"""
         type_value = {"Enum": 0, "Boolean": 2, "Int": 1, "Float": 3, "String": 4}
-        props.sort(key=lambda p: type_value[p['type']])
+        props.sort(key=lambda p: type_value[p['data-type']])
         return props
 
     def get_props(self):
@@ -520,7 +520,7 @@ class PropertyInput(Frame):
 
     def get(self):
         if self.winfo_exists():
-            prop = {'type': self.children['!combobox'].get(),
+            prop = {'data-type': self.children['!combobox'].get(),
                     'sub-type': self.children['!combobox2'].get(),
                     'name': self.children['!entry'].get().lower()}
             type = self.type.get()

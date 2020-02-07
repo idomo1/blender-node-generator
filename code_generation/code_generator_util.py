@@ -26,15 +26,15 @@ def uses_dna(props, node_type):
     bool_count = 0
     int_count = 0
     for prop in props:
-        if prop['type'] == "Float":
+        if prop['data-type'] == "Float":
             float_count += 1
-        elif prop['type'] == "Enum":
+        elif prop['data-type'] == "Enum":
             enum_count += 1
-        elif prop['type'] == "Boolean":
+        elif prop['data-type'] == "Boolean":
             bool_count += 1
-        elif prop['type'] == "Int":
+        elif prop['data-type'] == "Int":
             int_count += 1
-        elif prop['type'] == "String":
+        elif prop['data-type'] == "String":
             return True
     if enum_count > 2 or float_count > 2 or bool_count > 16 or int_count > 2:
         return True
@@ -48,7 +48,7 @@ def dna_padding_size(props):
         Requires a padding member if the bytes size of the properties is not a multiple of 8"""
     byte_total = 0
     for prop in props:
-        if prop["type"] == "String":
+        if prop['data-type'] == "String":
             byte_total += 2 * prop['size']
         else:
             byte_total += 4

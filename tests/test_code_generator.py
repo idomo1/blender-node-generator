@@ -22,15 +22,15 @@ class TestCodeGeneration(unittest.TestCase):
         self.mock_gui.get_node_group_level.return_value = 3
         self.mock_gui.get_node_check_box_count.return_value = 2
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         self.mock_gui.is_texture_node.return_value = False
         self.mock_gui.node_has_properties.return_value = True
         self.mock_gui.node_has_check_box.return_value = True
@@ -273,7 +273,7 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_dna_struct_requires_padding_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "options": ["prop1", "prop2"], "default": '"prop1"'}]
+            {"name": "dropdown1", 'data-type': "Enum", "options": ["prop1", "prop2"], "default": '"prop1"'}]
         with patch('builtins.open', mock_open(read_data='typedef struct NodeTexWave {\n'
                                                         '  NodeTexBase base;\n'
                                                         '  int wave_type;\n'
@@ -477,11 +477,11 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_node_class_no_bools_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "options": ["prop1", "prop2"], "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "options": ["prop3", "prop4"], "default": '"prop3"'},
-            {"name": "int1", "type": "Int", "default": 0, "min": -1, "max": 1},
-            {"name": "float1", "type": "Float", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "size": 64, "default": '""'}]
+            {"name": "dropdown1", 'data-type': "Enum", "options": ["prop1", "prop2"], "default": '"prop1"'},
+            {"name": "dropdown2", 'data-type': "Enum", "options": ["prop3", "prop4"], "default": '"prop3"'},
+            {"name": "int1", 'data-type': "Int", "default": 0, "min": -1, "max": 1},
+            {"name": "float1", 'data-type': "Float", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='};\n'
                                                         '\n'
                                                         'class VectorDisplacementNode : public ShaderNode {\n'
@@ -522,12 +522,12 @@ class TestCodeGeneration(unittest.TestCase):
                                                            '};')
 
     def test_write_node_class_no_enums_correct_formatting(self):
-        self.mock_gui.get_props.return_value = [{"name": "box1", "type": "Boolean", "default": 0},
-                                                {"name": "box2", "type": "Boolean", "default": 1},
-                                                {"name": "int1", "type": "Int", "default": 0, "min": -1, "max": 1},
-                                                {"name": "float1", "type": "Float", "default": 0.0, "min": -1.0,
+        self.mock_gui.get_props.return_value = [{"name": "box1", 'data-type': "Boolean", "default": 0},
+                                                {"name": "box2", 'data-type': "Boolean", "default": 1},
+                                                {"name": "int1", 'data-type': "Int", "default": 0, "min": -1, "max": 1},
+                                                {"name": "float1", 'data-type': "Float", "default": 0.0, "min": -1.0,
                                                  "max": 1.0},
-                                                {"name": "string1", "type": "String", "size": 64, "default": '""'}]
+                                                {"name": "string1", 'data-type': "String", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='};\n'
                                                         '\n'
                                                         'class VectorDisplacementNode : public ShaderNode {\n'
@@ -834,12 +834,12 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_enums_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0,
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0,
              "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64,
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64,
              "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
@@ -885,13 +885,13 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_bools_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -938,14 +938,14 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_ints_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -996,14 +996,14 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_string_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1055,14 +1055,14 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_no_floats_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1122,9 +1122,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_one_enum_bool_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1153,10 +1153,10 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_one_enum_bool_float_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
 
@@ -1191,9 +1191,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_two_enum_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
@@ -1224,12 +1224,12 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_write_rna_properties_two_enum_float_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": '"prop1"'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": '"prop3"'},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "float2", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='#  endif\n'
                                                         '}\n'
                                                         '/* -- Compositor Nodes ------------------------------------------------------ */\n'
@@ -1488,10 +1488,10 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_init_no_dna_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_init()
 
@@ -1504,11 +1504,11 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_init_no_dna_two_bools_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_init()
 
@@ -1573,7 +1573,7 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_gpu_one_dropdown_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'}]
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
@@ -1596,9 +1596,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_gpu_two_dropdowns_no_dna_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}
         ]
         code_gen = CodeGenerator(self.mock_gui)
@@ -1632,11 +1632,11 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_gpu_no_dropdowns_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "int1", "type": "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "float1", "type": "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", "type": "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
@@ -1795,9 +1795,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_two_dropdowns_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}
         ]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
@@ -1822,9 +1822,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_two_dropdowns_inverted_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}
         ]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
@@ -1849,7 +1849,7 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_one_boolean_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [('box1=True', True),
                                                                                    ('box1=False', True)]},
@@ -1867,9 +1867,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_one_dropdown_boolean_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [('dropdown1=prop1', True),
                                                                                    ('dropdown1=prop2', True),
@@ -1891,9 +1891,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_one_dropdown_boolean_inverted_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [('dropdown1=prop1', True),
                                                                                    ('dropdown1=prop2', True),
@@ -1915,8 +1915,8 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_two_boolean_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [('box1=True', True),
                                                                                    ('box1=False', True),
@@ -1939,8 +1939,8 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_two_boolean_inverted_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [('box1=True', True),
                                                                                    ('box1=False', True),
@@ -1963,10 +1963,10 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_one_dropdown_two_boolean_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [
                                                                         ('dropdown1=prop1', True),
@@ -1995,10 +1995,10 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_availability_no_dna_one_dropdown_two_boolean_inverted_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "box1", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", "type": "Boolean", "sub-type": "PROP_NONE", "default": 0}]
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [
                                                                         ('dropdown1=prop1', True),
@@ -2080,9 +2080,9 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_generate_node_register_no_dna_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
-            {"name": "dropdown2", "type": "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}]
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_register()

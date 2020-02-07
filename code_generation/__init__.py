@@ -42,11 +42,11 @@ class CodeGenerator:
             with open(dna_path, 'r+') as f:
                 props = defaultdict(list)
                 for prop in self._gui.get_props():
-                    if prop['type'] == 'Enum' or prop['type'] == 'Boolean' or prop['type'] == 'Int':
+                    if prop['data-type'] == 'Enum' or prop['data-type'] == 'Boolean' or prop['data-type'] == 'Int':
                         props['int'].append(prop['name'])
-                    elif prop['type'] == 'String':
+                    elif prop['data-type'] == 'String':
                         props['char'].append("{name}[{size}]".format(name=prop['name'], size=prop['size']))
-                    elif prop['type'] == 'Float':
+                    elif prop['data-type'] == 'Float':
                         props['float'].append(prop['name'])
                     else:
                         raise Exception("Invalid Property Type")
@@ -92,15 +92,15 @@ class CodeGenerator:
                 uses_dna = code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type())
                 for prop in self._gui.get_props():
                     if not uses_dna:
-                        if prop['type'] == "Enum" or prop['type'] == "Int":
+                        if prop['data-type'] == "Enum" or prop['data-type'] == "Int":
                             custom_i = s_custom_i
                             s_custom_i += 1
-                        elif prop['type'] == "Boolean":
+                        elif prop['data-type'] == "Boolean":
                             custom_i = s_custom_i
-                        elif prop['type'] == "Float":
+                        elif prop['data-type'] == "Float":
                             custom_i = f_custom_i
                             f_custom_i += 1
-                    if prop['type'] == "Enum":
+                    if prop['data-type'] == "Enum":
                         enum_name = 'rna_enum_node_{tex}{name}_items'. \
                             format(tex='tex_' if self._gui.is_texture_node() else '',
                                    name=code_generator_util.string_lower_underscored(prop['name']))
@@ -113,22 +113,22 @@ class CodeGenerator:
                                  'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");'.
                         format(
                         name=code_generator_util.string_lower_underscored(prop['name']),
-                        TYPE=code_generator_util.string_upper_underscored(prop['type']),
+                        TYPE=code_generator_util.string_upper_underscored(prop['data-type']),
                         SUBTYPE=prop['sub-type'],
-                        type=code_generator_util.string_lower_underscored(prop['type']),
+                        type=code_generator_util.string_lower_underscored(prop['data-type']),
                         sdna=code_generator_util.string_lower_underscored(
                             prop['name'] if uses_dna else "custom{index}".format(index=custom_i)),
                         enum=', SHD_{NAME}_{PROP}'.format(
                             NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
                             PROP=code_generator_util.string_upper_underscored(prop['name']))
-                        if prop['type'] == "Boolean" else '',
+                        if prop['data-type'] == "Boolean" else '',
                         enum_items='RNA_def_property_enum_items(prop, {enum_name});'.format(enum_name=enum_name) if
-                        prop['type'] == "Enum" else '',
+                        prop['data-type'] == "Enum" else '',
                         prop_range='RNA_def_property_range(prop, {min}, {max});'.format(min=prop['min'],
                                                                                         max=prop['max']) if prop[
-                                                                                                                'type'] == "Int" or
+                                                                                                                'data-type'] == "Int" or
                                                                                                             prop[
-                                                                                                                'type'] == "Float" else '',
+                                                                                                                'data-type'] == "Float" else '',
                         Name=code_generator_util.string_capitalized_spaced(prop['name']),
                         desc=""))
 
@@ -188,9 +188,9 @@ class CodeGenerator:
                     prop_lines = []
                     for prop in self._gui.get_props():
                         name = "NULL"
-                        if prop['type'] == "Enum":
+                        if prop['data-type'] == "Enum":
                             name = '""'
-                        elif prop['type'] == "String":
+                        elif prop['data-type'] == "String":
                             name = 'IFACE_("{name}")'.format(
                                 name=code_generator_util.string_capitalized_spaced(prop['name']))
                         prop_lines.append(
@@ -287,7 +287,7 @@ class CodeGenerator:
             struct = 'tex' if self._gui.is_texture_node() else 'attr'
             defaults = []
             for prop in props:
-                if prop['type'] == 'Enum':
+                if prop['data-type'] == 'Enum':
                     defaults.append('{struct}->{prop} = {default};'.format(
                         struct=struct,
                         prop=code_generator_util.string_lower_underscored(prop['name']),
@@ -296,12 +296,12 @@ class CodeGenerator:
                                 self._gui.get_node_name()),
                             PROP=code_generator_util.string_upper_underscored(
                                 prop['default']))))
-                elif prop['type'] == 'Boolean' or prop['type'] == 'Int':
+                elif prop['data-type'] == 'Boolean' or prop['data-type'] == 'Int':
                     defaults.append('{struct}->{prop} = {default};'.format(
                         struct=struct,
                         prop=code_generator_util.string_lower_underscored(prop['name']),
                         default=prop['default']))
-                elif prop['type'] == 'Float':
+                elif prop['data-type'] == 'Float':
                     defaults.append('{struct}->{prop} = {default};'.format(
                         struct=struct,
                         prop=code_generator_util.string_lower_underscored(prop['name']),
@@ -313,7 +313,7 @@ class CodeGenerator:
             f_custom_i = 3
             boolean_bit = 0
             for prop in props:
-                if prop['type'] == 'Enum':
+                if prop['data-type'] == 'Enum':
                     defaults.append('node->custom{i} = {default};'.format(i=s_custom_i,
                                                                           default='SHD_{NAME}_{PROP}'.format(
                                                                               NAME=code_generator_util.string_upper_underscored(
@@ -321,12 +321,12 @@ class CodeGenerator:
                                                                               PROP=code_generator_util.string_upper_underscored(
                                                                                   prop['default']))))
                     s_custom_i += 1
-                elif prop['type'] == 'Int':
+                elif prop['data-type'] == 'Int':
                     defaults.append('node->custom{i} = {default};'.format(i=s_custom_i, default=prop['default']))
                     s_custom_i += 1
-                elif prop['type'] == 'Boolean':
+                elif prop['data-type'] == 'Boolean':
                     # Need to set bits if multiple bools
-                    if len([prop for prop in props if prop['type'] == 'Boolean']) == 1:
+                    if len([prop for prop in props if prop['data-type'] == 'Boolean']) == 1:
                         defaults.append(
                             'node->custom{i} = {default};'.format(i=s_custom_i, default=prop['default']))
                     else:
@@ -336,7 +336,7 @@ class CodeGenerator:
                             default=int(prop['default']),
                             boolean_bit=boolean_bit))
                         boolean_bit += 1
-                elif prop['type'] == 'Float':
+                elif prop['data-type'] == 'Float':
                     defaults.append('node->custom{i} = {default}f;'.format(i=f_custom_i, default=prop['default']))
             prop_init = ''.join(defaults)
 
@@ -369,7 +369,7 @@ class CodeGenerator:
         :return: gpu function as text
         """
         props = self._gui.get_props()
-        dropdowns = list(filter(lambda p: p['type'] == 'Enum', props))
+        dropdowns = list(filter(lambda p: p['data-type'] == 'Enum', props))
         dropdown_count = len(dropdowns)
         uses_dna = code_generator_util.uses_dna(props, self._gui.get_node_type())
         names = ''
@@ -416,11 +416,11 @@ class CodeGenerator:
             struct = 'tex' if self._gui.is_texture_node() else 'attr'
             for prop in props:
                 prop_name = code_generator_util.string_lower_underscored(prop['name'])
-                if prop['type'] == 'Boolean':
+                if prop['data-type'] == 'Boolean':
                     retrieved_props.append('float {name} = ({struct}->{name}) ? 1.0f : 0.0f;'.format(
                         name=prop_name,
                         struct=struct))
-                elif prop['type'] != 'String' and prop['type'] != 'Enum':
+                elif prop['data-type'] != 'String' and prop['data-type'] != 'Enum':
                     retrieved_props.append('float {name} = {struct}->{name};'.format(
                         name=prop_name,
                         struct=struct))
@@ -431,9 +431,9 @@ class CodeGenerator:
             boolean_bit = 0
             for prop in props:
                 prop_name = code_generator_util.string_lower_underscored(prop['name'])
-                if prop['type'] == 'Boolean':
+                if prop['data-type'] == 'Boolean':
                     # Need to get individual bits if multiple bools
-                    if len([prop for prop in props if prop['type'] == 'Boolean']) > 1:
+                    if len([prop for prop in props if prop['data-type'] == 'Boolean']) > 1:
                         retrieved_props.append(
                             'float {name} = ({struct}->custom{i}) ? 1.0f : 0.0f;'.format(name=prop_name,
                                                                                          struct=struct,
@@ -446,19 +446,19 @@ class CodeGenerator:
                                 i=s_custom_i,
                                 boolean_bit=boolean_bit))
                         boolean_bit += 1
-                elif prop['type'] == 'Float':
+                elif prop['data-type'] == 'Float':
                     retrieved_props.append('float {name} = node->custom{i};'.format(name=prop_name,
                                                                                     struct=struct,
                                                                                     i=f_custom_i))
                     f_custom_i += 1
-                elif prop['type'] == 'Int':
+                elif prop['data-type'] == 'Int':
                     retrieved_props.append('float {name} = node->custom{i};'.format(name=prop_name,
                                                                                     struct=struct,
                                                                                     i=s_custom_i))
                     s_custom_i += 1
         other_params = ', ' + ', '.join(
             'GPU_constant(&{prop})'.format(prop=code_generator_util.string_lower_underscored(prop['name'])) for
-            prop in list(filter(lambda p: p['type'] != 'Enum' and p['type'] != 'String', props))) \
+            prop in list(filter(lambda p: p['data-type'] != 'Enum' and p['data-type'] != 'String', props))) \
             if len(props) - dropdown_count > 0 else ''
 
         assertions = []
@@ -561,7 +561,7 @@ class CodeGenerator:
                                     OPTION=code_generator_util.string_upper_underscored(value))
                                 if is_enum else int(value == 'True')))
                 else:
-                    bool_count = len(list(filter(lambda p: p['type'] == 'Boolean', props)))
+                    bool_count = len(list(filter(lambda p: p['data-type'] == 'Boolean', props)))
                     s_custom_i = 1
                     boolean_bit = 0
                     last_prop = None
@@ -737,8 +737,8 @@ class CodeGenerator:
                 props[types_convert[socket['data-type']]].append(socket['name'])
 
             for prop in self._gui.get_props():
-                if prop['type'] != "String":
-                    props[types_convert[prop['type']]].append(prop['name'])
+                if prop['data-type'] != "String":
+                    props[types_convert[prop['data-type']]].append(prop['name'])
                 else:
                     props['char'].append('{name}[{size}]'.format(name=prop['name'], size=prop['size']))
 
@@ -862,7 +862,7 @@ class CodeGenerator:
                     default=code_generator_util.fill_socket_default(item['default'], 3))
 
         def format_prop_default(prop):
-            return format_default(prop, 'type')
+            return format_default(prop, 'data-type')
 
         def format_socket_default(socket):
             return format_default(socket, 'data-type')
@@ -882,7 +882,7 @@ class CodeGenerator:
 
             socket_defs = []
             for prop in props:
-                if prop['type'] == 'Enum':
+                if prop['data-type'] == 'Enum':
                     socket_defs.append('static NodeEnum {name}_enum;'.format(
                         name=code_generator_util.string_lower_underscored(prop['name'])))
                     socket_defs.extend(['{prop}_enum.insert("{OPTION}", {i});'.format(
@@ -895,7 +895,7 @@ class CodeGenerator:
                         default=format_prop_default(prop)))
                 else:
                     socket_defs.append('SOCKET_{TYPE}({prop}, "{Prop}", {default});'.format(
-                        TYPE=prop['type'].upper(),
+                        TYPE=prop['data-type'].upper(),
                         prop=code_generator_util.string_lower_underscored(prop['name']),
                         Prop=code_generator_util.string_capitalized_spaced(prop['name']),
                         default=format_prop_default(prop)))
@@ -948,7 +948,7 @@ class CodeGenerator:
                 svm_func=svm_node_manager.generate_svm_compile_func(),
                 tex_mapping_comp_osl='tex_mapping.compile(compiler);\n\n' if self._gui.uses_texture_mapping() else '',
                 osl_params=''.join('compiler.parameter(this, "{prop}");'.format(prop=prop['name']) for prop in props if
-                                   prop['type'] != 'String')
+                                   prop['data-type'] != 'String')
             )
 
             f.seek(0, SEEK_END)
@@ -1015,11 +1015,11 @@ class CodeGenerator:
                 mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),'
                 if self._gui.uses_texture_mapping() else '',
                 props=''.join('{type} {name} = {default},'.format(
-                    type=type_conversion[prop['type']],
+                    type=type_conversion[prop['data-type']],
                     name=code_generator_util.string_lower_underscored(prop['name']),
-                    default='"{default}"'.format(default=prop['default']) if prop['type'] == 'Enum' else prop[
+                    default='"{default}"'.format(default=prop['default']) if prop['data-type'] == 'Enum' else prop[
                         'default'])
-                              for prop in props if prop['type'] != 'String'),
+                              for prop in props if prop['data-type'] != 'String'),
                 in_sockets=''.join(['{type} {name} = {default},'.format(type=type_conversion[socket['data-type']],
                                                                         name=socket['name'],
                                                                         default=socket['default'] if socket[
