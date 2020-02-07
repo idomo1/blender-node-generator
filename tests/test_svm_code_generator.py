@@ -44,13 +44,28 @@ class TestSVMCodeGenerator(unittest.TestCase):
         params = svm._generate_svm_params()
         self.assertTrue(params == 'dropdown1, dropdown2, int1')
 
+    def test_generate_svm_params_4_params_correct_formatting(self):
+        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+                  "default": 'prop1'},
+                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+                  "default": 'prop3'},
+                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
+        sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+        svm = SVMCompilationManager(props, sockets, '', False)
+        params = svm._generate_svm_params()
+
+        self.assertTrue(params == 'dropdown1, dropdown2, '
+                                  'compiler.encode_uchar4(int1, socket1_stack_offset)')
+
     def test_generate_svm_params_5_params_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
                  {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
+                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
+                  "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         svm = SVMCompilationManager(props, sockets, '', False)

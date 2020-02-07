@@ -34,7 +34,7 @@ class SVMCompilationManager:
         if len(param_names) < 4:
             return ', '.join(param_names)
         elif len(param_names) == 4:
-            return ', '.join([param_names[:2], uchar4.format(params=', '.join(param_names[2:]))])
+            return ', '.join([', '.join(param_names[:2]), uchar4.format(params=', '.join(param_names[2:]))])
         elif len(param_names) == 5:
             return ', '.join([uchar4.format(params=', '.join(param_names[:2])),
                               uchar4.format(params=', '.join(param_names[2:4])),
