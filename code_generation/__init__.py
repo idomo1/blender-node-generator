@@ -42,7 +42,7 @@ class CodeGenerator:
             with open(dna_path, 'r+') as f:
                 props = defaultdict(list)
                 for prop in self._gui.get_props():
-                    if prop['data-type'] == 'Enum' or prop['data-type'] == 'Boolean' or prop['data-type'] == 'Int':
+                    if prop['data-type'] in ['Enum', 'Boolean', 'Int']:
                         props['int'].append(prop['name'])
                     elif prop['data-type'] == 'String':
                         props['char'].append("{name}[{size}]".format(name=prop['name'], size=prop['size']))
@@ -846,26 +846,20 @@ class CodeGenerator:
     def _add_cycles_node(self):
         """nodes.cpp"""
 
-        def format_default(item, key):
-            if item[key] == 'Enum':
+        def format_default(item):
+            if item['data-type'] == 'Enum':
                 return item['options'].index(item['default']) + 1
-            elif item[key] == 'Boolean':
+            elif item['data-type'] == 'Boolean':
                 return 'true' if item['default'] else 'false'
-            elif item[key] == 'Float':
+            elif item['data-type'] == 'Float':
                 return '{0}f'.format(item['default'])
-            elif item[key] == 'Int':
+            elif item['data-type'] == 'Int':
                 return item['default']
-            elif item[key] == 'String':
+            elif item['data-type'] == 'String':
                 return 'ustring()'
-            elif item[key] == 'Vector':
+            elif item['data-type'] == 'Vector':
                 return 'make_float3({default})'.format(
                     default=code_generator_util.fill_socket_default(item['default'], 3))
-
-        def format_prop_default(prop):
-            return format_default(prop, 'data-type')
-
-        def format_socket_default(socket):
-            return format_default(socket, 'data-type')
 
         def is_first_vector_socket(socket):
             if socket['data-type'] != 'Vector':
@@ -892,13 +886,13 @@ class CodeGenerator:
                     socket_defs.append('SOCKET_ENUM({prop}, "{Prop}", {prop}_enum, {default});\n\n'.format(
                         prop=code_generator_util.string_lower_underscored(prop['name']),
                         Prop=code_generator_util.string_capitalized_spaced(prop['name']),
-                        default=format_prop_default(prop)))
+                        default=format_default(prop)))
                 else:
                     socket_defs.append('SOCKET_{TYPE}({prop}, "{Prop}", {default});'.format(
                         TYPE=prop['data-type'].upper(),
                         prop=code_generator_util.string_lower_underscored(prop['name']),
                         Prop=code_generator_util.string_capitalized_spaced(prop['name']),
-                        default=format_prop_default(prop)))
+                        default=format_default(prop)))
             socket_defs.append('\n\n')
 
             data_type_map = {'Int': 'INT', 'Float': 'FLOAT', 'Enum': 'ENUM', 'Vector': 'POINT', 'RGBA': 'COLOR',
@@ -910,7 +904,7 @@ class CodeGenerator:
                     DATA_TYPE=data_type_map[socket['data-type']],
                     name=code_generator_util.string_lower_underscored(socket['name']),
                     Name=code_generator_util.string_capitalized_spaced(socket['name']),
-                    default=format_socket_default(socket),
+                    default=format_default(socket),
                     texture_mapping=', SocketType::LINK_TEXTURE_GENERATED' if self._gui.uses_texture_mapping() and
                                                                               socket['data-type'] == 'Vector' and
                                                                               is_first_vector_socket(socket) else ''))
@@ -999,7 +993,7 @@ class CodeGenerator:
         node_name_underscored = code_generator_util.string_lower_underscored(self._gui.get_node_name())
         osl_path = path.join(self._gui.get_source_path(), "intern", "cycles", "kernel", "shaders",
                              "node_" + node_name_underscored + ".osl")
-        with open(osl_path, "w+") as osl_f:
+        with open(osl_path, "w") as osl_f:
             code_generator_util.write_license(osl_f)
             osl_f.write('#include "stdosl.h"\n\n')
 
