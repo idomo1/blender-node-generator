@@ -1524,7 +1524,7 @@ class TestCodeGeneration(unittest.TestCase):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
-        self.assertTrue(text == 'static int node_shader_gpu_node_name(GPUMaterial *mat, '
+        self.assertTrue(text == 'static int gpu_shader_node_name(GPUMaterial *mat, '
                                 'bNode *node, '
                                 'bNodeExecData *UNUSED(execdata), '
                                 'GPUNodeStack *in, '
@@ -1553,7 +1553,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);'
                                 'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n'
                                 'return GPU_stack_link(mat, node, names[attr->dropdown1][attr->dropdown2], in, out, GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
-                                '}\n\n'
+                                '};\n\n'
                         )
 
     def test_generate_node_gpu_no_props_correct_formatting(self):
@@ -1561,14 +1561,14 @@ class TestCodeGeneration(unittest.TestCase):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
-        self.assertTrue(text == 'static int node_shader_gpu_node_name(GPUMaterial *mat, '
+        self.assertTrue(text == 'static int gpu_shader_node_name(GPUMaterial *mat, '
                                 'bNode *node, '
                                 'bNodeExecData *UNUSED(execdata), '
                                 'GPUNodeStack *in, '
                                 'GPUNodeStack *out)'
                                 '{'
                                 'return GPU_stack_link(mat, node, node_node_name, in, out);'
-                                '}\n\n'
+                                '};\n\n'
                         )
 
     def test_generate_node_gpu_one_dropdown_correct_formatting(self):
@@ -1578,7 +1578,7 @@ class TestCodeGeneration(unittest.TestCase):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
-        self.assertTrue(text == 'static int node_shader_gpu_node_name(GPUMaterial *mat, '
+        self.assertTrue(text == 'static int gpu_shader_node_name(GPUMaterial *mat, '
                                 'bNode *node, '
                                 'bNodeExecData *UNUSED(execdata), '
                                 'GPUNodeStack *in, '
@@ -1591,7 +1591,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 '};\n\n'
                                 'BLI_assert(node->custom1 >= 0 && node->custom1 < 3);\n\n'
                                 'return GPU_stack_link(mat, node, names[node->custom1], in, out);'
-                                '}\n\n'
+                                '};\n\n'
                         )
 
     def test_generate_node_gpu_two_dropdowns_no_dna_correct_formatting(self):
@@ -1604,7 +1604,7 @@ class TestCodeGeneration(unittest.TestCase):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
-        self.assertTrue(text == 'static int node_shader_gpu_node_name(GPUMaterial *mat, '
+        self.assertTrue(text == 'static int gpu_shader_node_name(GPUMaterial *mat, '
                                 'bNode *node, '
                                 'bNodeExecData *UNUSED(execdata), '
                                 'GPUNodeStack *in, '
@@ -1627,7 +1627,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'BLI_assert(node->custom1 >= 0 && node->custom1 < 3);'
                                 'BLI_assert(node->custom2 >= 0 && node->custom2 < 3);\n\n'
                                 'return GPU_stack_link(mat, node, names[node->custom1][node->custom2], in, out);'
-                                '}\n\n'
+                                '};\n\n'
                         )
 
     def test_generate_node_gpu_no_dropdowns_correct_formatting(self):
@@ -1640,7 +1640,7 @@ class TestCodeGeneration(unittest.TestCase):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
-        self.assertTrue(text == 'static int node_shader_gpu_node_name(GPUMaterial *mat, '
+        self.assertTrue(text == 'static int gpu_shader_node_name(GPUMaterial *mat, '
                                 'bNode *node, '
                                 'bNodeExecData *UNUSED(execdata), '
                                 'GPUNodeStack *in, '
@@ -1653,7 +1653,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'float float1 = attr->float1;'
                                 '\n\n'
                                 'return GPU_stack_link(mat, node, node_node_name, in, out, GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
-                                '}\n\n'
+                                '};\n\n'
                         )
 
     def test_generate_node_gpu_texture_node_with_vector_correct_formatting(self):
@@ -1667,7 +1667,7 @@ class TestCodeGeneration(unittest.TestCase):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
-        self.assertTrue(text == 'static int node_shader_gpu_tex_node_name(GPUMaterial *mat, '
+        self.assertTrue(text == 'static int gpu_shader_tex_node_name(GPUMaterial *mat, '
                                 'bNode *node, '
                                 'bNodeExecData *UNUSED(execdata), '
                                 'GPUNodeStack *in, '
@@ -1697,8 +1697,9 @@ class TestCodeGeneration(unittest.TestCase):
                                 '\n\n'
                                 'BLI_assert(tex->dropdown1 >= 0 && tex->dropdown1 < 3);'
                                 'BLI_assert(tex->dropdown2 >= 0 && tex->dropdown2 < 3);\n\n'
-                                'return GPU_stack_link(mat, node, names[tex->dropdown1][tex->dropdown2], in, out, GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
-                                '}\n\n'
+                                'return GPU_stack_link(mat, node, names[tex->dropdown1][tex->dropdown2], in, out, '
+                                'GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
+                                '};\n\n'
                         )
 
     def test_generate_node_gpu_texture_node_no_vector_correct_formatting(self):
@@ -1707,7 +1708,7 @@ class TestCodeGeneration(unittest.TestCase):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
-        self.assertTrue(text == 'static int node_shader_gpu_tex_node_name(GPUMaterial *mat, '
+        self.assertTrue(text == 'static int gpu_shader_tex_node_name(GPUMaterial *mat, '
                                 'bNode *node, '
                                 'bNodeExecData *UNUSED(execdata), '
                                 'GPUNodeStack *in, '
@@ -1736,7 +1737,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'BLI_assert(tex->dropdown1 >= 0 && tex->dropdown1 < 3);'
                                 'BLI_assert(tex->dropdown2 >= 0 && tex->dropdown2 < 3);\n\n'
                                 'return GPU_stack_link(mat, node, names[tex->dropdown1][tex->dropdown2], in, out, GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
-                                '}\n\n'
+                                '};\n\n'
                         )
 
     def test_generate_node_availability_correct_formatting(self):

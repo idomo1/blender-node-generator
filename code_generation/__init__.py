@@ -4,6 +4,7 @@ from collections import defaultdict
 
 from . import code_generator_util
 from .svm_code_generator import SVMCompilationManager
+from .glsl_code_generator import GLSLCodeManager
 
 
 class CodeGenerator:
@@ -368,148 +369,9 @@ class CodeGenerator:
         Generate node gpu function code
         :return: gpu function as text
         """
-        props = self._gui.get_props()
-        dropdowns = list(filter(lambda p: p['data-type'] == 'Enum', props))
-        dropdown_count = len(dropdowns)
-        uses_dna = code_generator_util.uses_dna(props, self._gui.get_node_type())
-        names = ''
-        func_name = 'node_{tex}{name}'.format(tex='tex_' if self._gui.is_texture_node() else '',
-                                              name=code_generator_util.string_lower_underscored(
-                                                  self._gui.get_node_name()))
-        if dropdown_count == 1:
-            prop = dropdowns[0]
-            names = 'static const char *names[] = {{' \
-                    '"",' \
-                    '{funcs}' \
-                    '}};\n\n'.format(funcs=''.join('"node_{tex}{name}_{option}",'.format(
-                tex='tex_' if self._gui.is_texture_node() else '',
-                name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
-                option=code_generator_util.string_lower_underscored(option)) for option in prop['options']))
-            func_name = 'names[{struct}->{name}]'.format(
-                struct='tex' if self._gui.is_texture_node() else 'attr',
-                name=code_generator_util.string_lower_underscored(
-                    dropdowns[0]['name'])) if uses_dna else 'names[node->custom1]'
-        elif dropdown_count == 2:
-            names = 'static const char *names[][{count}] = {{' \
-                    '{funcs}' \
-                    '}};\n\n'.format(count=len(dropdowns[0]['options']),
-                                     funcs=''.join(['[SHD_{NAME}_{OPTION}] = '
-                                                    '{{"",{func_names}}},'.format(
-                                         NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
-                                         OPTION=code_generator_util.string_upper_underscored(option1),
-                                         func_names=''.join('"node_{name}_{option1}_{option2}",'.format(
-                                             name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
-                                             option1=option1, option2=option2)
-                                                            for option2 in dropdowns[1]['options']))
-                                         for option1 in dropdowns[0]['options']]))
-            func_name = 'names[{struct}->{drop1}][{struct}->{drop2}]'.format(
-                struct='tex' if self._gui.is_texture_node() else 'attr',
-                drop1=code_generator_util.string_lower_underscored(dropdowns[0]['name']),
-                drop2=code_generator_util.string_lower_underscored(
-                    dropdowns[1]['name'])) if uses_dna else 'names[node->custom1][node->custom2]'
-        elif dropdown_count > 2:
-            names = '/* GLSL function names to be implemented here */\n\n'
-
-        # Props + Other params
-        retrieved_props = []
-        if uses_dna:
-            struct = 'tex' if self._gui.is_texture_node() else 'attr'
-            for prop in props:
-                prop_name = code_generator_util.string_lower_underscored(prop['name'])
-                if prop['data-type'] == 'Boolean':
-                    retrieved_props.append('float {name} = ({struct}->{name}) ? 1.0f : 0.0f;'.format(
-                        name=prop_name,
-                        struct=struct))
-                elif prop['data-type'] != 'String' and prop['data-type'] != 'Enum':
-                    retrieved_props.append('float {name} = {struct}->{name};'.format(
-                        name=prop_name,
-                        struct=struct))
-        else:
-            struct = 'tex' if self._gui.is_texture_node() else 'attr'
-            s_custom_i = 1
-            f_custom_i = 3
-            boolean_bit = 0
-            for prop in props:
-                prop_name = code_generator_util.string_lower_underscored(prop['name'])
-                if prop['data-type'] == 'Boolean':
-                    # Need to get individual bits if multiple bools
-                    if len([prop for prop in props if prop['data-type'] == 'Boolean']) > 1:
-                        retrieved_props.append(
-                            'float {name} = ({struct}->custom{i}) ? 1.0f : 0.0f;'.format(name=prop_name,
-                                                                                         struct=struct,
-                                                                                         i=s_custom_i))
-                    else:
-                        retrieved_props.append(
-                            'float {name} = (({struct}->custom{i} >> {boolean_bit} & 1) ? 1.0f : 0.0f;'.format(
-                                name=prop_name,
-                                struct=struct,
-                                i=s_custom_i,
-                                boolean_bit=boolean_bit))
-                        boolean_bit += 1
-                elif prop['data-type'] == 'Float':
-                    retrieved_props.append('float {name} = node->custom{i};'.format(name=prop_name,
-                                                                                    struct=struct,
-                                                                                    i=f_custom_i))
-                    f_custom_i += 1
-                elif prop['data-type'] == 'Int':
-                    retrieved_props.append('float {name} = node->custom{i};'.format(name=prop_name,
-                                                                                    struct=struct,
-                                                                                    i=s_custom_i))
-                    s_custom_i += 1
-        other_params = ', ' + ', '.join(
-            'GPU_constant(&{prop})'.format(prop=code_generator_util.string_lower_underscored(prop['name'])) for
-            prop in list(filter(lambda p: p['data-type'] != 'Enum' and p['data-type'] != 'String', props))) \
-            if len(props) - dropdown_count > 0 else ''
-
-        assertions = []
-        custom_i = 1
-        for prop in dropdowns:
-            if code_generator_util.uses_dna(props, self._gui.get_node_type()):
-                assertions.append('BLI_assert({struct}->{prop} >= 0 && {struct}->{prop} < {option_count});'.format(
-                    struct=struct, prop=code_generator_util.string_lower_underscored(prop['name']),
-                    option_count=len(prop['options']) + 1))
-            else:
-                assertions.append('BLI_assert(node->custom{i} >= 0 && node->custom{i} < {option_count});'.format(
-                    i=custom_i, option_count=len(prop['options']) + 1
-                ))
-                custom_i += 1
-
-        if len(retrieved_props) > 0:
-            retrieved_props.append('\n\n')
-
-        if len(assertions) > 0:
-            assertions.append('\n\n')
-
-        dna = '{get_struct}' \
-              '{get_props}' \
-              '{assertions}'.format(
-            get_struct='Node{Tex}{Name} *{struct} = (Node{Tex}{Name} *)node->storage;'.format(
-                Tex='Tex' if self._gui.is_texture_node() else '',
-                Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
-                struct=struct) if len(props) - dropdown_count > 0 else '',
-            get_props=''.join(retrieved_props),
-            assertions=''.join(assertions))
-
-        gpu_text = 'static int node_shader_gpu_{tex}{name}(GPUMaterial *mat,' \
-                   ' bNode *node, ' \
-                   'bNodeExecData *UNUSED(execdata), ' \
-                   'GPUNodeStack *in, ' \
-                   'GPUNodeStack *out)' \
-                   '{{' \
-                   '{texture_mapping}' \
-                   '{func_names}' \
-                   '{dna}' \
-                   'return GPU_stack_link(mat, node, {func_name}, in, out{other_params});' \
-                   '}}\n\n'.format(
-            tex='tex_' if self._gui.is_texture_node() else '',
-            name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
-            texture_mapping='node_shader_gpu_default_tex_coord(mat, node, &in[0].link);node_shader_gpu_tex_mapping(mat, node, in, out);\n\n'
-            if self._gui.uses_texture_mapping() else '',
-            func_names=names,
-            dna=dna,
-            func_name=func_name,
-            other_params=other_params)
-        return gpu_text
+        glsl_manager = GLSLCodeManager(self._gui.get_props(), self._gui.get_node_name(), self._gui.get_node_type(),
+                                       self._gui.uses_texture_mapping())
+        return glsl_manager.generate_gpu_func()
 
     def _generate_node_shader_socket_availability(self):
         if not self._gui.socket_availability_changes():
