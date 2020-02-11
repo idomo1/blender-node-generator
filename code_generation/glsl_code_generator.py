@@ -6,12 +6,12 @@ class GLSLCodeManager:
     Generates GLSL related code
     Keeps GLSL parameters consistent between files
     """
-    def __init__(self, props, node_name, node_type, uses_texture_mapping=False):
-        self._props = props
-        self._node_name = node_name
-        self._is_texture_node = node_type == 'Texture'
-        self._uses_texture_mapping = uses_texture_mapping
-        self._node_type = node_type
+    def __init__(self, gui):
+        self._props = gui.get_props()
+        self._node_name = gui.get_node_name()
+        self._is_texture_node = gui.get_node_type() == 'Texture'
+        self._uses_texture_mapping = gui.uses_texture_mapping()
+        self._node_type = gui.get_node_type()
         self._dropdowns = list(filter(lambda p: p['data-type'] == 'Enum', self._props))
 
     def _dropdowns_count(self):

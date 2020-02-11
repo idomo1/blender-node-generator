@@ -369,8 +369,7 @@ class CodeGenerator:
         Generate node gpu function code
         :return: gpu function as text
         """
-        glsl_manager = GLSLCodeManager(self._gui.get_props(), self._gui.get_node_name(), self._gui.get_node_type(),
-                                       self._gui.uses_texture_mapping())
+        glsl_manager = GLSLCodeManager(self._gui)
         return glsl_manager.generate_gpu_func()
 
     def _generate_node_shader_socket_availability(self):

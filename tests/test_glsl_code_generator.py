@@ -9,7 +9,13 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.props = [
+        cls.mock_gui = mock.Mock()
+
+    def _create_default_class(self, props=None, sockets=None, name='node name', node_type='Shader', uses_texture_mapping=False):
+        """Helper method to create class with some default parameters suitable for testing with"""
+        self.mock_gui.get_node_name.return_value = "Node Name" if name is None else name
+        self.mock_gui.get_node_type.return_value = "Shader" if node_type is None else node_type
+        self.mock_gui.get_props.return_value = [
             {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
             {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
@@ -18,22 +24,27 @@ class TestGLSLCodeGenerator(unittest.TestCase):
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
             {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
             {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
-
-    def _create_default_class(self, props=None, name='node name', node_type='Shader', uses_texture_mapping=False):
-        """Helper method to create class with some default parameters suitable for testing with"""
-        return GLSLCodeManager(props if props is not None else self.props, name, node_type, uses_texture_mapping)
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}] if props is None else props
+        self.mock_gui.is_texture_node.return_value = node_type == 'Texture'
+        self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
+                                                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                                                       {'type': "Output", 'name': "socket2", 'data-type': "Float",
+                                                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+        self.mock_gui.uses_texture_mapping.return_value = uses_texture_mapping
+        return GLSLCodeManager(self.mock_gui)
 
     def test_generate_func_names_0_dropdowns_correct_formatting(self):
-        glsl = GLSLCodeManager([], 'node name', 'Shader')
+        glsl = self._create_default_class(props=[])
         names = glsl._generate_shader_func_names()
 
         self.assertTrue(names == [''])
 
     def test_generate_func_names_1_dropdown_correct_formatting(self):
-        glsl = GLSLCodeManager([
+        glsl = self._create_default_class(props=[
             {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
-             "default": 'prop1'}], 'node name', 'Shader')
+             "default": 'prop1'}])
         names = glsl._generate_shader_func_names()
 
         self.assertTrue(names == ['"node_node_name_prop1"', '"node_node_name_prop2"'])
