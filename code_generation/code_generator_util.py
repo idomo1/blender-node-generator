@@ -1,3 +1,4 @@
+import os
 from os import path, pardir
 import shutil
 import subprocess
@@ -9,11 +10,19 @@ def write_license(fd):
         shutil.copyfileobj(license_f, fd)
 
 
-def apply_clang_formatting(file_path):
+def apply_clang_formatting(file_path, source_path):
     """
-    Applies clang formatting to the given file. Requires clang installation http://releases.llvm.org/download.html
+    Applies clang formatting to the given file
     """
-    subprocess.call(['clang-format', file_path, '-i'])
+    clang_format_dir_path = path.normpath(path.join(source_path, "..", "lib", "win64_vc15", "llvm", "bin"))
+    if os.path.exists(clang_format_dir_path):
+        os.chdir(clang_format_dir_path)
+        subprocess.call(["clang-format", file_path, "-i", "--verbose"])
+    else:
+        raise Exception("Clang format executable not found at {path},"
+                        " make sure the source path is correct and that you have built blender at least once".format(
+            path=clang_format_dir_path
+        ))
 
 
 def uses_dna(props, node_type):

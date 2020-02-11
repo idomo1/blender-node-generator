@@ -157,7 +157,7 @@ class CodeGenerator:
                 f.seek(0, SEEK_SET)
                 f.writelines(lines)
                 f.truncate()
-            code_generator_util.apply_clang_formatting(file_path)
+            code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_node_definition(self):
         """NOD_static_types.h"""
@@ -231,7 +231,7 @@ class CodeGenerator:
                 f.seek(0)
                 f.writelines(lines)
                 f.truncate()
-        code_generator_util.apply_clang_formatting(drawnode_path)
+        code_generator_util.apply_clang_formatting(drawnode_path, self._gui.get_source_path())
 
     def _generate_node_shader_sockets(self):
         """
@@ -562,7 +562,7 @@ class CodeGenerator:
 
             f.writelines(file_lines)
 
-        code_generator_util.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_node_register(self):
         """NOD_shader.h"""
@@ -634,7 +634,7 @@ class CodeGenerator:
 
                     #endif /* __NODES_H__ */
                     """)
-        code_generator_util.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_cycles_class_instance(self):
         """blender_shader.cpp"""
@@ -703,7 +703,7 @@ class CodeGenerator:
             f.seek(0)
             f.write(file_text)
             f.truncate()
-        code_generator_util.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_cycles_node(self):
         """nodes.cpp"""
@@ -819,7 +819,7 @@ class CodeGenerator:
             f.write(node)
 
             f.write('CCL_NAMESPACE_END\n\n')
-        code_generator_util.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_to_node_menu(self):
         """nodeitems_builtins.py"""
@@ -891,7 +891,7 @@ class CodeGenerator:
                      for socket in sockets if socket['type'] == 'Output']))
 
             osl_f.write(function)
-        code_generator_util.apply_clang_formatting(osl_path)
+        code_generator_util.apply_clang_formatting(osl_path, self._gui.get_source_path())
 
     def _add_svm_shader(self):
         """svm_*.h"""
@@ -904,7 +904,7 @@ class CodeGenerator:
                                                                      self._gui.is_texture_node(),
                                                                      self._gui.uses_texture_mapping())
             f.write(svm_generator.generate_svm_shader())
-        code_generator_util.apply_clang_formatting(file_path)
+        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_glsl_shader(self):
         """"""
