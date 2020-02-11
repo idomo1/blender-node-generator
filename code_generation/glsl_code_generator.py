@@ -1,3 +1,5 @@
+from itertools import chain
+
 from . import code_generator_util
 
 
@@ -6,6 +8,7 @@ class GLSLCodeManager:
     Generates GLSL related code
     Keeps GLSL parameters consistent between files
     """
+
     def __init__(self, gui):
         self._props = gui.get_props()
         self._node_name = gui.get_node_name()
@@ -13,6 +16,7 @@ class GLSLCodeManager:
         self._uses_texture_mapping = gui.uses_texture_mapping()
         self._node_type = gui.get_node_type()
         self._dropdowns = list(filter(lambda p: p['data-type'] == 'Enum', self._props))
+        self._sockets = gui.get_node_sockets()
 
     def _dropdowns_count(self):
         return len(self._dropdowns)
@@ -47,24 +51,25 @@ class GLSLCodeManager:
             return ''
         elif self._dropdowns_count() == 1:
             return 'static const char *names[] = {{' \
-                    '"",' \
-                    '{funcs},' \
-                    '}};\n\n'.format(
+                   '"",' \
+                   '{funcs},' \
+                   '}};\n\n'.format(
                 funcs=','.join(self._generate_shader_func_names())
             )
         elif self._dropdowns_count() == 2:
             return 'static const char *names[][{options_count}] = {{' \
                    '{names}' \
                    '}};\n\n'.format(
-                        options_count=len(self._get_dropdowns()[0]['options']),
-                        names=''.join('[{enum}] = {{'
-                                      '"",'
-                                      '{names},'
-                                      '}},'.format(enum='SHD_{NODE_NAME}_{OPTION}'.format(
-                            NODE_NAME=code_generator_util.string_upper_underscored(self._node_name),
-                            OPTION=code_generator_util.string_upper_underscored(option)
-                        ),
-                        names=','.join(names)) for names, option in zip(self._generate_shader_func_names(), self._get_dropdowns()[0]['options']))
+                options_count=len(self._get_dropdowns()[0]['options']),
+                names=''.join('[{enum}] = {{'
+                              '"",'
+                              '{names},'
+                              '}},'.format(enum='SHD_{NODE_NAME}_{OPTION}'.format(
+                    NODE_NAME=code_generator_util.string_upper_underscored(self._node_name),
+                    OPTION=code_generator_util.string_upper_underscored(option)
+                ),
+                    names=','.join(names)) for names, option in
+                              zip(self._generate_shader_func_names(), self._get_dropdowns()[0]['options']))
             )
 
     def _generate_assertions(self):
@@ -73,7 +78,8 @@ class GLSLCodeManager:
         for prop in self._get_dropdowns():
             if code_generator_util.uses_dna(self._props, self._node_type):
                 assertions.append('BLI_assert({struct}->{prop} >= 0 && {struct}->{prop} < {option_count});'.format(
-                    struct='tex' if self._is_texture_node else 'attr', prop=code_generator_util.string_lower_underscored(prop['name']),
+                    struct='tex' if self._is_texture_node else 'attr',
+                    prop=code_generator_util.string_lower_underscored(prop['name']),
                     option_count=len(prop['options']) + 1))
             else:
                 assertions.append('BLI_assert(node->custom{i} >= 0 && node->custom{i} < {option_count});'.format(
@@ -198,14 +204,42 @@ class GLSLCodeManager:
                    '{dna}' \
                    '{return_statement}' \
                    '}};\n\n'.format(
-                    tex='tex_' if self._is_texture_node else '',
-                    name=code_generator_util.string_lower_underscored(self._node_name),
-                    texture_mapping='node_shader_gpu_default_tex_coord(mat, '
-                                    'node, &in[0].link);'
-                                    'node_shader_gpu_tex_mapping(mat, node, in, out);'
-                                    '\n\n' if self._uses_texture_mapping else '',
-                    func_names=self._generate_names_array(),
-                    dna=self._generate_retrieve_props(),
-                    return_statement=self._generate_return_statement(),
-                    other_params=''.join(self._generate_additional_params()))
+            tex='tex_' if self._is_texture_node else '',
+            name=code_generator_util.string_lower_underscored(self._node_name),
+            texture_mapping='node_shader_gpu_default_tex_coord(mat, '
+                            'node, &in[0].link);'
+                            'node_shader_gpu_tex_mapping(mat, node, in, out);'
+                            '\n\n' if self._uses_texture_mapping else '',
+            func_names=self._generate_names_array(),
+            dna=self._generate_retrieve_props(),
+            return_statement=self._generate_return_statement(),
+            other_params=''.join(self._generate_additional_params()))
         return gpu_text
+
+    def generate_glsl(self):
+        if self._dropdowns_count() > 2:
+            raise Exception("More than 2 dropdowns not supported")
+        type_map = {'Vector': 'vec3', 'Float': 'float', 'Int': 'float', 'Boolean': 'float',
+                    'RGBA': 'vec4', 'Shader': 'Closure'}
+        params = ','.join('{out}{type} {name}'.format(
+                type=type_map[param['data-type']],
+                out='out ' if 'type' in param and param['type'] == 'Output' else '', # Must check if 'type' is a key since props don't have 'type' key
+                name=code_generator_util.string_lower_underscored(param['name']))
+                            for param in
+                            [prop for prop in self._props if prop['data-type'] not in ['Enum', 'String']] +
+                            [socket for socket in self._sockets if socket['data-type'] != 'String'])
+        if self._dropdowns_count() == 0:
+            return 'void node_{tex}{name}({params}){{}}'.format(
+                tex='tex_' if self._is_texture_node else '',
+                name=code_generator_util.string_lower_underscored(self._node_name),
+                params=params
+            )
+        else:
+            func_names = self._generate_shader_func_names()
+
+            return '\n\n'.join('void {func_name}({params})'
+                               '{{'
+                               '}}'.format(
+                func_name=func_name.replace('"', ''),
+                params=params
+            ) for func_name in (func_names if self._dropdowns_count() == 1 else chain.from_iterable(func_names)))

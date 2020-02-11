@@ -77,7 +77,7 @@ class CodeGenerator:
                     f.truncate()
                 else:
                     print("No matches found")
-            code_generator_util.apply_clang_formatting(dna_path)
+            code_generator_util.apply_clang_formatting(dna_path, self._gui.get_source_path())
 
             # TODO - Add enums
 
@@ -907,7 +907,15 @@ class CodeGenerator:
 
     def _add_glsl_shader(self):
         """"""
-        pass
+        file_path = path.join(self._gui.get_source_path(), "source", "blender", "gpu", "shaders", "material",
+                              "gpu_shader_material_{tex}{name}.glsl".format(
+                                  tex='tex_' if self._gui.is_texture_node() else '',
+                                  name=code_generator_util.string_lower_underscored(self._gui.get_node_name())
+                              ))
+        with open(file_path, 'w') as f:
+            glsl_manager = GLSLCodeManager(self._gui)
+            f.write('{0}\n'.format(glsl_manager.generate_glsl()))
+        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def generate_node(self):
         self._add_osl_shader()
@@ -922,3 +930,4 @@ class CodeGenerator:
         self._add_cycles_class_instance()
         self._add_cycles_node()
         self._add_svm_shader()
+        self._add_glsl_shader()

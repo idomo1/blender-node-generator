@@ -589,6 +589,128 @@ class TestGLSLCodeGenerator(unittest.TestCase):
                                                 '};\n\n'
                                         )
 
+    def test_generate_glsl_correct_formatting(self):
+        glsl = self._create_default_class()
+        shader = glsl.generate_glsl()
+
+        self.assertTrue(shader == 'void node_node_name_prop1_prop3('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                                  '\n\n'
+                                  'void node_node_name_prop1_prop4('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                                  '\n\n'
+                                  'void node_node_name_prop2_prop3('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                                  '\n\n'
+                                  'void node_node_name_prop2_prop4('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                        )
+
+    def test_generate_glsl_0_dropdowns_correct_formatting(self):
+        props = [
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+        glsl = self._create_default_class(props=props)
+        shader = glsl.generate_glsl()
+
+        self.assertTrue(shader == 'void node_node_name('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                        )
+
+    def test_generate_glsl_1_dropdown_correct_formatting(self):
+        props = [
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+             "default": 'prop1'},
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
+        glsl = self._create_default_class(props=props)
+        shader = glsl.generate_glsl()
+
+        self.assertTrue(shader == 'void node_node_name_prop1('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                                  '\n\n'
+                                  'void node_node_name_prop2('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                        )
+
+    def test_generate_glsl_2_dropdowns_correct_formatting(self):
+        glsl = self._create_default_class()
+        shader = glsl.generate_glsl()
+
+        self.assertTrue(shader == 'void node_node_name_prop1_prop3('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                                  '\n\n'
+                                  'void node_node_name_prop1_prop4('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                                  '\n\n'
+                                  'void node_node_name_prop2_prop3('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                                  '\n\n'
+                                  'void node_node_name_prop2_prop4('
+                                  'float int1,'
+                                  'float box1,'
+                                  'float box2,'
+                                  'float float1,'
+                                  'float socket1,'
+                                  'out float socket2){}'
+                        )
+
 
 if __name__ == '__main__':
     unittest.main()
