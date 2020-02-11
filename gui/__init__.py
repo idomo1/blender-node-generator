@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
-import copy
 
 
 class GUI:

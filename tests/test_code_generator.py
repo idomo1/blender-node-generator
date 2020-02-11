@@ -1,7 +1,8 @@
-from code_generation import CodeGenerator
 import unittest
 from unittest import mock
 from unittest.mock import patch, mock_open, call
+
+from code_generation import CodeGenerator
 
 
 class TestCodeGeneration(unittest.TestCase):
