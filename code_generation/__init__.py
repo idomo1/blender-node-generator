@@ -5,6 +5,7 @@ from collections import defaultdict
 from . import code_generator_util
 from .svm_code_generator import SVMCompilationManager
 from .glsl_code_generator import GLSLCodeManager
+from .cmake_code_generator import CMakeCodeManager
 
 
 class CodeGenerator:
@@ -975,6 +976,11 @@ class CodeGenerator:
             f.write('{0}\n'.format(glsl_manager.generate_glsl()))
         code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
+    def _add_cmake(self):
+        """Adds new files to cmake lists"""
+        cmake_manager = CMakeCodeManager(self._gui)
+        cmake_manager.add_to_cmake()
+
     def generate_node(self):
         self._add_osl_shader()
         self._add_to_node_menu()
@@ -990,3 +996,4 @@ class CodeGenerator:
         self._add_svm_shader()
         self._add_glsl_shader()
         self._add_node_definition()
+        self._add_cmake()
