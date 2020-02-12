@@ -12,6 +12,7 @@ class CMakeCodeManager:
     def __init__(self, gui):
         self._source_path = gui.get_source_path()
         self._node_name = gui.get_node_name()
+        self._is_texture_node = gui.is_texture_node()
 
     def _insert_cmake_file_path(self, names_start_i, file_text, new_file_path):
         """
@@ -76,7 +77,27 @@ class CMakeCodeManager:
             f.write(text)
             f.truncate()
 
+    def _add_node(self):
+        with open(path.join(self._source_path, "source", "blender", "nodes", CMAKE_FILE_NAME), 'r+') as f:
+            text = f.read()
+            match = re.search(r'set\(SRC\n', text)
+            if not match:
+                raise Exception("Match not found")
+            node_start_i = match.end()
+
+            node_path = '  shader/nodes/node_shader_{tex}{name}.c'.format(
+                tex='tex_' if self._is_texture_node else '',
+                name=code_generator_util.string_lower_underscored(self._node_name)
+            )
+
+            text = self._insert_cmake_file_path(node_start_i, text, node_path)
+
+            f.seek(0)
+            f.write(text)
+            f.truncate()
+
     def add_to_cmake(self):
         """Adds created files to cmake lists"""
         self._add_svm()
         self._add_osl()
+        self._add_node()
