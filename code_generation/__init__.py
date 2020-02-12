@@ -34,13 +34,35 @@ class CodeGenerator:
             f.write(file_text)
             f.truncate()
 
+    def _generate_enums(self):
+        """Enums used for enum props"""
+        return ''.join('enum {{'
+                               '{enums}'
+                               '}};\n\n'.format(
+            enums=''.join('SHD_{NAME}_{OPTION} = {i},'.format(
+                NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                OPTION=code_generator_util.string_upper_underscored(option),
+                i=i + 1
+            ) for i, option in enumerate(dropdown['options'])))
+                               for dropdown in self._gui.get_props() if dropdown['data-type'] == 'Enum')
+
+    def _generate_macros(self):
+        """Macros used for bool props"""
+        return ''.join('#define SHD_{NAME}_{BOOL} {i}\n'.format(
+            NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+            BOOL=code_generator_util.string_upper_underscored(prop['name']),
+            i=i + 1
+        ) for i, prop in enumerate([prop for prop in self._gui.get_props() if prop['data-type'] == 'Boolean']))
+
     def _add_dna_node_type(self):
         """
         DNA_node_types.h
         """
-        if code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type()):
-            dna_path = path.join(self._gui.get_source_path(), "source", "blender", "makesdna", "DNA_node_types.h")
-            with open(dna_path, 'r+') as f:
+        dna_path = path.join(self._gui.get_source_path(), "source", "blender", "makesdna", "DNA_node_types.h")
+        with open(dna_path, 'r+') as f:
+            text = f.read()
+
+            if code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type()):
                 props = defaultdict(list)
                 for prop in self._gui.get_props():
                     if prop['data-type'] in ['Enum', 'Boolean', 'Int']:
@@ -51,35 +73,47 @@ class CodeGenerator:
                         props['float'].append(prop['name'])
                     else:
                         raise Exception("Invalid Property Type")
-
                 props_definitions = "; ".join(
                     '{key} {names}'.format(key=key, names=", ".join(names)) for key, names in props.items()) + ";"
-
-                struct = 'typedef struct NodeTex{name} {{NodeTexBase base; {props}{pad}}} NodeTex{name};\n\n'.format(
+                struct = 'typedef struct Node{Tex}{name} {{Node{Tex}Base base; {props}{pad}}} Node{Tex}{name};\n\n'.format(
+                    Tex='Tex' if self._gui.is_texture_node() else '',
                     name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                     props=props_definitions,
                     pad=' char _pad[{size}];'.format(size=code_generator_util.dna_padding_size(self._gui.get_props())) \
                         if code_generator_util.dna_padding_size(self._gui.get_props()) != 0 else '')
-                text = f.read()
+
                 match = re.search('} NodeTex'[::-1], text[::-1])  # Reversed to find last occurrence
-                if match:
-                    i = len(text) - match.end()
-                    for _ in range(i, len(text)):
-                        if text[i] == '\n':
-                            break
-                        i += 1
-                    else:
-                        print("No newline found")
-                    text = text[:i + 2] + struct + text[i + 2:]
+                if not match:
+                    raise Exception("No match found")
 
-                    f.seek(0)
-                    f.write(text)
-                    f.truncate()
+                i = len(text) - match.end()
+                for _ in range(i, len(text)):
+                    if text[i] == '\n':
+                        break
+                    i += 1
                 else:
-                    print("No matches found")
-            code_generator_util.apply_clang_formatting(dna_path, self._gui.get_source_path())
+                    print("No newline found")
+                text = text[:i + 2] + struct + text[i + 2:]
 
-            # TODO - Add enums
+            if [prop for prop in self._gui.get_props() if prop['data-type'] in ['Enum', 'Boolean']]:
+                macros = self._generate_macros()
+                defs = '/* {name} */\n' \
+                       '{macros}' \
+                       '{enums}'.format(name=self._gui.get_node_name().lower(),
+                                        macros='{0}\n'.format(macros) if macros else '',
+                                        enums=self._generate_enums()) \
+
+                match = re.search(r'/\* Output shader node \*/', text)
+                if not match:
+                    raise Exception("No match found")
+
+                text = text[:match.start()] + defs + text[match.start():]
+
+            f.seek(0)
+            f.write(text)
+            f.truncate()
+
+        code_generator_util.apply_clang_formatting(dna_path, self._gui.get_source_path())
 
     def _add_rna_properties(self):
         """rna_nodetree.c"""

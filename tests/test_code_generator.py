@@ -232,8 +232,9 @@ class TestCodeGeneration(unittest.TestCase):
                                                        '#define SH_NODE_MAT_SPEC 2\n'
                                                        '#define SH_NODE_MAT_NEG 4\n')
 
-    def test_write_dna_struct_correct_formatting(self):
+    def test_write_dna_struct_texture_node_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
         with patch('builtins.open', mock_open(read_data='typedef struct NodeTexWave {\n'
                                                         '  NodeTexBase base;\n'
                                                         '  int wave_type;\n'
@@ -248,7 +249,14 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'typedef struct NodeShaderAttribute {\n'
                                                         '  char name[64];\n'
-                                                        '} NodeShaderAttribute;\n')) as mf:
+                                                        '} NodeShaderAttribute;\n\n'
+                                                        'enum {\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTCOL = 0,\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTNOR = 2,\n'
+                                                        '};\n'
+                                                        '\n'
+                                                        '/* Output shader node */\n')) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_dna_node_type()
@@ -269,12 +277,32 @@ class TestCodeGeneration(unittest.TestCase):
                                                            '\n'
                                                            'typedef struct NodeShaderAttribute {\n'
                                                            '  char name[64];\n'
-                                                           '} NodeShaderAttribute;\n')
+                                                           '} NodeShaderAttribute;\n\n'
+                                                           'enum {\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTCOL = 0,\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTNOR = 2,\n'
+                                                           '};\n'
+                                                           '\n'
+                                                           '/* node name */\n'
+                                                           '#define SHD_NODE_NAME_BOX1 1\n'
+                                                           '#define SHD_NODE_NAME_BOX2 2\n\n'
+                                                           'enum {'
+                                                           'SHD_NODE_NAME_PROP1 = 1,'
+                                                           'SHD_NODE_NAME_PROP2 = 2,};\n\n'
+                                                           'enum {'
+                                                           'SHD_NODE_NAME_PROP3 = 1,'
+                                                           'SHD_NODE_NAME_PROP4 = 2,'
+                                                           '};\n\n'
+                                                           '/* Output shader node */\n')
 
-    def test_write_dna_struct_requires_padding_correct_formatting(self):
-        self.mock_gui.get_node_type.return_value = "Texture"
+    def test_write_dna_struct_no_dropdowns_correct_formatting(self):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", 'data-type': "Enum", "options": ["prop1", "prop2"], "default": '"prop1"'}]
+            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "int2", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
+            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0}]
         with patch('builtins.open', mock_open(read_data='typedef struct NodeTexWave {\n'
                                                         '  NodeTexBase base;\n'
                                                         '  int wave_type;\n'
@@ -289,7 +317,14 @@ class TestCodeGeneration(unittest.TestCase):
                                                         '\n'
                                                         'typedef struct NodeShaderAttribute {\n'
                                                         '  char name[64];\n'
-                                                        '} NodeShaderAttribute;\n')) as mf:
+                                                        '} NodeShaderAttribute;\n\n'
+                                                        'enum {\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTCOL = 0,\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTNOR = 2,\n'
+                                                        '};\n'
+                                                        '\n'
+                                                        '/* Output shader node */\n')) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_dna_node_type()
@@ -306,19 +341,88 @@ class TestCodeGeneration(unittest.TestCase):
                                                            '  char _pad[4];\n'
                                                            '} NodeTexMagic;\n'
                                                            '\n'
+                                                           'typedef struct NodeNodeName {NodeBase base; int int1, int2, box1, box2; float float1; char _pad[4];} NodeNodeName;\n'
+                                                           '\n'
+                                                           'typedef struct NodeShaderAttribute {\n'
+                                                           '  char name[64];\n'
+                                                           '} NodeShaderAttribute;\n\n'
+                                                           'enum {\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTCOL = 0,\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTNOR = 2,\n'
+                                                           '};\n'
+                                                           '\n'
+                                                           '/* node name */\n'
+                                                           '#define SHD_NODE_NAME_BOX1 1\n'
+                                                           '#define SHD_NODE_NAME_BOX2 2\n\n'
+                                                           '/* Output shader node */\n')
+
+    def test_write_dna_struct_requires_padding_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.get_props.return_value = [
+            {"name": "dropdown1", 'data-type': "Enum", "options": ["prop1", "prop2"], "default": '"prop1"'}]
+        with patch('builtins.open', mock_open(read_data='typedef struct NodeTexWave {\n'
+                                                        '  NodeTexBase base;\n'
+                                                        '  int wave_type;\n'
+                                                        '  int wave_profile;\n'
+                                                        '} NodeTexWave;\n'
+                                                        '\n'
+                                                        'typedef struct NodeTexMagic {\n'
+                                                        '  NodeTexBase base;\n'
+                                                        '  int depth;\n'
+                                                        '  char _pad[4];\n'
+                                                        '} NodeTexMagic;\n'
+                                                        '\n'
+                                                        'typedef struct NodeShaderAttribute {\n'
+                                                        '  char name[64];\n'
+                                                        '} NodeShaderAttribute;\n\n'
+                                                        'enum {\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTCOL = 0,\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,\n'
+                                                        '  SHD_POINTDENSITY_COLOR_VERTNOR = 2,\n'
+                                                        '};\n'
+                                                        '\n'
+                                                        '/* Output shader node */\n')) as mf:
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_dna_node_type()
+                self.assertTrue(mf.mock_calls[-3][1][0] == 'typedef struct NodeTexWave {\n'
+                                                           '  NodeTexBase base;\n'
+                                                           '  int wave_type;\n'
+                                                           '  int wave_profile;\n'
+                                                           '} NodeTexWave;\n'
+                                                           '\n'
+                                                           'typedef struct NodeTexMagic {\n'
+                                                           '  NodeTexBase base;\n'
+                                                           '  int depth;\n'
+                                                           '  char _pad[4];\n'
+                                                           '} NodeTexMagic;\n'
+                                                           '\n'
                                                            'typedef struct NodeTexNodeName {NodeTexBase base; int dropdown1; char _pad[4];} NodeTexNodeName;\n'
                                                            '\n'
                                                            'typedef struct NodeShaderAttribute {\n'
                                                            '  char name[64];\n'
-                                                           '} NodeShaderAttribute;\n')
+                                                           '} NodeShaderAttribute;\n\n'
+                                                           'enum {\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTCOL = 0,\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,\n'
+                                                           '  SHD_POINTDENSITY_COLOR_VERTNOR = 2,\n'
+                                                           '};\n\n'
+                                                           '/* node name */\n'
+                                                           'enum {'
+                                                           'SHD_NODE_NAME_PROP1 = 1,'
+                                                           'SHD_NODE_NAME_PROP2 = 2,};\n\n'
+                                                           '/* Output shader node */\n')
 
     def test_write_dna_struct_not_needed_no_call(self):
         self.mock_gui.get_props.return_value = []
         with patch('builtins.open', mock_open()) as mf:
-            code_gen = CodeGenerator(self.mock_gui)
-            code_gen._add_dna_node_type()
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_dna_node_type()
 
-            self.assertTrue(len(mf.mock_calls) == 0)
+                self.assertTrue(call().write('') in mf.mock_calls)
 
     def test_write_drawnode_correct_formatting(self):
         with patch('builtins.open', mock_open(read_data=
@@ -2775,7 +2879,6 @@ class TestCodeGeneration(unittest.TestCase):
                 '\n'
                 'DefNode(CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )\n'
                 'DefNode(CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )\n')
-
 
 
 if __name__ == "__main__":
