@@ -60,6 +60,23 @@ class CMakeCodeManager:
             f.write(text)
             f.truncate()
 
+    def _add_osl(self):
+        with open(path.join(self._source_path, "intern", "cycles", "kernel", "shaders", CMAKE_FILE_NAME), 'r+') as f:
+            text = f.read()
+            match = re.search(r'set\(SRC_OSL', text)
+            if not match:
+                raise Exception("Match not found")
+            osl_start_i = match.end() + 1
+
+            osl_path = '  node_{name}.osl'.format(name=code_generator_util.string_lower_underscored(self._node_name))
+
+            text = self._insert_cmake_file_path(osl_start_i, text, osl_path)
+
+            f.seek(0)
+            f.write(text)
+            f.truncate()
+
     def add_to_cmake(self):
         """Adds created files to cmake lists"""
         self._add_svm()
+        self._add_osl()
