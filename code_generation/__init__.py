@@ -15,7 +15,7 @@ class CodeGenerator:
 
     def _add_node_type_id(self):
         """BKE_node.h"""
-        with open(path.join(self._gui.get_source_path(), "source", "blender", "blenderkernel", "BKE_node.h"),
+        with open(path.join(self._gui.get_source_path(), "source", "blender", "blenkernel", "BKE_node.h"),
                   "r+") as f:
             file_text = f.read()
             last_i = -1
