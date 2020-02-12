@@ -2734,6 +2734,49 @@ class TestCodeGeneration(unittest.TestCase):
                                                                '}\n\n'
                                     )
 
+    def test_add_node_definition_with_dna_correct_formatting(self):
+        with patch('builtins.open', mock_open(
+                read_data=
+                'DefNode(ShaderNode,     SH_NODE_TEX_WHITE_NOISE,    def_sh_tex_white_noise, "TEX_WHITE_NOISE",    TexWhiteNoise,    "White Noise",       ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_OUTPUT_AOV,         def_sh_output_aov,      "OUTPUT_AOV",         OutputAOV,        "AOV Output",        ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_TEX_TRUCHET,        def_sh_tex_truchet,     "TEX_TRUCHET",        TexTruchet,       "Truchet Texture",   ""       )\n'
+                '\n'
+                'DefNode(CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )\n'
+                'DefNode(CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )\n')) as mf:
+            code_gen = CodeGenerator(self.mock_gui)
+            code_gen._add_node_definition()
+
+            self.assertTrue(mf.mock_calls[-3][1][0] ==
+                'DefNode(ShaderNode,     SH_NODE_TEX_WHITE_NOISE,    def_sh_tex_white_noise, "TEX_WHITE_NOISE",    TexWhiteNoise,    "White Noise",       ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_OUTPUT_AOV,         def_sh_output_aov,      "OUTPUT_AOV",         OutputAOV,        "AOV Output",        ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_TEX_TRUCHET,        def_sh_tex_truchet,     "TEX_TRUCHET",        TexTruchet,       "Truchet Texture",   ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_NODE_NAME,          def_sh_node_name,       "NODE_NAME",          NodeName,         "Node Name",         ""       )\n'
+                '\n'
+                'DefNode(CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )\n'
+                'DefNode(CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )\n')
+
+    def test_add_node_definition_no_dna_correct_formatting(self):
+        self.mock_gui.get_props.return_value = []
+        with patch('builtins.open', mock_open(
+                read_data=
+                'DefNode(ShaderNode,     SH_NODE_TEX_WHITE_NOISE,    def_sh_tex_white_noise, "TEX_WHITE_NOISE",    TexWhiteNoise,    "White Noise",       ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_OUTPUT_AOV,         def_sh_output_aov,      "OUTPUT_AOV",         OutputAOV,        "AOV Output",        ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_TEX_TRUCHET,        def_sh_tex_truchet,     "TEX_TRUCHET",        TexTruchet,       "Truchet Texture",   ""       )\n'
+                '\n'
+                'DefNode(CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )\n'
+                'DefNode(CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )\n')) as mf:
+            code_gen = CodeGenerator(self.mock_gui)
+            code_gen._add_node_definition()
+            self.assertTrue(mf.mock_calls[-3][1][0] ==
+                'DefNode(ShaderNode,     SH_NODE_TEX_WHITE_NOISE,    def_sh_tex_white_noise, "TEX_WHITE_NOISE",    TexWhiteNoise,    "White Noise",       ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_OUTPUT_AOV,         def_sh_output_aov,      "OUTPUT_AOV",         OutputAOV,        "AOV Output",        ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_TEX_TRUCHET,        def_sh_tex_truchet,     "TEX_TRUCHET",        TexTruchet,       "Truchet Texture",   ""       )\n'
+                'DefNode(ShaderNode,     SH_NODE_NODE_NAME,          0,                      "NODE_NAME",          NodeName,         "Node Name",         ""       )\n'
+                '\n'
+                'DefNode(CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )\n'
+                'DefNode(CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )\n')
+
+
 
 if __name__ == "__main__":
     unittest.main()

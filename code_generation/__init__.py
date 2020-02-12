@@ -161,22 +161,46 @@ class CodeGenerator:
 
     def _add_node_definition(self):
         """NOD_static_types.h"""
-        with open("/".join((self._gui.get_source_path(), "source", "blender", "nodes", "NOD_static_types.h")),
-                  "r") as f:
-            lines = f.readlines()
+        def_node_line_length = 138
+        def_node_parameter_offsets = [0,16,44,68,90,108,129]
+        file_path = path.join(self._gui.get_source_path(), "source", "blender", "nodes", "NOD_static_types.h")
+        with open(file_path, "r+") as f:
+            params = 'ShaderNode,' \
+                     'SH_NODE_{TEX}{NAME},' \
+                     '{rna},' \
+                     '"{NAME}",' \
+                     '{struct},' \
+                     '"{Name}",' \
+                     '""'.format(
+                TEX='TEX_' if self._gui.is_texture_node() else '',
+                NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
+                rna='def_sh_{tex}{name}'.format(
+                    tex='tex_' if self._gui.is_texture_node() else '',
+                    name=code_generator_util.string_lower_underscored(self._gui.get_node_name())) if code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type()) else 0,
+                struct='{Tex}{Name}'.format(Tex='Tex' if self._gui.is_texture_node() else '', Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name())),
+                Tex='Tex' if self._gui.is_texture_node() else '',
+                Name=code_generator_util.string_capitalized_spaced(self._gui.get_node_name()))
 
-            node_definition = 'DefNode(ShaderNode,     ' + \
-                              'SH_NODE_' + "_".join(("TEX" if self._gui.is_texture_node() else "",
-                                                     code_generator_util.string_upper_underscored(
-                                                         self._gui.get_node_name()))) + \
-                              ',' + ('def_sh_' + code_generator_util.string_lower_underscored(
-                self._gui.get_node_name()) if self._gui.node_has_properties() else '0') + \
-                              ', ' + (
-                                  'Tex' if self._gui.is_texture_node() else '') + code_generator_util.string_capitalized_no_space(
-                self._gui.get_node_name()) + \
-                              ', ' + code_generator_util.string_capitalized_spaced(
-                self._gui.get_node_name()) + ',  ""   ' + ")"
-            print(node_definition)
+            node_definition = 'DefNode({params})\n'.format(
+                params=code_generator_util.fill_white_space(
+                    params.split(','), def_node_line_length, def_node_parameter_offsets))
+
+            # Find last shader node definition, write new node def under that
+            text = f.read()
+            matches = re.search(r'edoNredahS\(edoNfeD', text[::-1])
+            if not matches:
+                raise Exception("Match not found")
+            match_i = len(text) - matches.end()
+            for i in range(match_i, len(text)):
+                if text[i] == '\n':
+                    break
+            else:
+                raise Exception("No newline found")
+
+            text = text[:i+1] + node_definition + text[i+1:]
+            f.seek(0)
+            f.write(text)
+            f.truncate()
 
     def _add_node_drawing(self):
         """drawnode.c"""
@@ -931,3 +955,4 @@ class CodeGenerator:
         self._add_cycles_node()
         self._add_svm_shader()
         self._add_glsl_shader()
+        self._add_node_definition()

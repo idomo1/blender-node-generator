@@ -73,6 +73,26 @@ class TestUsesDna(unittest.TestCase):
         props = [{'data-type': "Enum"} for _ in range(3)]
         self.assertTrue(code_generator_util.uses_dna(props, "Texture"))
 
+    def test_fill_whitespace_correct_formatting(self):
+        items = ['ShaderNode', 'SH_NODE_OUTPUT_MATERIAL', 'def_sh_output', '"OUTPUT_MATERIAL"',
+                 'OutputMaterial', '"Material Output"', '""']
+        size = 138
+        gaps = [0,16,44,68,90,108,129]
+        text = code_generator_util.fill_white_space(items, size, gaps)
+
+        self.assertTrue(text ==
+                        'ShaderNode,     SH_NODE_OUTPUT_MATERIAL,    def_sh_output,          "OUTPUT_MATERIAL",    OutputMaterial,   "Material Output",   ""       ')
+
+    def test_fill_whitespace2_correct_formatting(self):
+        items = ['ShaderNode', 'SH_NODE_EEVEE_SPECULAR', '0', '"EEVEE_SPECULAR"',
+                 'EeveeSpecular', '"Specular"', '""']
+        size = 138
+        gaps = [0,16,44,68,90,108,129]
+        text = code_generator_util.fill_white_space(items, size, gaps)
+
+        self.assertTrue(text ==
+                        'ShaderNode,     SH_NODE_EEVEE_SPECULAR,     0,                      "EEVEE_SPECULAR",     EeveeSpecular,    "Specular",          ""       ')
+
 
 if __name__ == '__main__':
     unittest.main()

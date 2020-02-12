@@ -96,3 +96,29 @@ def fill_socket_default(socket_defaults, count=4):
     filled_defaults = list(map(lambda d: d + 'f', defaults))
     filled_defaults.extend(['0.0f' for _ in range(count - len(defaults))])
     return ', '.join(filled_defaults)
+
+
+def fill_white_space(items, size, gaps):
+    """
+    Creates comma separated string list of items with whitespace between
+    Each item will start at the corresponding index of the gaps array with
+    whitespace to fill the gaps
+    :param items: list of text items
+    :param size: length of the returned string
+    :param gaps: integer index of where each item begins
+    :return: comma separated string list of items with whitespace in between
+    """
+    space = [' ' for _ in range(size)]  # Fill with spaces
+    space_i = 0
+    for param_i, param in enumerate(items):
+        # Go to where param should start
+        while space_i != gaps[param_i]:
+            space_i += 1
+        # Write param
+        for c in param:
+            space[space_i] = c
+            space_i += 1
+        if param_i != len(items) - 1:
+            space[space_i] = ','
+            space_i += 1
+    return ''.join(space)
