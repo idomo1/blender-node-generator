@@ -14,20 +14,23 @@ class CMakeCodeManager:
         self._node_name = gui.get_node_name()
         self._is_texture_node = gui.is_texture_node()
 
-    def _insert_cmake_file_path(self, names_start_i, file_text, new_file_path):
+    def _insert_cmake_file_path(self, names_start_i, file_text, new_file_path, names_end_i=None):
         """
         Inserts the new file path into the file text and returns the modified text
         :param names_start_i: start index of the list of filenames in text
         :param file_text: file text
         :param new_file_name: file path to be inserter
+        :param names_end_i: optional- Give end of block if block doesn't end with a ')'
         :return: file text with new path inserted
         """
-        for i in range(names_start_i, len(file_text)):
-            if file_text[i] == ')':
-                break
-        else:
-            raise Exception("End of svm not found")
-        names_end_i = i - 1
+        if names_end_i is None:
+            for i in range(names_start_i, len(file_text)):
+                if file_text[i] == ')':
+                    break
+            else:
+                raise Exception("End of svm not found")
+            names_end_i = i - 1
+
         file_paths = file_text[names_start_i:names_end_i].split('\n')
 
         # Try to place new file for sorted order, however not all file names are sorted alphabetically,
@@ -96,8 +99,39 @@ class CMakeCodeManager:
             f.write(text)
             f.truncate()
 
+    def _add_glsl(self):
+        with open(path.join(self._source_path, "source", "blender", "gpu", CMAKE_FILE_NAME), 'r+') as f:
+            text = f.read()
+
+            glsl_path = 'shaders/material/gpu_shader_material_{tex}{name}.glsl'.format(
+                tex='tex_' if self._is_texture_node else '',
+                name=code_generator_util.string_lower_underscored(self._node_name)
+            )
+            func_call = 'data_to_c_simple({path} SRC)'.format(path=glsl_path)
+
+            # Find start of data_to_c gpu shaders block
+            match = re.search(r'data_to_c_simple\(shaders/material/gpu_shader_material', text)
+            if not match:
+                raise Exception("Match not found")
+
+            block_start_i = match.start()
+
+            # Find end of data_to_c_block
+            # First line after start of block which doesn't start with d or newline character
+            match = re.search(r'(^[^d\n])', text[block_start_i:], re.MULTILINE)
+            if not match:
+                raise Exception("Match not found")
+            block_end_i = block_start_i + match.start()
+
+            text = self._insert_cmake_file_path(block_start_i, text, func_call, block_end_i)
+
+            f.seek(0)
+            f.write(text)
+            f.truncate()
+
     def add_to_cmake(self):
         """Adds created files to cmake lists"""
         self._add_svm()
         self._add_osl()
         self._add_node()
+        self._add_glsl()

@@ -1017,6 +1017,393 @@ class TestCMake(unittest.TestCase):
             cmake._add_node()
             self.assertTrue('  shader/nodes/node_shader_tex_node_name.c' in mf.mock_calls[-3][1][0])
 
+    def test_write_glsl_cmake_correct_formatting(self):
+        with patch('builtins.open', mock.mock_open(read_data=
+        'endif()\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_uniform_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_checker_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_diag_stripes_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_simple_lighting_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_simple_lighting_smooth_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_simple_lighting_smooth_color_alpha_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_flat_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_flat_color_alpha_test_0_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_flat_id_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_area_borders_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_area_borders_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_base_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_base_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_shadow_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_shadow_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_nodelink_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_nodelink_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_flat_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_line_dashed_uniform_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_line_dashed_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_smooth_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_smooth_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_smooth_color_dithered_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_image_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_image_rect_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_image_multi_rect_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_desaturate_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_linear_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_shuffle_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_mask_uniform_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_modulate_alpha_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_alpha_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_varying_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_depth_linear_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_depth_copy_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_interlace_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_multisample_resolve_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_image_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_normal_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_flat_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_line_dashed_uniform_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_smooth_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_normal_smooth_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_smooth_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_passthrough_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_uniform_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_uniform_color_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_varying_color_outline_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_varying_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_uniform_size_outline_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_varying_color_outline_aa_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_points_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_facedots_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_edges_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_faces_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_stretch_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_keyframe_diamond_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_keyframe_diamond_frag.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_add_shader.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_ambient_occlusion.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_anisotropic.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_attribute.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_background.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_bevel.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_blackbody.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_bright_contrast.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_bump.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_camera.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_clamp.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_color_ramp.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_color_util.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_combine_hsv.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_combine_rgb.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_combine_xyz.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_diffuse.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_displacement.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_eevee_specular.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_emission.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_fractal_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_fresnel.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_gamma.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_geometry.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_glass.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_glossy.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_hair_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_hash.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_holdout.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_hue_sat_val.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_invert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_layer_weight.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_light_falloff.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_light_path.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_mapping.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_map_range.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_math.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_math_util.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_mix_rgb.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_mix_shader.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_normal.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_normal_map.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_object_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_output_material.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_output_world.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_particle_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_principled.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_refraction.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_rgb_curves.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_rgb_to_bw.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_separate_hsv.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_separate_rgb.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_separate_xyz.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_set.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_shader_to_rgba.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_squeeze.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_subsurface_scattering.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tangent.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_brick.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_checker.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_environment.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_gradient.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_image.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_magic.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_musgrave.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_sky.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_truchet.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_texture_coordinates.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_voronoi.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_wave.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_white_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_toon.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_translucent.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_transparent.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_uv_map.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vector_curves.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vector_displacement.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vector_math.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_velvet.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vertex_color.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_absorption.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_principled.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_scatter.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_wireframe.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_world_normals.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_stroke_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_stroke_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_stroke_geom.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_fill_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_fill_frag.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_cfg_world_clip_lib.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_common_obinfos_lib.glsl SRC)\n' \
+        '\n' \
+        'if (WITH_MOD_FLUID)\n')) as mf:
+            cmake = self._create_default_cmake_manager()
+            cmake._add_glsl()
+
+            self.assertTrue('data_to_c_simple(shaders/material/gpu_shader_material_node_name.glsl SRC)\n' in mf.mock_calls[-3][1][0])
+
+    def test_write_glsl_cmake_texture_node_correct_formatting(self):
+        self.mock_gui.is_texture_node.return_value = True
+        with patch('builtins.open', mock.mock_open(read_data=
+        'endif()\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_uniform_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_checker_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_diag_stripes_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_simple_lighting_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_simple_lighting_smooth_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_simple_lighting_smooth_color_alpha_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_flat_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_flat_color_alpha_test_0_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_flat_id_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_area_borders_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_area_borders_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_base_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_base_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_shadow_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_widget_shadow_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_nodelink_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_nodelink_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_flat_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_line_dashed_uniform_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_line_dashed_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_smooth_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_smooth_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_smooth_color_dithered_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_image_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_image_rect_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_image_multi_rect_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_desaturate_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_linear_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_shuffle_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_mask_uniform_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_modulate_alpha_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_alpha_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_varying_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_depth_linear_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_depth_copy_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_interlace_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_image_multisample_resolve_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_image_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_normal_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_flat_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_line_dashed_uniform_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_smooth_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_normal_smooth_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_smooth_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_passthrough_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_instance_variying_size_variying_color_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_uniform_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_uniform_color_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_uniform_color_outline_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_varying_color_outline_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_varying_color_varying_outline_aa_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_point_varying_color_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_fixed_size_varying_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_3D_point_uniform_size_outline_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_point_uniform_size_varying_color_outline_aa_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_points_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_facedots_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_edges_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_faces_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_2D_edituvs_stretch_vert.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_text_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_text_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_keyframe_diamond_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_keyframe_diamond_frag.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_geometry.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_add_shader.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_ambient_occlusion.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_anisotropic.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_attribute.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_background.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_bevel.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_blackbody.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_bright_contrast.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_bump.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_camera.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_clamp.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_color_ramp.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_color_util.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_combine_hsv.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_combine_rgb.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_combine_xyz.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_diffuse.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_displacement.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_eevee_specular.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_emission.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_fractal_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_fresnel.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_gamma.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_geometry.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_glass.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_glossy.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_hair_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_hash.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_holdout.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_hue_sat_val.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_invert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_layer_weight.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_light_falloff.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_light_path.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_mapping.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_map_range.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_math.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_math_util.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_mix_rgb.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_mix_shader.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_normal.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_normal_map.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_object_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_output_material.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_output_world.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_particle_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_principled.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_refraction.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_rgb_curves.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_rgb_to_bw.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_separate_hsv.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_separate_rgb.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_separate_xyz.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_set.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_shader_to_rgba.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_squeeze.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_subsurface_scattering.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tangent.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_brick.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_checker.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_environment.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_gradient.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_image.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_magic.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_musgrave.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_sky.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_truchet.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_texture_coordinates.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_voronoi.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_wave.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_tex_white_noise.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_toon.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_translucent.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_transparent.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_uv_map.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vector_curves.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vector_displacement.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vector_math.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_velvet.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_vertex_color.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_absorption.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_info.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_principled.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_volume_scatter.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_wireframe.glsl SRC)\n' \
+        'data_to_c_simple(shaders/material/gpu_shader_material_world_normals.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_stroke_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_stroke_frag.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_stroke_geom.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_fill_vert.glsl SRC)\n' \
+        'data_to_c_simple(shaders/gpu_shader_gpencil_fill_frag.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_cfg_world_clip_lib.glsl SRC)\n' \
+        '\n' \
+        'data_to_c_simple(shaders/gpu_shader_common_obinfos_lib.glsl SRC)\n' \
+        '\n' \
+        'if (WITH_MOD_FLUID)\n')) as mf:
+            cmake = self._create_default_cmake_manager()
+            cmake._add_glsl()
+
+            self.assertTrue('data_to_c_simple(shaders/material/gpu_shader_material_tex_node_name.glsl SRC)\n' in mf.mock_calls[-3][1][0])
+
 
 if __name__ == '__main__':
     unittest.main()
