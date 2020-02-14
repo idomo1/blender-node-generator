@@ -36,7 +36,7 @@ class GLSLCodeManager:
             return [func_name.format(
                 tex='tex_' if self._is_texture_node else '',
                 name=self._node_name,
-                options=option
+                options=code_generator_util.string_lower_underscored(option)
             ) for option in self._get_dropdowns()[0]['options']]
         elif self._dropdowns_count() == 2:
             return [
@@ -150,7 +150,7 @@ class GLSLCodeManager:
 
     def _generate_get_function_name(self):
         if self._dropdowns_count() == 0:
-            return 'node_{tex}{name}'.format(
+            return '"node_{tex}{name}"'.format(
                 tex='tex_' if self._is_texture_node else '',
                 name=code_generator_util.string_lower_underscored(self._node_name)
             )

@@ -73,14 +73,13 @@ class TestCodeGeneration(unittest.TestCase):
                               'int box1 = 0,'
                               'int box2 = 1,'
                               'float float1 = 0.0,'
-                              'float socket1 = 0.5,'
-                              'output float socket2 = 0.5){}')]
+                              'float Socket1 = 0.5,'
+                              'output float Socket2 = 0.5){}\n')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_osl_shader()
-
                 self.assertTrue(all(c in mf.mock_calls for c in calls))
 
     def test_write_osl_file_texture_no_vector_correct_formatting(self):
@@ -97,8 +96,8 @@ class TestCodeGeneration(unittest.TestCase):
                               'int box1 = 0,'
                               'int box2 = 1,'
                               'float float1 = 0.0,'
-                              'float socket1 = 0.5,'
-                              'output float socket2 = 0.5){}')]
+                              'float Socket1 = 0.5,'
+                              'output float Socket2 = 0.5){}\n')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
@@ -127,9 +126,9 @@ class TestCodeGeneration(unittest.TestCase):
                               'int box1 = 0,'
                               'int box2 = 1,'
                               'float float1 = 0.0,'
-                              'point vec1 = point(0.5, 0.5, 0.5),'
-                              'float socket1 = 0.5,'
-                              'output float socket2 = 0.5){}')]
+                              'point Vec1 = point(0.5, 0.5, 0.5),'
+                              'float Socket1 = 0.5,'
+                              'output float Socket2 = 0.5){}\n')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
@@ -486,7 +485,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_node_drawing()
 
             self.assertTrue(
-                'static void node_shader_buts_node_name(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)'
+                'static void node_shader_buts_tex_node_name(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)'
                 '{uiItemR(layout, ptr, "dropdown1", 0, "", ICON_NONE);'
                 'uiItemR(layout, ptr, "dropdown2", 0, "", ICON_NONE);'
                 'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
@@ -1672,7 +1671,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'GPUNodeStack *in, '
                                 'GPUNodeStack *out)'
                                 '{'
-                                'return GPU_stack_link(mat, node, node_node_name, in, out);'
+                                'return GPU_stack_link(mat, node, "node_node_name", in, out);'
                                 '};\n\n'
                         )
 
@@ -1757,7 +1756,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'float box2 = (attr->box2) ? 1.0f : 0.0f;'
                                 'float float1 = attr->float1;'
                                 '\n\n'
-                                'return GPU_stack_link(mat, node, node_node_name, in, out, GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
+                                'return GPU_stack_link(mat, node, "node_node_name", in, out, GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
                                 '};\n\n'
                         )
 
@@ -2142,7 +2141,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'node_type_socket_templates(&ntype, sh_node_node_name_in, sh_node_node_name_out);'
                                 'node_type_init(&ntype, node_shader_init_node_name);'
                                 'node_type_storage(&ntype, "NodeNodeName", node_free_standard_storage, node_copy_standard_storage);'
-                                'node_type_gpu(&ntype, node_shader_gpu_node_name);'
+                                'node_type_gpu(&ntype, gpu_shader_node_name);'
                                 'node_type_update(&ntype, node_shader_update_node_name);'
                                 '\n\n'
                                 'nodeRegisterType(&ntype);'
@@ -2161,7 +2160,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'node_type_socket_templates(&ntype, sh_node_tex_node_name_in, sh_node_tex_node_name_out);'
                                 'node_type_init(&ntype, node_shader_init_tex_node_name);'
                                 'node_type_storage(&ntype, "NodeTexNodeName", node_free_standard_storage, node_copy_standard_storage);'
-                                'node_type_gpu(&ntype, node_shader_gpu_tex_node_name);'
+                                'node_type_gpu(&ntype, gpu_shader_tex_node_name);'
                                 'node_type_update(&ntype, node_shader_update_tex_node_name);'
                                 '\n\n'
                                 'nodeRegisterType(&ntype);'
@@ -2179,7 +2178,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'node_type_socket_templates(&ntype, sh_node_node_name_in, sh_node_node_name_out);'
                                 'node_type_init(&ntype, node_shader_init_node_name);'
                                 'node_type_storage(&ntype, "NodeNodeName", node_free_standard_storage, node_copy_standard_storage);'
-                                'node_type_gpu(&ntype, node_shader_gpu_node_name);'
+                                'node_type_gpu(&ntype, gpu_shader_node_name);'
                                 '\n\n'
                                 'nodeRegisterType(&ntype);'
                                 '}\n')
@@ -2200,7 +2199,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'node_type_socket_templates(&ntype, sh_node_node_name_in, sh_node_node_name_out);'
                                 'node_type_init(&ntype, node_shader_init_node_name);'
                                 'node_type_storage(&ntype, "", NULL, NULL);'
-                                'node_type_gpu(&ntype, node_shader_gpu_node_name);'
+                                'node_type_gpu(&ntype, gpu_shader_node_name);'
                                 'node_type_update(&ntype, node_shader_update_node_name);'
                                 '\n\n'
                                 'nodeRegisterType(&ntype);'
