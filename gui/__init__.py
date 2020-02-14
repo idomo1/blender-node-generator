@@ -283,7 +283,7 @@ class SocketAvailabilityGUI:
                     if key == prop['name'] + '=True' or key == prop['name'] + '=False':
                         break
                 elif prop['data-type'] == 'Enum':
-                    if key in [prop['name'] + '=' + option for option in prop['options']]:
+                    if key in [prop['name'] + '=' + option['name'] for option in prop['options']]:
                         break
             else:
                 del self._maps[self._dropdown.get()][key]
@@ -297,7 +297,7 @@ class SocketAvailabilityGUI:
                     options.append(prop['name'] + '=True')
                     options.append(prop['name'] + '=False')
                 elif prop['data-type'] == 'Enum':
-                    options.extend([(prop['name'] + '=' + option) for option in prop['options']])
+                    options.extend([(prop['name'] + '=' + option['name']) for option in prop['options']])
             vars = [BooleanVar() for _ in range(len(options))]
             for var in vars:
                 var.set(True)
@@ -394,6 +394,9 @@ class PropertyInput(Frame):
 
     def __init__(self, window, row_i):
         super().__init__(window)
+
+        self._enum_options = []
+
         self._row_i = row_i
 
         self.type_components = []  # Holds type specific GUI components
@@ -435,6 +438,11 @@ class PropertyInput(Frame):
         for item in self.type_components:
             item.destroy()
         self.type_components.clear()
+        self._enum_options.clear()
+
+    def _add_option(self):
+        self._enum_options.append(OptionInput(self))
+        self._enum_options[-1].grid()
 
     def _type_options_display(self, event=None):
         """Display type specific inputs"""
@@ -492,15 +500,6 @@ class PropertyInput(Frame):
             self.col_i += 1
             self.type_components.append(entry)
         elif type == "Enum":
-            options_label = Label(self, text="Options")
-            options_label.grid(row=self._row_i, column=self.col_i)
-            self.type_components.append(options_label)
-            self.col_i += 1
-            options_entry = Entry(self)
-            options_entry.grid(row=self._row_i, column=self.col_i)
-            self.type_components.append(options_entry)
-            self.col_i += 1
-
             default_label = Label(self, text="Default")
             default_label.grid(row=self._row_i, column=self.col_i)
             self.type_components.append(default_label)
@@ -509,6 +508,13 @@ class PropertyInput(Frame):
             default_entry.grid(row=self._row_i, column=self.col_i)
             self.type_components.append(default_entry)
             self.col_i += 1
+
+            add_option_button = Button(self, text="Add Option", command=self._add_option)
+            add_option_button.grid(row=self._row_i, column=self.col_i)
+            self.type_components.append(add_option_button)
+            self.col_i += 1
+
+
         else:
             raise Exception("Invalid Property Type")
 
@@ -537,8 +543,8 @@ class PropertyInput(Frame):
                 prop['size'] = int(self.type_components[1].get())
                 prop['default'] = '""'
             elif type == "Enum":
-                prop['options'] = self.type_components[1].get().replace(', ', ',').split(',')
-                prop['default'] = self.type_components[3].get()
+                prop['default'] = self.type_components[1].get()
+                prop['options'] = [option.get() for option in self._enum_options if option.winfo_exists()]
             else:
                 raise Exception("Invalid Property Type")
             return prop
@@ -628,3 +634,29 @@ class RemovableSocketDefinitionInput(Frame):
                 'flag': self.children['!combobox4'].get(),
                 'min': self.children['!entry2'].get(), 'max': self.children['!entry3'].get(),
                 'default': self.children['!entry4'].get()} if self.winfo_exists() else None
+
+
+class OptionInput(Frame):
+    """An input for an enum option"""
+
+    def __init__(self, window):
+        super().__init__(window)
+
+        col_i = 0
+        Label(self, text='Name').grid(row=0, column=col_i)
+        col_i += 1
+        name = Entry(self)
+        name.grid(row=0, column=col_i)
+        col_i += 1
+
+        Label(self, text='Description').grid(row=0, column=col_i)
+        col_i += 1
+        description = Entry(self)
+        description.grid(row=0, column=col_i)
+        col_i += 1
+
+        Button(self, text='Remove', command=self.destroy).grid(row=0, column=col_i)
+
+    def get(self):
+        return {"name": self.children['!entry'].get(),
+                "desc": self.children['!entry2'].get()}

@@ -36,11 +36,11 @@ class GLSLCodeManager:
             return [func_name.format(
                 tex='tex_' if self._is_texture_node else '',
                 name=self._node_name,
-                options=code_generator_util.string_lower_underscored(option)
+                options=code_generator_util.string_lower_underscored(option['name'])
             ) for option in self._get_dropdowns()[0]['options']]
         elif self._dropdowns_count() == 2:
             return [
-                [func_name.format(options='{option1}_{option2}'.format(option1=option1, option2=option2)) for option2 in
+                [func_name.format(options='{option1}_{option2}'.format(option1=option1['name'], option2=option2['name'])) for option2 in
                  self._get_dropdowns()[1]['options']] for option1 in self._get_dropdowns()[0]['options']
             ]
         else:
@@ -66,7 +66,7 @@ class GLSLCodeManager:
                               '{names},'
                               '}},'.format(enum='SHD_{NODE_NAME}_{OPTION}'.format(
                     NODE_NAME=code_generator_util.string_upper_underscored(self._node_name),
-                    OPTION=code_generator_util.string_upper_underscored(option)
+                    OPTION=code_generator_util.string_upper_underscored(option['name'])
                 ),
                     names=','.join(names)) for names, option in
                               zip(self._generate_shader_func_names(), self._get_dropdowns()[0]['options']))

@@ -42,7 +42,7 @@ class CodeGenerator:
                        '}};\n\n'.format(
             enums=''.join('SHD_{NAME}_{OPTION} = {i},'.format(
                 NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
-                OPTION=code_generator_util.string_upper_underscored(option),
+                OPTION=code_generator_util.string_upper_underscored(option['name']),
                 i=i + 1
             ) for i, option in enumerate(dropdown['options'])))
                        for dropdown in self._gui.get_props() if dropdown['data-type'] == 'Enum')
@@ -117,6 +117,23 @@ class CodeGenerator:
 
         code_generator_util.apply_clang_formatting(dna_path, self._gui.get_source_path())
 
+    def _generate_enum_prop_item(self, enum):
+        """Generates RNA enum property item"""
+        if enum['data-type'] != 'Enum':
+            raise Exception("Given prop must be an Enum")
+
+        return 'static const EnumPropertyItem rna_enum_node_{tex}{enum}_items[] = {{' \
+               '{options}' \
+               '{{0, NULL, 0, NULL, NULL}},' \
+               '}};\n\n'.format(tex='tex_' if self._gui.is_texture_node() else '',
+                            enum=code_generator_util.string_lower_underscored(enum['name']),
+                            options=''.join('{{{i}, "{OPTION}", 0, "{Option}", "{desc}"}},'.format(
+                                i=i+1,
+                                OPTION=code_generator_util.string_upper_underscored(option['name']),
+                                Option=code_generator_util.string_capitalized_spaced(option['name']),
+                                desc=option['desc']
+                            ) for i, option in enumerate(enum['options'])))
+
     def _add_rna_properties(self):
         """rna_nodetree.c"""
         if self._gui.node_has_properties():
@@ -124,6 +141,7 @@ class CodeGenerator:
                                   "rna_nodetree.c")
             with open(file_path, 'r+') as f:
                 props = []
+                enum_defs = []
                 s_custom_i = 1
                 f_custom_i = 3
                 uses_dna = code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type())
@@ -141,6 +159,7 @@ class CodeGenerator:
                         enum_name = 'rna_enum_node_{tex}{name}_items'. \
                             format(tex='tex_' if self._gui.is_texture_node() else '',
                                    name=code_generator_util.string_lower_underscored(prop['name']))
+                        enum_defs.append(self._generate_enum_prop_item(prop))
 
                     props.append('prop = RNA_def_property(srna, "{name}", PROP_{TYPE}, {SUBTYPE});'
                                  'RNA_def_property_{type}_sdna(prop, NULL, "{sdna}"{enum});'
@@ -185,10 +204,22 @@ class CodeGenerator:
                 lines = f.readlines()
                 for i, line in enumerate(lines):
                     if line == '/* -- Compositor Nodes ------------------------------------------------------ */\n':
+                        lines.insert(i, func)
                         break
                 else:
                     raise Exception("Reached end of file without match")
-                lines.insert(i, func)
+
+                if len(enum_defs) > 0:
+                    for i, line in enumerate(lines):
+                        if line == '#ifndef RNA_RUNTIME\n':
+                            j = i
+                            while lines[j] != '#endif\n':
+                                j += 1
+                            for enum in enum_defs:
+                                lines.insert(j+1, enum)
+                            break
+                    else:
+                        raise Exception("Reached end of file without match")
 
                 f.seek(0, SEEK_SET)
                 f.writelines(lines)
@@ -783,7 +814,11 @@ class CodeGenerator:
 
         def format_default(item):
             if item['data-type'] == 'Enum':
-                return item['options'].index(item['default']) + 1
+                for i, option in enumerate(item['options']):
+                    if option['name'] == item['default']:
+                        return i + 1
+                else:
+                    raise Exception("Default not in options")
             elif item['data-type'] == 'Boolean':
                 return 'true' if item['default'] else 'false'
             elif item['data-type'] == 'Float':
@@ -816,7 +851,7 @@ class CodeGenerator:
                         name=code_generator_util.string_lower_underscored(prop['name'])))
                     socket_defs.extend(['{prop}_enum.insert("{OPTION}", {i});'.format(
                         prop=prop['name'],
-                        OPTION=code_generator_util.string_upper_underscored(option),
+                        OPTION=code_generator_util.string_upper_underscored(option['name']),
                         i=i + 1) for i, option in enumerate(prop['options'])])
                     socket_defs.append('SOCKET_ENUM({prop}, "{Prop}", {prop}_enum, {default});\n\n'.format(
                         prop=code_generator_util.string_lower_underscored(prop['name']),

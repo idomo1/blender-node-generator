@@ -16,9 +16,9 @@ class TestGLSLCodeGenerator(unittest.TestCase):
         self.mock_gui.get_node_name.return_value = "Node Name" if name is None else name
         self.mock_gui.get_node_type.return_value = "Shader" if node_type is None else node_type
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
-            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop3", "desc": "Short description"}, {"name": "prop4", "desc": "Short description"}],
              "default": 'prop3'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
@@ -43,7 +43,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_func_names_1_dropdown_correct_formatting(self):
         glsl = self._create_default_class(props=[
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'}])
         names = glsl._generate_shader_func_names()
 
@@ -75,11 +75,11 @@ class TestGLSLCodeGenerator(unittest.TestCase):
         glsl = self._create_default_class(props=[])
         names = glsl._generate_get_function_name()
 
-        self.assertTrue(names == 'node_node_name')
+        self.assertTrue(names == '"node_node_name"')
 
     def test_generate_get_function_name_1_dropdown_with_dna_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
@@ -90,7 +90,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_get_function_name_1_dropdown_no_dna_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'}]
         glsl = self._create_default_class(props=props)
         names = glsl._generate_get_function_name()
@@ -99,7 +99,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_get_function_name_1_dropdown_with_dna_texture_node_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
@@ -116,9 +116,9 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_get_function_name_2_dropdowns_no_dna_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
-            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop3", "desc": "Short description"}, {"name": "prop4", "desc": "Short description"}],
              "default": 'prop3'}]
         glsl = self._create_default_class(props=props)
         names = glsl._generate_get_function_name()
@@ -167,7 +167,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
         names_mock.return_value = ['"node_node_name_prop1"', '"node_node_name_prop2"']
 
         with patch('code_generation.glsl_code_generator.GLSLCodeManager._generate_shader_func_names', names_mock):
-            props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
                       "default": 'prop1'}]
             glsl = self._create_default_class(props=props)
             arr = glsl._generate_names_array()
@@ -207,7 +207,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_assertions_1_dropdown_with_dna_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
@@ -219,7 +219,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_assertions_1_dropdown_with_dna_texture_node_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0}]
@@ -231,7 +231,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_assertions_1_dropdown_no_dna_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'}]
         glsl = self._create_default_class(props=props)
         a = glsl._generate_assertions()
@@ -255,9 +255,9 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_assertions_2_dropdowns_no_dna_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
-            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop3", "desc": "Short description"}, {"name": "prop4", "desc": "Short description"}],
              "default": 'prop3'}]
         glsl = self._create_default_class(props=props)
         a = glsl._generate_assertions()
@@ -647,7 +647,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_glsl_1_dropdown_correct_formatting(self):
         props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
