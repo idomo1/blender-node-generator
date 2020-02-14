@@ -927,7 +927,10 @@ class CodeGenerator:
         """"""
         node_name_underscored = code_generator_util.string_lower_underscored(self._gui.get_node_name())
         osl_path = path.join(self._gui.get_source_path(), "intern", "cycles", "kernel", "shaders",
-                             "node_" + node_name_underscored + ".osl")
+                             "node_{name}{texture}.osl".format(
+                                 name=node_name_underscored,
+                                 texture='_texture' if self._gui.is_texture_node() else ''
+                             ))
         with open(osl_path, "w") as osl_f:
             code_generator_util.write_license(osl_f)
             osl_f.write('#include "stdosl.h"\n\n')
