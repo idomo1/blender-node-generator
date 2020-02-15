@@ -26,9 +26,9 @@ class SVMCompilationManager:
                 names.append(
                     '__float_as_int({name})'.format(name=code_generator_util.string_lower_underscored(prop['name'])))
             elif prop['data-type'] != 'String':
-                names.append(code_generator_util.string_lower_underscored(prop['name']))
+                names.append(code_generator_util.string_lower_underscored(code_generator_util.string_lower_underscored(prop['name'])))
         for socket in self._sockets:
-            names.append('{name}_stack_offset'.format(name=socket['name']))
+            names.append('{name}_stack_offset'.format(name=code_generator_util.string_lower_underscored(socket['name'])))
         return names
 
     def _generate_svm_params(self):
@@ -178,7 +178,7 @@ class SVMCompilationManager:
 
     def _generate_unpack(self):
         names = self._unpack_names()
-        unpack_uchar = 'svm_unpack_uchar{count}(stack_offsets{offset_count}, {params});'
+        unpack_uchar = 'svm_unpack_node_uchar{count}(stack_offsets{offset_count}, {params});'
 
         if len(names) < 4:
             return ''
@@ -334,7 +334,7 @@ class SVMCompilationManager:
 
     def add_svm_shader(self):
         """svm_*.h"""
-        file_path = path.join(self._source_path, "intern", "cycles", "kernel", "svm", "{shader_file_name}".format(
+        file_path = path.join(self._source_path, "intern", "cycles", "kernel", "svm", "{shader_file_name}.h".format(
             shader_file_name=self._generate_shader_file_name()))
         with open(file_path, 'w') as f:
             code_generator_util.write_license(f)

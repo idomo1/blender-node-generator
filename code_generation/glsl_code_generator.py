@@ -250,7 +250,7 @@ class GLSLCodeManager:
         file_path = path.join(self._source_path, "source", "blender", "gpu", "shaders", "material",
                               "gpu_shader_material_{tex}{name}.glsl".format(
                                   tex='tex_' if self._is_texture_node else '',
-                                  name=code_generator_util.string_lower_underscored(self._node_name())
+                                  name=code_generator_util.string_lower_underscored(self._node_name)
                               ))
         with open(file_path, 'w') as f:
             f.write('{0}\n'.format(self._generate_glsl_shader()))

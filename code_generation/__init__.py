@@ -486,10 +486,11 @@ class CodeGenerator:
         for map in self._gui.get_socket_availability_maps():
             if any(not available for prop, available in map['prop-avail']):
                 type = map['socket-type']
-                socket_get = 'bNodeSocket *{type}{Name}Sock = nodeFindSocket(node, SOCK_{TYPE}, "{Name}");'.format(
+                socket_get = 'bNodeSocket *{type}{Name}Sock = nodeFindSocket(node, SOCK_{TYPE}, "{Name_Spaced}");'.format(
                     type=type,
-                    Name=code_generator_util.string_capitalized_spaced(map['socket-name']),
-                    TYPE=map['socket-type'].upper())
+                    Name=code_generator_util.string_capitalized_no_space(map['socket-name']),
+                    TYPE=map['socket-type'].upper(),
+                    Name_Spaced=code_generator_util.string_capitalized_spaced(map['socket-name']))
                 if map['socket-type'] == 'in':
                     in_sockets.append(socket_get)
                 else:
@@ -889,12 +890,12 @@ class CodeGenerator:
                              'Shader': 'CLOSURE', 'String': 'STRING'}
 
             for socket in sockets:
-                socket_defs.append('SOCKET_{TYPE}_{DATA_TYPE}({name}, "{Name}", {default}{texture_mapping});'.format(
+                socket_defs.append('SOCKET_{TYPE}_{DATA_TYPE}({name}, "{Name}"{default}{texture_mapping});'.format(
                     TYPE=socket['type'][:-3].upper(),
                     DATA_TYPE=data_type_map[socket['data-type']],
                     name=code_generator_util.string_lower_underscored(socket['name']),
                     Name=code_generator_util.string_capitalized_spaced(socket['name']),
-                    default=format_default(socket),
+                    default=', ' + format_default(socket) if socket['type'] == 'Input' else '',
                     texture_mapping=', SocketType::LINK_TEXTURE_GENERATED' if self._gui.uses_texture_mapping() and
                                                                               socket['data-type'] == 'Vector' and
                                                                               is_first_vector_socket(socket) else ''))
@@ -969,7 +970,8 @@ class CodeGenerator:
                         "Tex" if self._gui.is_texture_node() else "",
                         code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                         (', poll={0}'.format(self._gui.get_poll()) if self._gui.get_poll() is not None else '')))
-                    lines[i - 1] = lines[i - 1][:len(lines[i - 1]) - 1] + ',\n'
+                    if lines[i-1][-2] != ',':
+                        lines[i-1] = lines[i-1][:len(lines[i-1]) - 1] + ',\n'
                     break
             else:
                 print("End not found")
