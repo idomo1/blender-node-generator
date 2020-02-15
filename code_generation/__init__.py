@@ -1010,15 +1010,8 @@ class CodeGenerator:
 
     def _add_glsl_shader(self):
         """"""
-        file_path = path.join(self._gui.get_source_path(), "source", "blender", "gpu", "shaders", "material",
-                              "gpu_shader_material_{tex}{name}.glsl".format(
-                                  tex='tex_' if self._gui.is_texture_node() else '',
-                                  name=code_generator_util.string_lower_underscored(self._gui.get_node_name())
-                              ))
-        with open(file_path, 'w') as f:
-            glsl_manager = GLSLCodeManager(self._gui)
-            f.write('{0}\n'.format(glsl_manager.generate_glsl()))
-        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
+        glsl_manager = GLSLCodeManager(self._gui)
+        glsl_manager.add_glsl_shader()
 
     def _add_cmake(self):
         """Adds new files to cmake lists"""

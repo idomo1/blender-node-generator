@@ -591,7 +591,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_glsl_correct_formatting(self):
         glsl = self._create_default_class()
-        shader = glsl.generate_glsl()
+        shader = glsl._generate_glsl_shader()
 
         self.assertTrue(shader == 'void node_node_name_prop1_prop3('
                                   'float int1,'
@@ -634,7 +634,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
             {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
             {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         glsl = self._create_default_class(props=props)
-        shader = glsl.generate_glsl()
+        shader = glsl._generate_glsl_shader()
 
         self.assertTrue(shader == 'void node_node_name('
                                   'float int1,'
@@ -655,7 +655,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
             {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
             {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
         glsl = self._create_default_class(props=props)
-        shader = glsl.generate_glsl()
+        shader = glsl._generate_glsl_shader()
 
         self.assertTrue(shader == 'void node_node_name_prop1('
                                   'float int1,'
@@ -676,7 +676,7 @@ class TestGLSLCodeGenerator(unittest.TestCase):
 
     def test_generate_glsl_2_dropdowns_correct_formatting(self):
         glsl = self._create_default_class()
-        shader = glsl.generate_glsl()
+        shader = glsl._generate_glsl_shader()
 
         self.assertTrue(shader == 'void node_node_name_prop1_prop3('
                                   'float int1,'

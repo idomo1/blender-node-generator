@@ -1,4 +1,5 @@
 from itertools import chain
+from os import path
 
 from . import code_generator_util
 
@@ -17,6 +18,7 @@ class GLSLCodeManager:
         self._node_type = gui.get_node_type()
         self._dropdowns = list(filter(lambda p: p['data-type'] == 'Enum', self._props))
         self._sockets = gui.get_node_sockets()
+        self._source_path = gui.get_source_path()
 
     def _dropdowns_count(self):
         return len(self._dropdowns)
@@ -216,7 +218,7 @@ class GLSLCodeManager:
             other_params=''.join(self._generate_additional_params()))
         return gpu_text
 
-    def generate_glsl(self):
+    def _generate_glsl_shader(self):
         if self._dropdowns_count() > 2:
             raise Exception("More than 2 dropdowns not supported")
         type_map = {'Vector': 'vec3', 'Float': 'float', 'Int': 'float', 'Boolean': 'float',
@@ -243,3 +245,13 @@ class GLSLCodeManager:
                 func_name=func_name.replace('"', ''),
                 params=params
             ) for func_name in (func_names if self._dropdowns_count() == 1 else chain.from_iterable(func_names)))
+
+    def add_glsl_shader(self):
+        file_path = path.join(self._source_path, "source", "blender", "gpu", "shaders", "material",
+                              "gpu_shader_material_{tex}{name}.glsl".format(
+                                  tex='tex_' if self._is_texture_node else '',
+                                  name=code_generator_util.string_lower_underscored(self._node_name())
+                              ))
+        with open(file_path, 'w') as f:
+            f.write('{0}\n'.format(self._generate_glsl_shader()))
+        code_generator_util.apply_clang_formatting(file_path, self._source_path)
