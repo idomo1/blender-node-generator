@@ -1003,21 +1003,6 @@ class CodeGenerator:
             osl_f.write(function)
         code_generator_util.apply_clang_formatting(osl_path, self._gui.get_source_path())
 
-    def _add_svm_shader(self):
-        """svm_*.h"""
-        svm_generator = svm_code_generator.SVMCompilationManager(self._gui)
-        svm_generator.add_svm_shader()
-
-    def _add_glsl_shader(self):
-        """"""
-        glsl_manager = GLSLCodeManager(self._gui)
-        glsl_manager.add_glsl_shader()
-
-    def _add_cmake(self):
-        """Adds new files to cmake lists"""
-        cmake_manager = CMakeCodeManager(self._gui)
-        cmake_manager.add_to_cmake()
-
     def generate_node(self):
         self._add_osl_shader()
         self._add_to_node_menu()
@@ -1029,8 +1014,15 @@ class CodeGenerator:
         self._add_rna_properties()
         self._add_shader_node_file()
         self._add_cycles_class_instance()
-        self._add_glsl_shader()
         self._add_node_definition()
-        self._add_cmake()
-        self._add_svm_shader()
         self._add_cycles_node()
+
+        svm_manager = svm_code_generator.SVMCompilationManager(self._gui)
+        svm_manager.add_svm_shader()
+        svm_manager.add_register_svm()
+
+        glsl_manager = GLSLCodeManager(self._gui)
+        glsl_manager.add_glsl_shader()
+
+        cmake_manager = CMakeCodeManager(self._gui)
+        cmake_manager.add_to_cmake()
