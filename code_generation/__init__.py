@@ -1020,6 +1020,7 @@ class CodeGenerator:
         svm_manager = svm_code_generator.SVMCompilationManager(self._gui)
         svm_manager.add_svm_shader()
         svm_manager.add_register_svm()
+        svm_manager.add_svm_types()
 
         glsl_manager = GLSLCodeManager(self._gui)
         glsl_manager.add_glsl_shader()

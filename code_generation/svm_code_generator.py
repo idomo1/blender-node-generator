@@ -377,13 +377,13 @@ class SVMCompilationManager:
         return 'case NODE_{TEX}{NAME}:' \
                'svm_node_{tex}{name}(kg, sd, stack, {params}{offset});' \
                'break;\n'.format(
-                   TEX='TEX_' if self._is_texture_node else '',
-                   NAME=code_generator_util.string_upper_underscored(self._node_name),
-                   tex='tex_' if self._is_texture_node else '',
-                   name=code_generator_util.string_lower_underscored(self._node_name),
-                   params=self._generate_svm_shader_passed_params(),
-                   offset=', &offset' if self._has_multiple_nodes() else ''
-               )
+            TEX='TEX_' if self._is_texture_node else '',
+            NAME=code_generator_util.string_upper_underscored(self._node_name),
+            tex='tex_' if self._is_texture_node else '',
+            name=code_generator_util.string_lower_underscored(self._node_name),
+            params=self._generate_svm_shader_passed_params(),
+            offset=', &offset' if self._has_multiple_nodes() else ''
+        )
 
     def add_register_svm(self):
         """Include and register svm shader in svm.h"""
@@ -396,7 +396,7 @@ class SVMCompilationManager:
             lines = f.readlines()
             for i, line in enumerate(lines):
                 if line == '#ifdef __SHADER_RAYTRACE__\n':
-                    lines.insert(i-1, include_statement)
+                    lines.insert(i - 1, include_statement)
                     break
             else:
                 raise Exception("No match found")
@@ -411,7 +411,7 @@ class SVMCompilationManager:
                     if self._is_texture_node:
                         while lines[j] != '#  ifdef __TEXTURES__\n':
                             j += 1
-                    lines.insert(j+1, shader_case)
+                    lines.insert(j + 1, shader_case)
                     break
             else:
                 raise Exception("No match found")
@@ -419,3 +419,36 @@ class SVMCompilationManager:
             f.seek(0)
             f.writelines(lines)
             f.truncate()
+
+    def _generate_enum_typedefs(self):
+        """Generate enum typedefs"""
+        return '\n\n'.join(['typedef enum Node{Name}{Prop} {{{options}}} Node{Name}{Prop};'.format(
+            Name=code_generator_util.string_capitalized_no_space(self._node_name),
+            Prop=code_generator_util.string_capitalized_no_space(prop['name']),
+            options=','.join(['NODE_{NAME}_{OPTION} = {i}'.format(
+                NAME=code_generator_util.string_upper_underscored(self._node_name),
+                OPTION=code_generator_util.string_upper_underscored(option['name']),
+                i=i + 1) for i, option in enumerate(prop['options'])]))
+            for prop in self._props if prop['data-type'] == 'Enum'])
+
+    def add_svm_types(self):
+        """Register node types in svm_types.h"""
+        file_path = path.join(self._source_path, "intern", "cycles", "kernel", "svm", "svm_types.h")
+        with open(file_path, 'r+') as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                if line == '} ShaderNodeType;\n':
+                    lines.insert(i, 'NODE_{TEX}{NAME},'.format(
+                        TEX='TEX_' if self._is_texture_node else '',
+                        NAME=code_generator_util.string_upper_underscored(self._node_name)
+                    ))
+                    lines.insert(i+2, '\n')
+                    lines.insert(i + 3, self._generate_enum_typedefs())
+                    break
+            else:
+                raise Exception("Match not found")
+
+            f.seek(0)
+            f.writelines(lines)
+            f.truncate()
+        code_generator_util.apply_clang_formatting(file_path, self._source_path)

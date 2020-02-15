@@ -14,9 +14,9 @@ class TestSVMCodeGenerator(unittest.TestCase):
 
     def _create_default_svm_manager(self, props=None, sockets=None, is_texture_node=False, uses_mapping=False):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
-            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop3", "desc": "Short description"}, {"name": "prop4", "desc": "Short description"}],
              "default": 'prop3'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
@@ -1275,6 +1275,58 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                                                 '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
                                                                 '        break;\n'
                                                                 ])
+
+    def test_generate_enum_typedefs_correct_formatting(self):
+        svm = self._create_default_svm_manager()
+        defs = svm._generate_enum_typedefs()
+
+        self.assertTrue(defs == 'typedef enum NodeNodeNameDropdown1 {'
+                                'NODE_NODE_NAME_PROP1 = 1,'
+                                'NODE_NODE_NAME_PROP2 = 2'
+                                '} NodeNodeNameDropdown1;\n\n'
+                                'typedef enum NodeNodeNameDropdown2 {'
+                                'NODE_NODE_NAME_PROP3 = 1,'
+                                'NODE_NODE_NAME_PROP4 = 2'
+                                '} NodeNodeNameDropdown2;'
+                        )
+
+    def test_add_svm_types_correct_formatting(self):
+        mock_enums = mock.Mock()
+        mock_enums.return_value = ('typedef enum NodeNodeNameDropdown1 {'
+                                   'NODE_NODE_NAME_PROP1 = 1,'
+                                   'NODE_NODE_NAME_PROP2 = 2'
+                                   '} NodeNodeNameDropdown1;\n\n'
+                                   'typedef enum NodeNodeNameDropdown2 {'
+                                   'NODE_NODE_NAME_PROP3 = 1,'
+                                   'NODE_NODE_NAME_PROP4 = 2'
+                                   '} NodeNodeNameDropdown2;')
+        with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_enum_typedefs', mock_enums):
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
+                with patch('builtins.open', mock.mock_open(read_data=
+                                                           'typedef enum ShaderNodeType {\n'
+                                                           'NODE_END = 0,\n'
+                                                           '} ShaderNodeType;\n\n'
+                                                           'typedef enum NodeAttributeType {\n'
+                                                           )) as mf:
+                    svm = self._create_default_svm_manager()
+                    svm.add_svm_types()
+                    self.assertTrue(mf.mock_calls[-3][1][0] == [
+                        'typedef enum ShaderNodeType {\n',
+                        'NODE_END = 0,\n',
+                        'NODE_NODE_NAME,',
+                        '} ShaderNodeType;\n',
+                        '\n',
+                        'typedef enum NodeNodeNameDropdown1 {'
+                        'NODE_NODE_NAME_PROP1 = 1,'
+                        'NODE_NODE_NAME_PROP2 = 2'
+                        '} NodeNodeNameDropdown1;\n\n'
+                        'typedef enum NodeNodeNameDropdown2 {'
+                        'NODE_NODE_NAME_PROP3 = 1,'
+                        'NODE_NODE_NAME_PROP4 = 2'
+                        '} NodeNodeNameDropdown2;',
+                        '\n',
+                        'typedef enum NodeAttributeType {\n',
+                    ])
 
 
 if __name__ == '__main__':
