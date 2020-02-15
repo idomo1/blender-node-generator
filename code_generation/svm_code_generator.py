@@ -16,6 +16,7 @@ class SVMCompilationManager:
         self._is_texture_node = gui.is_texture_node()
         self._uses_texture_mapping = gui.uses_texture_mapping()
         self._source_path = gui.get_source_path()
+        self._node_group_level = gui.get_node_group_level()
 
     def _generate_param_names(self):
         """How the props/sockets are passed to the compiler"""
@@ -134,7 +135,7 @@ class SVMCompilationManager:
 
     def _passed_params_count(self):
         """Returns the no. of props/sockets passed to the shader"""
-        return len(list(filter(lambda p: p['data-type'] != 'String', self._props)) + self._sockets)
+        return len(list(filter(lambda p: p['data-type'] != 'String', self._props + self._sockets)))
 
     def _unpack_names(self):
         def unpack_name(item):
@@ -339,3 +340,82 @@ class SVMCompilationManager:
             code_generator_util.write_license(f)
             f.write(self._generate_svm_shader())
         code_generator_util.apply_clang_formatting(file_path, self._source_path)
+
+    def _generate_svm_shader_include(self):
+        """Include statement for svm.h"""
+        return '#include "kernel/svm/{shader_file_name}.h"\n'.format(
+            shader_file_name=self._generate_shader_file_name())
+
+    def _has_multiple_nodes(self):
+        """Returns whether the shader requires multiple nodes for passing parameters"""
+        param_count = 0
+        for param in self._props + self._sockets:
+            if param['data-type'] == 'Float':
+                # Float optimizations are added in a separate node
+                return True
+            elif param['data-type'] != 'String':
+                param_count += 1
+        # 3 uchar4's = 3*4 = 12 max params for one node
+        return param_count > 12
+
+    def _generate_svm_shader_passed_params(self):
+        """Params passed when the shader is called"""
+        num_params = self._passed_params_count()
+        if num_params in [2, 6]:
+            return 'node.y, node.z'
+        elif num_params > 2:
+            return 'node.y, node.z, node.w'
+        elif num_params == 1:
+            return 'node.y'
+        elif num_params == 0:
+            return ''
+        else:
+            raise Exception("Invalid number of params {0}".format(num_params))
+
+    def _generate_svm_shader_case(self):
+        """Case to pass parameters to shader in svm.h"""
+        return 'case NODE_{TEX}{NAME}:' \
+               'svm_node_{tex}{name}(kg, sd, stack, {params}{offset});' \
+               'break;\n'.format(
+                   TEX='TEX_' if self._is_texture_node else '',
+                   NAME=code_generator_util.string_upper_underscored(self._node_name),
+                   tex='tex_' if self._is_texture_node else '',
+                   name=code_generator_util.string_lower_underscored(self._node_name),
+                   params=self._generate_svm_shader_passed_params(),
+                   offset=', &offset' if self._has_multiple_nodes() else ''
+               )
+
+    def add_register_svm(self):
+        """Include and register svm shader in svm.h"""
+        file_path = path.join(self._source_path, "intern", "cycles", "kernel", "svm", "svm.h")
+        with open(file_path, 'r+') as f:
+            include_statement = self._generate_svm_shader_include()
+
+            shader_case = self._generate_svm_shader_case()
+
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                if line == '#ifdef __SHADER_RAYTRACE__\n':
+                    lines.insert(i-1, include_statement)
+                    break
+            else:
+                raise Exception("No match found")
+
+            for i, line in enumerate(lines):
+                if line == '    switch (node.x) {\n':
+                    j = i
+                    while lines[j] != '#if NODES_GROUP(NODE_GROUP_LEVEL_{group})\n'.format(
+                            group=self._node_group_level):
+                        j += 1
+
+                    if self._is_texture_node:
+                        while lines[j] != '#  ifdef __TEXTURES__\n':
+                            j += 1
+                    lines.insert(j+1, shader_case)
+                    break
+            else:
+                raise Exception("No match found")
+
+            f.seek(0)
+            f.writelines(lines)
+            f.truncate()

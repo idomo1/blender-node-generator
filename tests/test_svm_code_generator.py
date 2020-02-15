@@ -22,17 +22,20 @@ class TestSVMCodeGenerator(unittest.TestCase):
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
             {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
             {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}] if props is None else props
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64,
+             "default": '""'}] if props is None else props
         self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
-                       {'type': "Output", 'name': "socket2", 'data-type': "Float",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}] if sockets is None else sockets
+                                                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                                                       {'type': "Output", 'name': "socket2", 'data-type': "Float",
+                                                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                                                        'min': "-1.0", 'max': "1.0",
+                                                        'default': "0.5"}] if sockets is None else sockets
         self.mock_gui.get_source_path.return_value = "C:/some_path"
         self.mock_gui.get_node_name.return_value = "node name"
         self.mock_gui.is_texture_node.return_value = is_texture_node
         self.mock_gui.uses_texture_mapping.return_value = uses_mapping
+        self.mock_gui.get_node_group_level.return_value = 0
         return SVMCompilationManager(self.mock_gui)
 
     def test_generate_param_names_correct_formatting(self):
@@ -393,11 +396,11 @@ class TestSVMCodeGenerator(unittest.TestCase):
 
     def test_generate_svm_func_texture_node_uses_mapping_correct_formatting(self):
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
-                       {'type': "Output", 'name': "socket2", 'data-type': "Float",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                   {'type': "Output", 'name': "socket2", 'data-type': "Float",
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         sockets.insert(0, {'type': "Input", 'name': "vector", 'data-type': "Vector", 'sub-type': 'PROP_NONE',
                            'flag': 'None', 'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"})
         svm = self._create_default_svm_manager(sockets=sockets, is_texture_node=True, uses_mapping=True)
@@ -1007,8 +1010,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
             {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Vector",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         load = svm._generate_load_params()
 
@@ -1021,8 +1024,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
             {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "RGBA",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         load = svm._generate_load_params()
 
@@ -1035,8 +1038,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
             {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Shader",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         load = svm._generate_load_params()
 
@@ -1049,8 +1052,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
             {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
-                        'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Input", 'name': "socket2", 'data-type': "Float",
                     'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
@@ -1084,7 +1087,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
 
         mock_offset = mock.Mock()
         mock_offset.return_value = 'uint dropdown1, dropdown2, int1, box1;' \
-                                'uint box2, float1_stack_offset, socket1_stack_offset, socket2_stack_offset;'
+                                   'uint box2, float1_stack_offset, socket1_stack_offset, socket2_stack_offset;'
 
         mock_unpack = mock.Mock()
         mock_unpack.return_value = 'svm_unpack_uchar4(stack_offsets1, ' \
@@ -1128,6 +1131,150 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                                   'socket1_stack_offset, defaults1.x);'
                                                   '}\n\n'
                                                   'CCL_NAMESPACE_END\n\n')
+
+    def test_generate_svm_include_statement_correct_formatting(self):
+        svm = self._create_default_svm_manager()
+        include = svm._generate_svm_shader_include()
+        self.assertTrue(include == '#include "kernel/svm/svm_node_name.h"\n')
+
+    def test_has_multiple_nodes_true(self):
+        svm = self._create_default_svm_manager()
+        self.assertTrue(svm._has_multiple_nodes())
+
+    def test_has_multiple_nodes_no_props_sockets_false(self):
+        svm = self._create_default_svm_manager(props=[], sockets=[])
+        self.assertFalse(svm._has_multiple_nodes())
+
+    def test_generate_passed_params_9_params_correct_formatting(self):
+        svm = self._create_default_svm_manager()
+        params = svm._generate_svm_shader_passed_params()
+        self.assertTrue(params == 'node.y, node.z, node.w')
+
+    def test_generate_passed_params_1_param_correct_formatting(self):
+        svm = self._create_default_svm_manager(props=[], sockets=[{'data-type': 'Float'}])
+        params = svm._generate_svm_shader_passed_params()
+        self.assertTrue(params == 'node.y')
+
+    def test_generate_passed_params_2_params_correct_formatting(self):
+        svm = self._create_default_svm_manager(props=[], sockets=[{'data-type': 'Float'}, {'data-type': 'Float'}])
+        params = svm._generate_svm_shader_passed_params()
+        self.assertTrue(params == 'node.y, node.z')
+
+    def test_generate_passed_params_3_params_correct_formatting(self):
+        svm = self._create_default_svm_manager(props=[], sockets=[{'data-type': 'Float'}, {'data-type': 'Float'},
+                                                                  {'data-type': 'Float'}])
+        params = svm._generate_svm_shader_passed_params()
+        self.assertTrue(params == 'node.y, node.z, node.w')
+
+    def test_generate_passed_params_6_params_correct_formatting(self):
+        svm = self._create_default_svm_manager(props=[], sockets=[{'data-type': 'Float'}, {'data-type': 'Float'},
+                                                                  {'data-type': 'Float'}, {'data-type': 'Float'},
+                                                                  {'data-type': 'Float'}, {'data-type': 'Float'}])
+        params = svm._generate_svm_shader_passed_params()
+        self.assertTrue(params == 'node.y, node.z')
+
+    def test_generate_svm_shader_case_with_additional_nodes_correct_formatting(self):
+        param_mock = mock.Mock()
+        param_mock.return_value = 'node.y, node.z, node.w'
+        with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_passed_params',
+                   param_mock):
+            svm = self._create_default_svm_manager()
+            case = svm._generate_svm_shader_case()
+            self.assertTrue(case == 'case NODE_NODE_NAME:'
+                                    'svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);'
+                                    'break;\n')
+
+    def test_generate_svm_shader_case_no_nodes_correct_formatting(self):
+        param_mock = mock.Mock()
+        param_mock.return_value = 'node.y'
+        with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_passed_params',
+                   param_mock):
+            props = [{'data-type': 'Enum'}]
+            svm = self._create_default_svm_manager(props=props, sockets=[])
+            case = svm._generate_svm_shader_case()
+            self.assertTrue(case == 'case NODE_NODE_NAME:'
+                                    'svm_node_node_name(kg, sd, stack, node.y);'
+                                    'break;\n')
+
+    def test_generate_register_svm_correct_formatting(self):
+        include_mock = mock.Mock()
+        include_mock.return_value = '#include "kernel/svm/svm_node_name.h"\n'
+
+        case_mock = mock.Mock()
+        case_mock.return_value = 'case NODE_NODE_NAME:' \
+                                 'svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);' \
+                                 'break;\n'
+
+        with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_include',
+                   include_mock):
+            with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_case',
+                       case_mock):
+                with patch('builtins.open', mock.mock_open(read_data=
+                                                           '#include "kernel/svm/svm_truchet.h"\n'
+                                                           '\n'
+                                                           '#ifdef __SHADER_RAYTRACE__\n'
+
+                                                           '    switch (node.x) {\n'
+                                                           '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
+                                                           '      case NODE_CLOSURE_BSDF:\n'
+                                                           '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n'
+                                                           '        break;\n'
+                                                           )) as mf:
+                    svm = self._create_default_svm_manager()
+                    svm.add_register_svm()
+
+                    self.assertTrue(mf.mock_calls[-3][1][0] == ['#include "kernel/svm/svm_truchet.h"\n',
+                                                                '#include "kernel/svm/svm_node_name.h"\n',
+                                                                '\n',
+                                                                '#ifdef __SHADER_RAYTRACE__\n',
+                                                                '    switch (node.x) {\n',
+                                                                '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n',
+                                                                'case NODE_NODE_NAME:svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);break;\n',
+                                                                '      case NODE_CLOSURE_BSDF:\n',
+                                                                '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
+                                                                '        break;\n'
+                                                                ])
+
+    def test_generate_register_svm_texture_node_correct_formatting(self):
+        include_mock = mock.Mock()
+        include_mock.return_value = '#include "kernel/svm/svm_node_name.h"\n'
+
+        case_mock = mock.Mock()
+        case_mock.return_value = 'case NODE_NODE_NAME:' \
+                                 'svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);' \
+                                 'break;\n'
+
+        with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_include',
+                   include_mock):
+            with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_case',
+                       case_mock):
+                with patch('builtins.open', mock.mock_open(read_data=
+                                                           '#include "kernel/svm/svm_truchet.h"\n'
+                                                           '\n'
+                                                           '#ifdef __SHADER_RAYTRACE__\n'
+
+                                                           '    switch (node.x) {\n'
+                                                           '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
+                                                           '#  ifdef __TEXTURES__\n'
+                                                           '      case NODE_CLOSURE_BSDF:\n'
+                                                           '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n'
+                                                           '        break;\n'
+                                                           )) as mf:
+                    svm = self._create_default_svm_manager(is_texture_node=True)
+                    svm.add_register_svm()
+
+                    self.assertTrue(mf.mock_calls[-3][1][0] == ['#include "kernel/svm/svm_truchet.h"\n',
+                                                                '#include "kernel/svm/svm_node_name.h"\n',
+                                                                '\n',
+                                                                '#ifdef __SHADER_RAYTRACE__\n',
+                                                                '    switch (node.x) {\n',
+                                                                '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n',
+                                                                '#  ifdef __TEXTURES__\n',
+                                                                'case NODE_NODE_NAME:svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);break;\n',
+                                                                '      case NODE_CLOSURE_BSDF:\n',
+                                                                '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
+                                                                '        break;\n'
+                                                                ])
 
 
 if __name__ == '__main__':
