@@ -270,6 +270,9 @@ class SocketAvailabilityGUI:
 
     def _display_mapping(self, map_key):
         self._remove_existing_menu()
+        if len(self._maps[map_key]) == 0:
+            Label(self.window, text='No props').grid(row=self._row_i)
+
         for prop in self._maps[map_key]:
             Label(self.window, text=prop).grid(row=self._row_i)
             Checkbutton(self.window, var=self._maps[map_key][prop]).grid(row=self._row_i, column=1)
@@ -299,6 +302,10 @@ class SocketAvailabilityGUI:
                 elif prop['data-type'] == 'Enum':
                     options.extend([(prop['name'] + '=' + option['name']) for option in prop['options']])
             vars = [BooleanVar() for _ in range(len(options))]
+
+            if len(options) == 0:
+                self._maps[self._dropdown.get()] = {}
+
             for var in vars:
                 var.set(True)
                 self._maps[self._dropdown.get()] = dict()
