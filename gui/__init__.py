@@ -321,11 +321,11 @@ class SocketAvailabilityGUI:
                         var = BooleanVar()
                         var.set(True)
                         self._maps[self._dropdown.get()][prop['name'] + '=False'] = var
-                    elif prop['data-type'] == 'Enum':
-                        for option in prop['options']:
-                            var = BooleanVar()
-                            var.set(True)
-                            self._maps[self._dropdown.get()][prop['name'] + '=' + option] = var
+                elif prop['data-type'] == 'Enum':
+                    for option in prop['options']:
+                        var = BooleanVar()
+                        var.set(True)
+                        self._maps[self._dropdown.get()][prop['name'] + '=' + option['name']] = var
         self._remove_deleted_sockets()
         self._display_mapping(self._dropdown.get())
 
