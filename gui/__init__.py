@@ -291,8 +291,29 @@ class SocketAvailabilityGUI:
             else:
                 del self._maps[self._dropdown.get()][key]
 
+    def _update_props(self):
+        """Update for changes in props"""
+        for prop in self._props_GUI.get_props():
+            if prop['data-type'] == 'Boolean':
+                if prop['name'] + '=True' not in self._maps[self._dropdown.get()]:
+                    var = BooleanVar()
+                    var.set(True)
+                    self._maps[self._dropdown.get()][prop['name'] + '=True'] = var
+                if prop['name'] + '=False' not in self._maps[self._dropdown.get()]:
+                    var = BooleanVar()
+                    var.set(True)
+                    self._maps[self._dropdown.get()][prop['name'] + '=False'] = var
+            elif prop['data-type'] == 'Enum':
+                for option in prop['options']:
+                    prop_option_name = prop['name'] + '=' + option['name']
+                    if prop_option_name not in self._maps[self._dropdown.get()]:
+                        var = BooleanVar()
+                        var.set(True)
+                        self._maps[self._dropdown.get()][prop_option_name] = var
+
     def _on_selected(self, event):
         props = self._props_GUI.get_props()
+        # If new socket(s) added
         if self._dropdown.get() not in self._maps:
             options = []
             for prop in props:
@@ -312,20 +333,7 @@ class SocketAvailabilityGUI:
             for i, option in enumerate(options):
                 self._maps[self._dropdown.get()][option] = vars[i]
         else:
-            for prop in props:
-                if prop['data-type'] == 'Boolean':
-                    if prop['name'] + '=True' not in self._maps[self._dropdown.get()].keys():
-                        var = BooleanVar()
-                        var.set(True)
-                        self._maps[self._dropdown.get()][prop['name'] + '=True'] = var
-                        var = BooleanVar()
-                        var.set(True)
-                        self._maps[self._dropdown.get()][prop['name'] + '=False'] = var
-                elif prop['data-type'] == 'Enum':
-                    for option in prop['options']:
-                        var = BooleanVar()
-                        var.set(True)
-                        self._maps[self._dropdown.get()][prop['name'] + '=' + option['name']] = var
+            self._update_props()
         self._remove_deleted_sockets()
         self._display_mapping(self._dropdown.get())
 
