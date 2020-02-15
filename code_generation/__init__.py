@@ -841,8 +841,7 @@ class CodeGenerator:
             props = self._gui.get_props()
             sockets = self._gui.get_node_sockets()
 
-            svm_node_manager = SVMCompilationManager(props, sockets, self._gui.get_node_name(),
-                                                     self._gui.is_texture_node(), self._gui.uses_texture_mapping())
+            svm_node_manager = SVMCompilationManager(self._gui)
 
             socket_defs = []
             for prop in props:
