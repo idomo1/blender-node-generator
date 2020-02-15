@@ -10,7 +10,10 @@ class TestSVMCodeGenerator(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Default Props/Sockets"""
-        cls.props = [
+        cls.mock_gui = mock.Mock()
+
+    def _create_default_svm_manager(self, props=None, sockets=None, is_texture_node=False, uses_mapping=False):
+        self.mock_gui.get_props.return_value = [
             {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
              "default": 'prop1'},
             {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
@@ -19,16 +22,18 @@ class TestSVMCodeGenerator(unittest.TestCase):
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
             {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
             {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}]
-        cls.sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
+            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64, "default": '""'}] if props is None else props
+        self.mock_gui.get_node_sockets.return_value = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
                         'sub-type': 'PROP_NONE', 'flag': 'None',
                         'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                        {'type': "Output", 'name': "socket2", 'data-type': "Float",
                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-
-    def _create_default_svm_manager(self):
-        return SVMCompilationManager(self.props, self.sockets, 'node name', False)
+                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}] if sockets is None else sockets
+        self.mock_gui.get_source_path.return_value = "C:/some_path"
+        self.mock_gui.get_node_name.return_value = "node name"
+        self.mock_gui.is_texture_node.return_value = is_texture_node
+        self.mock_gui.uses_texture_mapping.return_value = uses_mapping
+        return SVMCompilationManager(self.mock_gui)
 
     def test_generate_param_names_correct_formatting(self):
         svm = self._create_default_svm_manager()
@@ -42,7 +47,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
-        svm = SVMCompilationManager(props, [], '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=[])
         params = svm._generate_svm_params()
         self.assertTrue(params == 'dropdown1, dropdown2, int1')
 
@@ -54,7 +59,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
 
         self.assertTrue(params == 'dropdown1, dropdown2, '
@@ -70,7 +75,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                   "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2), '
                                   'compiler.encode_uchar4(int1, __float_as_int(float1)), '
@@ -89,7 +94,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2, int1), '
                                   'compiler.encode_uchar4(__float_as_int(float1), socket1_stack_offset, socket2_stack_offset)')
@@ -107,7 +112,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2, int1), '
                                   'compiler.encode_uchar4(box1, __float_as_int(float1), socket1_stack_offset), '
@@ -128,7 +133,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
                                   'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), '
@@ -151,7 +156,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket3", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
                                   'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset, socket2_stack_offset), '
@@ -176,7 +181,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
                                   'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset, socket2_stack_offset), '
@@ -202,7 +207,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
                    {'type': "Output", 'name': "socket3", 'data-type': "RGBA", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
                                   'compiler.encode_uchar4(box2, __float_as_int(float1), __float_as_int(float2), __float_as_int(float3)), '
@@ -231,7 +236,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_svm_params()
         self.assertTrue(params == 'compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
                                   'compiler.encode_uchar4(box2, __float_as_int(float1), __float_as_int(float2), __float_as_int(float3)), '
@@ -261,7 +266,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         self.assertRaises(Exception, svm._generate_svm_params)
 
     def test_generate_stack_offsets_correct_formatting(self):
@@ -282,7 +287,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket2", 'data-type': "Float",
                     'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', True)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets, is_texture_node=True, uses_mapping=True)
         offsets = svm._generate_stack_offsets()
 
         self.assertTrue(offsets == 'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
@@ -296,7 +301,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
         self.assertTrue(opt == 'compiler.add_node(__float_as_int(socket1));')
 
     def test_generate_float_optimizations_no_float_inputs_correct_formatting(self):
-        svm = SVMCompilationManager([], [], '', False)
+        svm = self._create_default_svm_manager(props=[], sockets=[])
         opt = svm._generate_float_optimizations()
 
         self.assertTrue(opt == '')
@@ -306,7 +311,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'name': 'socket2', 'type': 'Input', 'data-type': 'Float'},
                    {'name': 'socket3', 'type': 'Input', 'data-type': 'Float'},
                    {'name': 'socket4', 'type': 'Input', 'data-type': 'Float'}]
-        svm = SVMCompilationManager([], sockets, '', False)
+        svm = self._create_default_svm_manager(props=[], sockets=sockets)
         opt = svm._generate_float_optimizations()
 
         self.assertTrue(opt == 'compiler.add_node(__float_as_int(socket1), __float_as_int(socket2), '
@@ -318,7 +323,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'name': 'socket3', 'type': 'Input', 'data-type': 'Float'},
                    {'name': 'socket4', 'type': 'Input', 'data-type': 'Float'},
                    {'name': 'socket5', 'type': 'Input', 'data-type': 'Float'}]
-        svm = SVMCompilationManager([], sockets, '', False)
+        svm = self._create_default_svm_manager(props=[], sockets=sockets)
         opt = svm._generate_float_optimizations()
 
         self.assertTrue(opt == 'compiler.add_node(__float_as_int(socket1), __float_as_int(socket2), '
@@ -337,7 +342,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                 'compiler.add_node(__float_as_int(socket1));')
 
     def test_generate_add_texture_node_correct_formatting(self):
-        svm = SVMCompilationManager(self.props, self.sockets, 'node name', True, False)
+        svm = self._create_default_svm_manager(is_texture_node=True)
         node = svm._generate_add_node()
 
         self.assertTrue(node == 'compiler.add_node(NODE_TEX_NODE_NAME, '
@@ -371,7 +376,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                 '}\n\n')
 
     def test_generate_svm_func_texture_node_no_mapping_correct_formatting(self):
-        svm = SVMCompilationManager(self.props, self.sockets, 'node name', True, False)
+        svm = self._create_default_svm_manager(is_texture_node=True)
         func = svm.generate_svm_compile_func()
 
         self.assertTrue(func == 'void NodeNameTextureNode::compile(SVMCompiler &compiler){'
@@ -387,10 +392,15 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                 '}\n\n')
 
     def test_generate_svm_func_texture_node_uses_mapping_correct_formatting(self):
-        sockets = self.sockets.copy()
+        sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
+                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                       {'type': "Output", 'name': "socket2", 'data-type': "Float",
+                        'sub-type': 'PROP_NONE', 'flag': 'None',
+                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         sockets.insert(0, {'type': "Input", 'name': "vector", 'data-type': "Vector", 'sub-type': 'PROP_NONE',
                            'flag': 'None', 'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"})
-        svm = SVMCompilationManager(self.props, sockets, 'node name', True, True)
+        svm = self._create_default_svm_manager(sockets=sockets, is_texture_node=True, uses_mapping=True)
         func = svm.generate_svm_compile_func()
 
         self.assertTrue(func == 'void NodeNameTextureNode::compile(SVMCompiler &compiler){'
@@ -414,7 +424,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
-        svm = SVMCompilationManager(props, [], '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=[])
         params = svm._generate_shader_params()
 
         self.assertTrue(params == 'uint dropdown1, uint dropdown2, uint int1')
@@ -429,7 +439,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                   "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_shader_params()
 
         self.assertTrue(params == 'uint stack_offsets1, '
@@ -449,7 +459,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_shader_params()
 
         self.assertTrue(params == 'uint stack_offsets1, '
@@ -469,7 +479,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_shader_params()
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
@@ -499,7 +509,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket3", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_shader_params()
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
@@ -524,7 +534,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_shader_params()
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
@@ -553,7 +563,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         params = svm._generate_shader_params()
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
@@ -583,7 +593,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         with self.assertRaises(Exception):
             svm._generate_shader_params()
 
@@ -593,7 +603,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
-        svm = SVMCompilationManager(props, [], '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=[])
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == '')
@@ -606,7 +616,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == 'uint int1, socket1_stack_offset;')
@@ -621,7 +631,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                   "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == 'uint dropdown1, dropdown2, int1, float1_stack_offset;')
@@ -639,7 +649,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == 'uint dropdown1, dropdown2, int1;'
@@ -658,7 +668,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == 'uint dropdown1, dropdown2, int1;'
@@ -688,7 +698,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket3", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == 'uint dropdown1, dropdown2, int1, box1;'
@@ -713,7 +723,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == 'uint dropdown1, dropdown2, int1, box1;'
@@ -743,7 +753,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         defs = svm._generate_offset_definitions()
 
         self.assertTrue(defs == 'uint dropdown1, dropdown2, int1, box1;'
@@ -774,7 +784,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         with self.assertRaises(Exception):
             svm._generate_offset_definitions()
 
@@ -784,7 +794,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
                   "default": 'prop3'},
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
-        svm = SVMCompilationManager(props, [], '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=[])
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == '')
@@ -797,7 +807,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                  {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == 'svm_unpack_uchar2(stack_offsets1, &int1, &socket1_stack_offset);')
@@ -812,7 +822,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                   "max": 1.0}]
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == 'svm_unpack_uchar2(stack_offsets1, &dropdown1, &dropdown2);'
@@ -830,7 +840,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == 'svm_unpack_uchar3(stack_offsets1, &dropdown1, &dropdown2, &int1);'
@@ -849,7 +859,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                    {'type': "Output", 'name': "socket2", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == 'svm_unpack_uchar3(stack_offsets1, &dropdown1, &dropdown2, &int1);'
@@ -882,7 +892,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
                    {'type': "Output", 'name': "socket3", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == 'svm_unpack_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
@@ -907,7 +917,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == 'svm_unpack_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
@@ -937,7 +947,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False, False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
         self.assertTrue(unpack == 'svm_unpack_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
@@ -968,7 +978,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '', False)
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         with self.assertRaises(Exception):
             svm._generate_unpack()
 
@@ -985,7 +995,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
              "default": 'prop1'},
             {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
              "default": 'prop3'}]
-        svm = SVMCompilationManager(props, [], '')
+        svm = self._create_default_svm_manager(props=props, sockets=[])
         load = svm._generate_load_params()
 
         self.assertTrue(load == '')
@@ -999,7 +1009,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Vector",
                         'sub-type': 'PROP_NONE', 'flag': 'None',
                         'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '')
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         load = svm._generate_load_params()
 
         self.assertTrue(load == 'float3 socket1 = stack_load_float3(stack, socket1_stack_offset);')
@@ -1013,7 +1023,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "RGBA",
                         'sub-type': 'PROP_NONE', 'flag': 'None',
                         'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '')
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         load = svm._generate_load_params()
 
         self.assertTrue(load == 'float3 socket1 = stack_load_float3(stack, socket1_stack_offset);')
@@ -1027,7 +1037,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Shader",
                         'sub-type': 'PROP_NONE', 'flag': 'None',
                         'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
-        svm = SVMCompilationManager(props, sockets, '')
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         load = svm._generate_load_params()
 
         self.assertTrue(load == 'float3 socket1 = stack_load_float3(stack, socket1_stack_offset);')
@@ -1054,7 +1064,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                     'sub-type': 'PROP_NONE', 'flag': 'None',
                     'min': "-1.0", 'max': "1.0", 'default': "0.5"}
                    ]
-        svm = SVMCompilationManager(props, sockets, '')
+        svm = self._create_default_svm_manager(props=props, sockets=sockets)
         load = svm._generate_load_params()
 
         self.assertTrue(load == 'uint4 defaults1 = read_node(kg, offset);'
@@ -1093,7 +1103,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                 with patch('code_generation.SVMCompilationManager._generate_unpack', mock_unpack):
                     with patch('code_generation.SVMCompilationManager._generate_load_params', mock_load_params):
                         svm = self._create_default_svm_manager()
-                        shader = svm.generate_svm_shader()
+                        shader = svm._generate_svm_shader()
 
                         self.assertTrue(shader == 'CCL_NAMESPACE_BEGIN\n\n'
                                                   'ccl_device void svm_node_node_name(KernelGlobals *kg,'

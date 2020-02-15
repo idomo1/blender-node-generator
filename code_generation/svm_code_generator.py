@@ -1,3 +1,5 @@
+from os import path
+
 from . import code_generator_util
 
 
@@ -7,12 +9,13 @@ class SVMCompilationManager:
     Keeps svm parameters consistent between files
     """
 
-    def __init__(self, props, sockets, node_name, is_texture_node=False, uses_texture_mapping=False):
-        self._props = props
-        self._sockets = sockets
-        self._node_name = node_name
-        self._is_texture_node = is_texture_node
-        self._uses_texture_mapping = uses_texture_mapping
+    def __init__(self, gui):
+        self._props = gui.get_props()
+        self._sockets = gui.get_node_sockets()
+        self._node_name = gui.get_node_name()
+        self._is_texture_node = gui.is_texture_node()
+        self._uses_texture_mapping = gui.uses_texture_mapping()
+        self._source_path = gui.get_source_path()
 
     def _generate_param_names(self):
         """How the props/sockets are passed to the compiler"""
@@ -303,7 +306,12 @@ class SVMCompilationManager:
             params=params,
             offset=', int *offset' if any(socket['data-type'] == 'Float' for socket in self._sockets) else '')
 
-    def generate_svm_shader(self):
+    def _generate_shader_file_name(self):
+        return "svm_{name}".format(
+            name=code_generator_util.string_lower_underscored(self._node_name)
+        )
+
+    def _generate_svm_shader(self):
         """Loading passed values in svm_*.h"""
         return 'CCL_NAMESPACE_BEGIN\n\n' \
                'ccl_device void svm_node_{tex}{name}(KernelGlobals *kg,' \
@@ -322,3 +330,12 @@ class SVMCompilationManager:
                                               offset_defs=self._generate_offset_definitions(),
                                               unpack_params=self._generate_unpack(),
                                               load_params=self._generate_load_params())
+
+    def add_svm_shader(self):
+        """svm_*.h"""
+        file_path = path.join(self._source_path, "intern", "cycles", "kernel", "svm", "{shader_file_name}".format(
+            shader_file_name=self._generate_shader_file_name()))
+        with open(file_path, 'w') as f:
+            code_generator_util.write_license(f)
+            f.write(self._generate_svm_shader())
+        code_generator_util.apply_clang_formatting(file_path, self._source_path)

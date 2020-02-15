@@ -1006,17 +1006,8 @@ class CodeGenerator:
 
     def _add_svm_shader(self):
         """svm_*.h"""
-        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "kernel", "svm", "svm_{name}.h".format(
-            name=code_generator_util.string_lower_underscored(self._gui.get_node_name())))
-        with open(file_path, 'w') as f:
-            code_generator_util.write_license(f)
-            svm_generator = svm_code_generator.SVMCompilationManager(self._gui.get_props(),
-                                                                     self._gui.get_node_sockets(),
-                                                                     self._gui.get_node_name(),
-                                                                     self._gui.is_texture_node(),
-                                                                     self._gui.uses_texture_mapping())
-            f.write(svm_generator.generate_svm_shader())
-        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
+        svm_generator = svm_code_generator.SVMCompilationManager(self._gui)
+        svm_generator.add_svm_shader()
 
     def _add_glsl_shader(self):
         """"""
