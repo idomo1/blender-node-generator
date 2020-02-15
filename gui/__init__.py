@@ -293,7 +293,7 @@ class SocketAvailabilityGUI:
 
     def _on_selected(self, event):
         props = self._props_GUI.get_props()
-        if self._dropdown.get() not in self._maps.keys():
+        if self._dropdown.get() not in self._maps:
             options = []
             for prop in props:
                 if prop['data-type'] == 'Boolean':
