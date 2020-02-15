@@ -687,6 +687,27 @@ class CodeGenerator:
                     '#endif\n'
                     '\n')
 
+    def _add_call_node_register(self):
+        """node.c"""
+        file_path = path.join(self._gui.get_source_path(), "source", "blender", "blenkernel", "intern", "node.c")
+        with open(file_path, 'r+') as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                if line == 'static void registerShaderNodes(void)\n':
+                    while lines[i] != '}\n':
+                        i += 1
+                    lines.insert(i, 'register_node_type_sh_{tex}{name}();'.format(
+                        tex='tex_' if self._gui.is_texture_node() else '',
+                        name=code_generator_util.string_lower_underscored(self._gui.get_node_name())
+                    ))
+                    break
+            else:
+                raise Exception("Match not found")
+
+            f.seek(0)
+            f.writelines(lines)
+            f.truncate()
+
     def _add_cycles_class(self):
         """nodes.h"""
         file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "render", "nodes.h")
@@ -1016,6 +1037,7 @@ class CodeGenerator:
         self._add_cycles_class_instance()
         self._add_node_definition()
         self._add_cycles_node()
+        self._add_call_node_register()
 
         svm_manager = svm_code_generator.SVMCompilationManager(self._gui)
         svm_manager.add_svm_shader()
