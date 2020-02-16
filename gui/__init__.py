@@ -588,6 +588,8 @@ class RemovableSocketDefinitionInput(Frame):
         data_type.grid(row=0, column=col_i)
         col_i += 1
 
+        Label(self, text='Sub-type').grid(row=0, column=col_i)
+        col_i += 1
         sub_type = Combobox(self)
         sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
                               'PROP_PASSWORD', 'PROP_PIXEL',
