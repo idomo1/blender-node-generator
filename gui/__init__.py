@@ -15,6 +15,22 @@ class GUI:
 
         self.CodeGenerator = code_generator
 
+    def _display_pre_generation_message(self):
+        """Message  displayed before code generation"""
+        proceed = messagebox.askokcancel(
+                        title='File Changes',
+                        message='This will modify your files, '
+                                'make sure you are using a version control system so you can undo changes')
+        if proceed:
+            try:
+                self.generate_node()
+            except Exception as e:
+                messagebox.showerror('Error',
+                                     '{error_message}\n\nIf you believe this is a problem with the program,'
+                                     ' please report it\nhttps://github.com/id4m0/blender-node-generator/issues'.format(
+                                         error_message=e
+                                     ))
+
     def display(self):
         """Main driver to display the menu"""
         self.window = Tk()
@@ -53,7 +69,8 @@ class GUI:
         self._socket_avail_GUI.display()
 
         # Generate Button
-        self.generate_button = Button(self.window, text='Generate', width=25, command=self.generate_node)
+        self.generate_button = Button(self.window, text='Generate', width=25,
+                                      command=self._display_pre_generation_message)
         self.generate_button.pack()
 
         self.window.mainloop()
