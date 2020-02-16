@@ -254,9 +254,31 @@ class SocketDefinitionsGUI:
         io.grid(row=self._row_i)
         self._row_i += 1
 
+    def _help_info_display(self):
+        """Display help info for the current tab"""
+        w = Toplevel()
+        w.title('Help')
+        Message(w, width=5000,
+                text="Where you can add node sockets\n"
+                     "IO - Whether the socket is an input or output\n"
+                     "Type - The data type of the socket\n"
+                     "Sub-Type - Affects the display of the input entry e.g. adds units\n"
+                     "Flag - Optional flag\n"
+                     "Name - Socket name separated by spaces\n"
+                     "Min - Minimum value of the socket. Make sure units are appropriate e.g float 0.0, int 0\n"
+                     "for vector inputs, if the default is 0.0 for all components, 0.0 is fine, "
+                     "otherwise comma separated list\n"
+                     "Max - Maximum value of the socket. Same as above\n"
+                     "Default - Default value. Same as above. For output sockets, just leave it at 0.0\n").grid()
+
+    def _help_button_display(self):
+        """Button to display help info"""
+        Button(self.window, text='Help', command=self._help_info_display).place(anchor='nw', x=300, y=0)
+
     def display(self):
         Button(self.window, text='Add I/O', command=self._add_node_socket).grid(row=self._row_i)
         self._row_i += 1
+        self._help_button_display()
 
     def _sort_sockets(self, sockets):
         """Sorts sockets"""
