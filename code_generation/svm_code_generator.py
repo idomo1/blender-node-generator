@@ -284,7 +284,7 @@ class SVMCompilationManager:
     def _generate_shader_params(self):
         """Parameters in shader"""
         num_params = self._passed_params_count()
-        items = self._props + self._sockets
+        items = [item for item in self._props + self._sockets if item['data-type'] != 'String']
         if num_params < 4:
             params = ', '.join('uint {name}{suffix}'.format(
                 name=code_generator_util.string_lower_underscored(item['name']),
