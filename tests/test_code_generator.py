@@ -172,43 +172,6 @@ class TestCodeGeneration(unittest.TestCase):
 
             self.assertTrue('        NodeItem("ShaderNodeNodeName")\n' in mf.mock_calls[4][1][0])
 
-    def test_write_to_node_menu_poll_correct_formatting(self):
-        self.mock_gui.get_poll.return_value = 'cycles_shader_nodes_poll'
-        with patch('builtins.open', mock_open(read_data=
-                                              'ShaderNodeCategory("SH_NEW_TEXTURE", "Texture", items=[\n'
-                                              ']),\n'
-                                              'ShaderNodeCategory("SH_NEW_SHADER", "Shader", items=[\n'
-                                              '    NodeItem("ShaderNodeMixShader", poll=eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeAddShader", poll=eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfDiffuse", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfPrincipled", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfGlossy", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfTransparent", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfRefraction", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfGlass", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfTranslucent", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfAnisotropic", poll=object_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfVelvet", poll=object_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfToon", poll=object_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeSubsurfaceScattering", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeEmission", poll=eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfHair", poll=object_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBackground", poll=world_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeHoldout", poll=object_eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeVolumeAbsorption", poll=eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeVolumeScatter", poll=eevee_cycles_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeVolumePrincipled"),\n'
-                                              '    NodeItem("ShaderNodeEeveeSpecular", poll=object_eevee_shader_nodes_poll),\n'
-                                              '    NodeItem("ShaderNodeBsdfHairPrincipled", poll=object_cycles_shader_nodes_poll)\n'
-                                              ']),\n'
-                                              'ShaderNodeCategory("SH_NEW_TEXTURE", "Texture", items=[\n'
-                                              )) as mf:
-            code_gen = CodeGenerator(self.mock_gui)
-            code_gen._add_to_node_menu()
-
-            self.assertTrue(
-                '        NodeItem("ShaderNodeNodeName", poll=cycles_shader_nodes_poll)\n' in mf.mock_calls[4][1][0])
-
     def test_write_node_id_correct_formatting(self):
         with patch('builtins.open', mock_open(read_data='#define SH_NODE_TEX_WHITE_NOISE 704\n'
                                                         '#define SH_NODE_VOLUME_INFO 705\n'
