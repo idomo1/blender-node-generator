@@ -441,9 +441,31 @@ class PropertiesGUI:
         self._row_i += 1
         self._props.append(prop)
 
+    def _help_info_display(self):
+        """Display help info for the current tab"""
+        w = Toplevel()
+        w.title('Help')
+        Message(w, width=5000,
+                text="Where you can add properties\n"
+                     "All: Type - Prop data type\n"
+                     "All: Sub-Type - Affects input display e.g adds units\n"
+                     "All: Name - Prop name separated by spaces\n"
+                     "All: Default - Default value. Make sure the value matches the data type. e.g float 0.0, int 0\n"
+                     "Float/Int: Min - Minimum value. Same as above\n"
+                     "Float/Int: Max - Maximum value. Same as above\n"
+                     "String: Size - The amount of characters - 1 that can fit in the string. Make a multiple of 2\n"
+                     "Enum: Add Option - Add an option to the enum\n"
+                     "Enum Option: Name - Name of the option separated by spaces\n"
+                     "Enum Option: Description - Short one line description of the option").grid()
+
+    def _help_button_display(self):
+        """Button to display help info"""
+        Button(self._window, text='Help', command=self._help_info_display).place(anchor='nw', x=100, y=0)
+
     def display(self):
         Button(self._window, text="Add Property", command=self._add_property).grid(row=self._row_i)
         self._row_i += 1
+        self._help_button_display()
 
     def is_input_valid(self):
         # TODO
