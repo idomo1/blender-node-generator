@@ -183,12 +183,33 @@ class GeneralGUI:
         self._group_level_input.current(0)
         self._row_i += 1
 
+    def _help_info_display(self):
+        """Display help info for the current tab"""
+        w = Toplevel()
+        w.title('Help')
+        Message(w, width=5000,
+                text="General info which doesn't fall into the other categories\n"
+                     "Node Name - Name of the node separated by spaces. "
+                     "Don't worry about adding a 'texture' suffix, "
+                     "the program will do that for you if you choose a texture node\n"
+                     "Node Group - The menu the node will show under\n"
+                     "Node Type - The class the nodes cycles class will inherit from\n"
+                     "Source Path - Absolute path to blender source code root directory\n"
+                     "Node Group Level - Used by SVM for selective node compilation,\n"
+                     " look at 'svm.h' to get an idea where your node should be\n"
+                     "\n\nIf you are unsure, look at a similar nodes implementation").grid()
+
+    def _help_button_display(self):
+        """Button to display help info"""
+        Button(self._window, text='Help', command=self._help_info_display).place(anchor='nw', x=300, y=0)
+
     def display(self):
         self._name_input_display()
         self._group_input_display()
         self._type_input_display()
         self._blender_path_input_display()
         self._group_level_display()
+        self._help_button_display()
 
     def get_node_name(self):
         return self._name_input.get()
