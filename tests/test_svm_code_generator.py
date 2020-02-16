@@ -813,7 +813,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar2(stack_offsets1, &int1, &socket1_stack_offset);')
+        self.assertTrue(unpack == 'svm_unpack_node_uchar2(stack_offsets, &int1, &socket1_stack_offset);')
 
     def test_generate_unpack_5_params_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -828,8 +828,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar2(stack_offsets1, &dropdown1, &dropdown2);'
-                                  'svm_unpack_uchar2(stack_offsets2, &int1, &float1_stack_offset);')
+        self.assertTrue(unpack == 'svm_unpack_node_uchar2(stack_offsets1, &dropdown1, &dropdown2);'
+                                  'svm_unpack_node_uchar2(stack_offsets2, &int1, &float1_stack_offset);')
 
     def test_generate_unpack_6_params_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -846,8 +846,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar3(stack_offsets1, &dropdown1, &dropdown2, &int1);'
-                                  'svm_unpack_uchar3(stack_offsets2, &float1_stack_offset, &socket1_stack_offset, &socket2_stack_offset);')
+        self.assertTrue(unpack == 'svm_unpack_node_uchar3(stack_offsets1, &dropdown1, &dropdown2, &int1);'
+                                  'svm_unpack_node_uchar3(stack_offsets2, &float1_stack_offset, &socket1_stack_offset, &socket2_stack_offset);')
 
     def test_generate_unpack_7_params_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -865,17 +865,17 @@ class TestSVMCodeGenerator(unittest.TestCase):
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar3(stack_offsets1, &dropdown1, &dropdown2, &int1);'
-                                  'svm_unpack_uchar3(stack_offsets2, &box1, &float1_stack_offset, &socket1_stack_offset);')
+        self.assertTrue(unpack == 'svm_unpack_node_uchar3(stack_offsets1, &dropdown1, &dropdown2, &int1);'
+                                  'svm_unpack_node_uchar3(stack_offsets2, &box1, &float1_stack_offset, &socket1_stack_offset);')
 
     def test_generate_unpack_8_params_correct_formatting(self):
         svm = self._create_default_svm_manager()
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar4(stack_offsets1, '
+        self.assertTrue(unpack == 'svm_unpack_node_uchar4(stack_offsets1, '
                                   '&dropdown1, &dropdown2, '
                                   '&int1, &box1);'
-                                  'svm_unpack_uchar3(stack_offsets2, '
+                                  'svm_unpack_node_uchar3(stack_offsets2, '
                                   '&box2, &float1_stack_offset, '
                                   '&socket1_stack_offset);')
 
@@ -898,8 +898,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
-                                  'svm_unpack_uchar4(stack_offsets2, &box2, &float1_stack_offset, &socket1_stack_offset, &socket2_stack_offset);')
+        self.assertTrue(unpack == 'svm_unpack_node_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
+                                  'svm_unpack_node_uchar4(stack_offsets2, &box2, &float1_stack_offset, &socket1_stack_offset, &socket2_stack_offset);')
 
     def test_generate_unpack_10_params_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -923,9 +923,9 @@ class TestSVMCodeGenerator(unittest.TestCase):
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
-                                  'svm_unpack_uchar4(stack_offsets2, &box2, &float1_stack_offset, &socket1_stack_offset, &socket2_stack_offset);'
-                                  'svm_unpack_uchar2(stack_offsets3, &socket3_stack_offset, &socket4_stack_offset);')
+        self.assertTrue(unpack == 'svm_unpack_node_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
+                                  'svm_unpack_node_uchar4(stack_offsets2, &box2, &float1_stack_offset, &socket1_stack_offset, &socket2_stack_offset);'
+                                  'svm_unpack_node_uchar2(stack_offsets3, &socket3_stack_offset, &socket4_stack_offset);')
 
     def test_generate_unpack_12_params_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -953,9 +953,9 @@ class TestSVMCodeGenerator(unittest.TestCase):
         svm = self._create_default_svm_manager(props=props, sockets=sockets)
         unpack = svm._generate_unpack()
 
-        self.assertTrue(unpack == 'svm_unpack_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
-                                  'svm_unpack_uchar4(stack_offsets2, &box2, &float1_stack_offset, &float2_stack_offset, &float3_stack_offset);'
-                                  'svm_unpack_uchar4(stack_offsets3, &socket1_stack_offset, &socket2_stack_offset, &socket3_stack_offset, &socket4_stack_offset);')
+        self.assertTrue(unpack == 'svm_unpack_node_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
+                                  'svm_unpack_node_uchar4(stack_offsets2, &box2, &float1_stack_offset, &float2_stack_offset, &float3_stack_offset);'
+                                  'svm_unpack_node_uchar4(stack_offsets3, &socket1_stack_offset, &socket2_stack_offset, &socket3_stack_offset, &socket4_stack_offset);')
 
     def test_generate_unpack_13_params_raises_exception(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -1090,10 +1090,10 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                    'uint box2, float1_stack_offset, socket1_stack_offset, socket2_stack_offset;'
 
         mock_unpack = mock.Mock()
-        mock_unpack.return_value = 'svm_unpack_uchar4(stack_offsets1, ' \
+        mock_unpack.return_value = 'svm_unpack_node_uchar4(stack_offsets1, ' \
                                    '&dropdown1, &dropdown2, ' \
                                    '&int1, &box1);' \
-                                   'svm_unpack_uchar3(stack_offsets2, ' \
+                                   'svm_unpack_node_uchar3(stack_offsets2, ' \
                                    '&box2, &float1_stack_offset, ' \
                                    '&socket1_stack_offset);'
 
@@ -1120,10 +1120,10 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                                   'uint dropdown1, dropdown2, int1, box1;'
                                                   'uint box2, float1_stack_offset, socket1_stack_offset, '
                                                   'socket2_stack_offset;\n\n'
-                                                  'svm_unpack_uchar4(stack_offsets1, '
+                                                  'svm_unpack_node_uchar4(stack_offsets1, '
                                                   '&dropdown1, &dropdown2, '
                                                   '&int1, &box1);'
-                                                  'svm_unpack_uchar3(stack_offsets2, '
+                                                  'svm_unpack_node_uchar3(stack_offsets2, '
                                                   '&box2, &float1_stack_offset, '
                                                   '&socket1_stack_offset);\n\n'
                                                   'uint4 defaults1 = read_node(kg, offset);\n\n'
@@ -1289,7 +1289,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                 'typedef enum NodeNodeNameDropdown2 {'
                                 'NODE_NODE_NAME_PROP3 = 1,'
                                 'NODE_NODE_NAME_PROP4 = 2'
-                                '} NodeNodeNameDropdown2;'
+                                '} NodeNodeNameDropdown2;\n\n'
                         )
 
     def test_add_svm_types_correct_formatting(self):

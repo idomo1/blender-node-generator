@@ -185,7 +185,7 @@ class SVMCompilationManager:
         elif len(names) == 4:
             return unpack_uchar.format(
                 count=2,
-                offset_count=1,
+                offset_count='',
                 params=', '.join('&{name}'.format(name=name) for name in names[2:])
             )
         elif len(names) == 5:
@@ -423,7 +423,7 @@ class SVMCompilationManager:
 
     def _generate_enum_typedefs(self):
         """Generate enum typedefs"""
-        return '\n\n'.join(['typedef enum Node{Name}{Prop} {{{options}}} Node{Name}{Prop};'.format(
+        return ''.join(['typedef enum Node{Name}{Prop} {{{options}}} Node{Name}{Prop};\n\n'.format(
             Name=code_generator_util.string_capitalized_no_space(self._node_name),
             Prop=code_generator_util.string_capitalized_no_space(prop['name']),
             options=','.join(['NODE_{NAME}_{OPTION} = {i}'.format(

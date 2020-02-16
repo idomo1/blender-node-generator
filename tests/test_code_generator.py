@@ -74,7 +74,7 @@ class TestCodeGeneration(unittest.TestCase):
                               'int box2 = 1,'
                               'float float1 = 0.0,'
                               'float Socket1 = 0.5,'
-                              'output float Socket2 = 0.5){}\n')]
+                              'output float Socket2 = 0.0){}\n')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
@@ -97,7 +97,7 @@ class TestCodeGeneration(unittest.TestCase):
                               'int box2 = 1,'
                               'float float1 = 0.0,'
                               'float Socket1 = 0.5,'
-                              'output float Socket2 = 0.5){}\n')]
+                              'output float Socket2 = 0.0){}\n')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
@@ -128,7 +128,7 @@ class TestCodeGeneration(unittest.TestCase):
                               'float float1 = 0.0,'
                               'point Vec1 = point(0.5, 0.5, 0.5),'
                               'float Socket1 = 0.5,'
-                              'output float Socket2 = 0.5){}\n')]
+                              'output float Socket2 = 0.0){}\n')]
 
         with patch('builtins.open', mock_open(m)) as mf:
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
@@ -272,7 +272,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            '  char _pad[4];\n'
                                                            '} NodeTexMagic;\n'
                                                            '\n'
-                                                           'typedef struct NodeTexNodeName {NodeTexBase base; int dropdown1, dropdown2, int1, box1, box2; float float1; char string1[64];} NodeTexNodeName;\n'
+                                                           'typedef struct NodeTexNodeName {NodeTexBase base;int dropdown1, dropdown2, int1, box1, box2; float float1; char string1[64];} NodeTexNodeName;\n'
                                                            '\n'
                                                            'typedef struct NodeShaderAttribute {\n'
                                                            '  char name[64];\n'
@@ -340,7 +340,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            '  char _pad[4];\n'
                                                            '} NodeTexMagic;\n'
                                                            '\n'
-                                                           'typedef struct NodeNodeName {NodeBase base; int int1, int2, box1, box2; float float1; char _pad[4];} NodeNodeName;\n'
+                                                           'typedef struct NodeNodeName {int int1, int2, box1, box2; float float1; char _pad[4];} NodeNodeName;\n'
                                                            '\n'
                                                            'typedef struct NodeShaderAttribute {\n'
                                                            '  char name[64];\n'
@@ -398,7 +398,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            '  char _pad[4];\n'
                                                            '} NodeTexMagic;\n'
                                                            '\n'
-                                                           'typedef struct NodeTexNodeName {NodeTexBase base; int dropdown1; char _pad[4];} NodeTexNodeName;\n'
+                                                           'typedef struct NodeTexNodeName {NodeTexBase base;int dropdown1; char _pad[4];} NodeTexNodeName;\n'
                                                            '\n'
                                                            'typedef struct NodeShaderAttribute {\n'
                                                            '  char name[64];\n'
@@ -530,7 +530,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class()
 
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
-                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)\n'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1, float1;'
                                                            'int dropdown1, dropdown2, int1;'
@@ -572,7 +572,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class()
 
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
-                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)\n'
                                                            'float socket1, float1;'
                                                            'int dropdown1, dropdown2, int1;'
                                                            'bool box1, box2;'
@@ -618,7 +618,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class()
 
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
-                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)\n'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1, float1;'
                                                            'int dropdown1, dropdown2, int1;'
@@ -664,7 +664,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class()
 
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
-                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)\n'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1, float1;'
                                                            'bool box1, box2;'
@@ -706,7 +706,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class()
 
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
-                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)\n'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'int dropdown1, dropdown2, int1;'
                                                            'bool box1, box2;'
@@ -748,7 +748,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class()
 
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
-                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)\n'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1;'
                                                            '};')
@@ -788,7 +788,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class()
 
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'class NodeNameNode : public ShaderNode {'
-                                                           'public:SHADER_NODE_CLASS(NodeNameNode)'
+                                                           'public:SHADER_NODE_CLASS(NodeNameNode)\n'
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            '};')
 

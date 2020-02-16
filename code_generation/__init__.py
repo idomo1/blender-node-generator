@@ -77,11 +77,12 @@ class CodeGenerator:
                         raise Exception("Invalid Property Type")
                 props_definitions = "; ".join(
                     '{key} {names}'.format(key=key, names=", ".join(names)) for key, names in props.items()) + ";"
-                struct = 'typedef struct Node{Tex}{name} {{Node{Tex}Base base; {props}{pad}}} Node{Tex}{name};\n\n'.format(
+                struct = 'typedef struct Node{Tex}{name} {{{base}{props}{pad}}} Node{Tex}{name};\n\n'.format(
                     Tex='Tex' if self._gui.is_texture_node() else '',
+                    base='NodeTexBase base;' if self._gui.is_texture_node() else '',
                     name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                     props=props_definitions,
-                    pad=' char _pad[{size}];'.format(size=code_generator_util.dna_padding_size(self._gui.get_props())) \
+                    pad=' char _pad[{size}];'.format(size=code_generator_util.dna_padding_size(self._gui.get_props()))
                         if code_generator_util.dna_padding_size(self._gui.get_props()) != 0 else '')
 
                 match = re.search('} NodeTex'[::-1], text[::-1])  # Reversed to find last occurrence
@@ -126,13 +127,13 @@ class CodeGenerator:
                '{options}' \
                '{{0, NULL, 0, NULL, NULL}},' \
                '}};\n\n'.format(tex='tex_' if self._gui.is_texture_node() else '',
-                            enum=code_generator_util.string_lower_underscored(enum['name']),
-                            options=''.join('{{{i}, "{OPTION}", 0, "{Option}", "{desc}"}},'.format(
-                                i=i+1,
-                                OPTION=code_generator_util.string_upper_underscored(option['name']),
-                                Option=code_generator_util.string_capitalized_spaced(option['name']),
-                                desc=option['desc']
-                            ) for i, option in enumerate(enum['options'])))
+                                enum=code_generator_util.string_lower_underscored(enum['name']),
+                                options=''.join('{{{i}, "{OPTION}", 0, "{Option}", "{desc}"}},'.format(
+                                    i=i + 1,
+                                    OPTION=code_generator_util.string_upper_underscored(option['name']),
+                                    Option=code_generator_util.string_capitalized_spaced(option['name']),
+                                    desc=option['desc']
+                                ) for i, option in enumerate(enum['options'])))
 
     def _add_rna_properties(self):
         """rna_nodetree.c"""
@@ -216,7 +217,7 @@ class CodeGenerator:
                             while lines[j] != '#endif\n':
                                 j += 1
                             for enum in enum_defs:
-                                lines.insert(j+1, enum)
+                                lines.insert(j + 1, enum)
                             break
                     else:
                         raise Exception("Reached end of file without match")
@@ -736,7 +737,7 @@ class CodeGenerator:
 
             node = "class {name}{tex}Node : public {type}Node {{" \
                    "public:" \
-                   "SHADER_NODE_CLASS({name}{tex}Node)" \
+                   "SHADER_NODE_CLASS({name}{tex}Node)\n" \
                    "{node_group}" \
                    "{props}" \
                    "}};".format(name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
@@ -850,7 +851,7 @@ class CodeGenerator:
                 return item['default']
             elif item['data-type'] == 'String':
                 return 'ustring()'
-            elif item['data-type'] == 'Vector':
+            elif item['data-type'] == 'Vector' or item['data-type'] == 'RGBA':
                 return 'make_float3({default})'.format(
                     default=code_generator_util.fill_socket_default(item['default'], 3))
 
@@ -896,7 +897,8 @@ class CodeGenerator:
                     DATA_TYPE=data_type_map[socket['data-type']],
                     name=code_generator_util.string_lower_underscored(socket['name']),
                     Name=code_generator_util.string_capitalized_spaced(socket['name']),
-                    default=', ' + format_default(socket) if socket['type'] == 'Input' else '',
+                    default=(', ' + format_default(socket)) if socket['type'] == 'Input' and socket[
+                        'data-type'] != 'Shader' else '',
                     texture_mapping=', SocketType::LINK_TEXTURE_GENERATED' if self._gui.uses_texture_mapping() and
                                                                               socket['data-type'] == 'Vector' and
                                                                               is_first_vector_socket(socket) else ''))
@@ -971,8 +973,8 @@ class CodeGenerator:
                         "Tex" if self._gui.is_texture_node() else "",
                         code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                         (', poll={0}'.format(self._gui.get_poll()) if self._gui.get_poll() is not None else '')))
-                    if lines[i-1][-2] != ',':
-                        lines[i-1] = lines[i-1][:len(lines[i-1]) - 1] + ',\n'
+                    if lines[i - 1][-2] != ',':
+                        lines[i - 1] = lines[i - 1][:len(lines[i - 1]) - 1] + ',\n'
                     break
             else:
                 print("End not found")
@@ -991,13 +993,21 @@ class CodeGenerator:
                              ))
         with open(osl_path, "w") as osl_f:
             code_generator_util.write_license(osl_f)
-            osl_f.write('#include "stdosl.h"\n\n')
+
+            # Must include stdcycles for closure type definition
+            if any(sock['data-type'] == 'Shader' for sock in self._gui.get_node_sockets()):
+                osl_f.write('#include "stdcycles.h"\n\n')
+            else:
+                osl_f.write('#include "stdosl.h"\n\n')
+
 
             props = self._gui.get_props()
             sockets = self._gui.get_node_sockets()
 
             type_conversion = {"Boolean": "int", "String": "string", "Int": "int", "Float": "float", "Enum": "string",
-                               "Vector": "point", "RGBA": "point"}
+                               "Vector": "point", "RGBA": "point", 'Shader': 'closure color'}
+
+            out_socket_default = {"RGBA": "0.0", "Shader": "0", "Vector": "point(0.0, 0.0, 0.0)", "Float": "0.0"}
 
             function = "shader node_{name}{tex}({mapping}{props}{in_sockets}{out_sockets}){{}}\n".format(
                 name=node_name_underscored,
@@ -1020,8 +1030,7 @@ class CodeGenerator:
                     ['output {type} {name} = {default}'.format(
                         type=type_conversion[socket['data-type']],
                         name=code_generator_util.string_capitalized_no_space(socket['name']),
-                        default=socket['default'] if socket['data-type'] not in ['Vector', 'RGBA', 'Shader']
-                        else 'point({0})'.format(socket['default'].replace(',', ', ')))
+                        default=out_socket_default[socket['data-type']])
                         for socket in sockets if socket['type'] == 'Output']))
 
             osl_f.write(function)

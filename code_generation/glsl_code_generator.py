@@ -114,7 +114,7 @@ class GLSLCodeManager:
                         name=prop_name,
                         struct=struct))
         else:
-            struct = 'tex' if self._is_texture_node else 'attr'
+            struct = 'node'
             s_custom_i = 1
             f_custom_i = 3
             boolean_bit = 0
@@ -129,7 +129,7 @@ class GLSLCodeManager:
                                                                                          i=s_custom_i))
                     else:
                         retrieved_props.append(
-                            'float {name} = (({struct}->custom{i} >> {boolean_bit} & 1) ? 1.0f : 0.0f;'.format(
+                            'float {name} = ({struct}->custom{i} >> {boolean_bit} & 1) ? 1.0f : 0.0f;'.format(
                                 name=prop_name,
                                 struct=struct,
                                 i=s_custom_i,
