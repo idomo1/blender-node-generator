@@ -447,7 +447,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
 
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
-                                  'uint socket1, int *offset')
+                                  'uint socket1_stack_offset, int *offset')
 
     def test_generate_shader_params_6_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -486,14 +486,14 @@ class TestSVMCodeGenerator(unittest.TestCase):
         params = svm._generate_shader_params()
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
-                                  'uint socket2, int *offset')
+                                  'uint socket2_stack_offset, int *offset')
 
     def test_generate_shader_params_8_correct_formatting(self):
         svm = self._create_default_svm_manager()
         params = svm._generate_shader_params()
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
-                                  'uint socket2, int *offset')
+                                  'uint socket2_stack_offset, int *offset')
 
     def test_generate_shader_params_9_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
@@ -516,7 +516,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
         params = svm._generate_shader_params()
         self.assertTrue(params == 'uint stack_offsets1, '
                                   'uint stack_offsets2, '
-                                  'uint socket3, int *offset')
+                                  'uint socket3_stack_offset, int *offset')
 
     def test_generate_shader_params_10_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],

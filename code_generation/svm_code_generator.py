@@ -277,25 +277,33 @@ class SVMCompilationManager:
                     float_i += 1
         return ''.join(load)
 
+    def _is_socket(self, item):
+        """Returns if the item is a sockets"""
+        return 'type' in item
+
     def _generate_shader_params(self):
         """Parameters in shader"""
         num_params = self._passed_params_count()
         items = self._props + self._sockets
         if num_params < 4:
-            params = ', '.join('uint {name}'.format(
-                name=code_generator_util.string_lower_underscored(item['name'])) for item in items)
+            params = ', '.join('uint {name}{suffix}'.format(
+                name=code_generator_util.string_lower_underscored(item['name']),
+                suffix='_stack_offset' if self._is_socket(item) else '') for item in items)
         elif num_params == 4:
-            params = ', '.join('uint {name}'.format(
-                name=code_generator_util.string_lower_underscored(item['name'])) for item in items[:2]
+            params = ', '.join('uint {name}{suffix}'.format(
+                name=code_generator_util.string_lower_underscored(item['name']),
+                suffix='_stack_offset' if self._is_socket(item) else '') for item in items[:2]
                                ) + ', uint stack_offsets'
         elif num_params == 5:
-            params = 'uint stack_offsets1, uint stack_offsets2, uint ' + code_generator_util.string_lower_underscored(
-                items[-1]['name'])
+            params = 'uint stack_offsets1, uint stack_offsets2, uint {name}{suffix}'.format(
+                name=code_generator_util.string_lower_underscored(items[-1]['name']),
+                suffix='_stack_offset' if self._is_socket(items[-1]) else '')
         elif num_params == 6:
             params = 'uint stack_offsets1, uint stack_offsets2'
         elif num_params == 7 or num_params == 8 or num_params == 9:
-            params = 'uint stack_offsets1, uint stack_offsets2, uint ' + code_generator_util.string_lower_underscored(
-                items[-1]['name'])
+            params = 'uint stack_offsets1, uint stack_offsets2, uint {name}{suffix}'.format(
+                name=code_generator_util.string_lower_underscored(items[-1]['name']),
+                suffix='_stack_offset' if self._is_socket(items[-1]) else '')
         elif num_params >= 10 and num_params <= 12:
             params = 'uint stack_offsets1, uint stack_offsets2, uint stack_offsets3'
         elif num_params > 12:
