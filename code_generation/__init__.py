@@ -708,6 +708,7 @@ class CodeGenerator:
             f.seek(0)
             f.writelines(lines)
             f.truncate()
+        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_cycles_class(self):
         """nodes.h"""

@@ -419,6 +419,7 @@ class SVMCompilationManager:
             f.seek(0)
             f.writelines(lines)
             f.truncate()
+        code_generator_util.apply_clang_formatting(file_path, self._source_path)
 
     def _generate_enum_typedefs(self):
         """Generate enum typedefs"""

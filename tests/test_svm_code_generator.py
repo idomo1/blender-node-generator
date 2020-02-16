@@ -1209,31 +1209,32 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    include_mock):
             with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_case',
                        case_mock):
-                with patch('builtins.open', mock.mock_open(read_data=
-                                                           '#include "kernel/svm/svm_truchet.h"\n'
-                                                           '\n'
-                                                           '#ifdef __SHADER_RAYTRACE__\n'
+                with patch('code_generation.code_generator_util.apply_clang_formatting'):
+                    with patch('builtins.open', mock.mock_open(read_data=
+                                                               '#include "kernel/svm/svm_truchet.h"\n'
+                                                               '\n'
+                                                               '#ifdef __SHADER_RAYTRACE__\n'
+    
+                                                               '    switch (node.x) {\n'
+                                                               '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
+                                                               '      case NODE_CLOSURE_BSDF:\n'
+                                                               '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n'
+                                                               '        break;\n'
+                                                               )) as mf:
+                        svm = self._create_default_svm_manager()
+                        svm.add_register_svm()
 
-                                                           '    switch (node.x) {\n'
-                                                           '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
-                                                           '      case NODE_CLOSURE_BSDF:\n'
-                                                           '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n'
-                                                           '        break;\n'
-                                                           )) as mf:
-                    svm = self._create_default_svm_manager()
-                    svm.add_register_svm()
-
-                    self.assertTrue(mf.mock_calls[-3][1][0] == ['#include "kernel/svm/svm_truchet.h"\n',
-                                                                '#include "kernel/svm/svm_node_name.h"\n',
-                                                                '\n',
-                                                                '#ifdef __SHADER_RAYTRACE__\n',
-                                                                '    switch (node.x) {\n',
-                                                                '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n',
-                                                                'case NODE_NODE_NAME:svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);break;\n',
-                                                                '      case NODE_CLOSURE_BSDF:\n',
-                                                                '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
-                                                                '        break;\n'
-                                                                ])
+                        self.assertTrue(mf.mock_calls[-3][1][0] == ['#include "kernel/svm/svm_truchet.h"\n',
+                                                                    '#include "kernel/svm/svm_node_name.h"\n',
+                                                                    '\n',
+                                                                    '#ifdef __SHADER_RAYTRACE__\n',
+                                                                    '    switch (node.x) {\n',
+                                                                    '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n',
+                                                                    'case NODE_NODE_NAME:svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);break;\n',
+                                                                    '      case NODE_CLOSURE_BSDF:\n',
+                                                                    '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
+                                                                    '        break;\n'
+                                                                    ])
 
     def test_generate_register_svm_texture_node_correct_formatting(self):
         include_mock = mock.Mock()
@@ -1248,33 +1249,34 @@ class TestSVMCodeGenerator(unittest.TestCase):
                    include_mock):
             with patch('code_generation.svm_code_generator.SVMCompilationManager._generate_svm_shader_case',
                        case_mock):
-                with patch('builtins.open', mock.mock_open(read_data=
-                                                           '#include "kernel/svm/svm_truchet.h"\n'
-                                                           '\n'
-                                                           '#ifdef __SHADER_RAYTRACE__\n'
+                with patch('code_generation.code_generator_util.apply_clang_formatting'):
+                    with patch('builtins.open', mock.mock_open(read_data=
+                                                               '#include "kernel/svm/svm_truchet.h"\n'
+                                                               '\n'
+                                                               '#ifdef __SHADER_RAYTRACE__\n'
+    
+                                                               '    switch (node.x) {\n'
+                                                               '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
+                                                               '#  ifdef __TEXTURES__\n'
+                                                               '      case NODE_CLOSURE_BSDF:\n'
+                                                               '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n'
+                                                               '        break;\n'
+                                                               )) as mf:
+                        svm = self._create_default_svm_manager(is_texture_node=True)
+                        svm.add_register_svm()
 
-                                                           '    switch (node.x) {\n'
-                                                           '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
-                                                           '#  ifdef __TEXTURES__\n'
-                                                           '      case NODE_CLOSURE_BSDF:\n'
-                                                           '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n'
-                                                           '        break;\n'
-                                                           )) as mf:
-                    svm = self._create_default_svm_manager(is_texture_node=True)
-                    svm.add_register_svm()
-
-                    self.assertTrue(mf.mock_calls[-3][1][0] == ['#include "kernel/svm/svm_truchet.h"\n',
-                                                                '#include "kernel/svm/svm_node_name.h"\n',
-                                                                '\n',
-                                                                '#ifdef __SHADER_RAYTRACE__\n',
-                                                                '    switch (node.x) {\n',
-                                                                '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n',
-                                                                '#  ifdef __TEXTURES__\n',
-                                                                'case NODE_NODE_NAME:svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);break;\n',
-                                                                '      case NODE_CLOSURE_BSDF:\n',
-                                                                '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
-                                                                '        break;\n'
-                                                                ])
+                        self.assertTrue(mf.mock_calls[-3][1][0] == ['#include "kernel/svm/svm_truchet.h"\n',
+                                                                    '#include "kernel/svm/svm_node_name.h"\n',
+                                                                    '\n',
+                                                                    '#ifdef __SHADER_RAYTRACE__\n',
+                                                                    '    switch (node.x) {\n',
+                                                                    '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n',
+                                                                    '#  ifdef __TEXTURES__\n',
+                                                                    'case NODE_NODE_NAME:svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);break;\n',
+                                                                    '      case NODE_CLOSURE_BSDF:\n',
+                                                                    '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
+                                                                    '        break;\n'
+                                                                    ])
 
     def test_generate_enum_typedefs_correct_formatting(self):
         svm = self._create_default_svm_manager()
