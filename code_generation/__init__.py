@@ -964,10 +964,9 @@ class CodeGenerator:
 
             for i in range(cat_line_i, len(lines)):
                 if re.search(']\)', lines[i]):
-                    lines.insert(i, '        NodeItem("ShaderNode{0}{1}"{2})\n'.format(
+                    lines.insert(i, '        NodeItem("ShaderNode{0}{1}")\n'.format(
                         "Tex" if self._gui.is_texture_node() else "",
-                        code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
-                        (', poll={0}'.format(self._gui.get_poll()) if self._gui.get_poll() is not None else '')))
+                        code_generator_util.string_capitalized_no_space(self._gui.get_node_name())))
                     if lines[i - 1][-2] != ',':
                         lines[i - 1] = lines[i - 1][:len(lines[i - 1]) - 1] + ',\n'
                     break

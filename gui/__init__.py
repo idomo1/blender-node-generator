@@ -86,9 +86,6 @@ class GUI:
     def get_node_sockets(self):
         return self._socket_GUI.get_sockets()
 
-    def get_poll(self):
-        return self._general_GUI.get_poll()
-
     def get_props(self):
         return self._prop_GUI.get_props()
 
@@ -161,16 +158,6 @@ class GeneralGUI:
         self._path_input.grid(row=self._row_i, column=1)
         self._row_i += 1
 
-    def _toggle_enabled(self):
-        self._poll_input['state'] = DISABLED if str(self._poll_input['state']) == 'normal' else NORMAL
-
-    def _poll_input_display(self):
-        Label(self._window, text='Poll Enabled').grid(row=self._row_i)
-        Checkbutton(self._window, var=self._poll_enabled, command=self._toggle_enabled).grid(row=self._row_i, column=1)
-        self._poll_input = Entry(self._window)
-        self._poll_input.grid(row=self._row_i, column=2)
-        self._row_i += 1
-
     def _group_level_display(self):
         Label(self._window, text='Node Group Level').grid(row=self._row_i)
         self._group_level_input = Combobox(self._window)
@@ -184,9 +171,7 @@ class GeneralGUI:
         self._group_input_display()
         self._type_input_display()
         self._blender_path_input_display()
-        self._poll_input_display()
         self._group_level_display()
-        self._toggle_enabled()
 
     def get_node_name(self):
         return self._name_input.get()
