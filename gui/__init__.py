@@ -379,6 +379,19 @@ class SocketAvailabilityGUI:
         self._remove_deleted_sockets()
         self._display_mapping(self._dropdown.get())
 
+    def _help_info_display(self):
+        """Display help info for the current tab"""
+        w = Toplevel()
+        w.title('Help')
+        Message(w, width=5000,
+                text="When each socket is enabled/visible based on prop values\n"
+                     "Ticked means the socket is visible when the prop is this value\n"
+                     "Refresh if you change socket info\n").grid()
+
+    def _help_button_display(self):
+        """Button to display help info"""
+        Button(self.window, text='Help', command=self._help_info_display).place(anchor='nw', x=300, y=0)
+
     def display(self):
         Button(self.window, text='Refresh', command=self._update_options).grid(row=self._row_i)
         self._row_i += 1
@@ -387,6 +400,7 @@ class SocketAvailabilityGUI:
         self._dropdown.bind('<<ComboboxSelected>>', self._on_selected)
         self._dropdown.grid(row=self._row_i)
         self._row_i += 1
+        self._help_button_display()
 
     def get_maps(self):
         self._remove_deleted_sockets()
