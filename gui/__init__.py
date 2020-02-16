@@ -202,9 +202,6 @@ class GeneralGUI:
     def get_source_path(self):
         return self._path_input.get()
 
-    def get_poll(self):
-        return self._poll_input.get() if self._poll_enabled.get() else None
-
     def get_node_group_level(self):
         return self._group_level_input.get()
 
