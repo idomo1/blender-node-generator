@@ -447,6 +447,8 @@ class PropertyInput(Frame):
         self.type.grid(row=self._row_i, column=self.col_i)
         self.col_i += 1
         # Sub-Type
+        Label(self, text='Sub-Type').grid(row=self._row_i, column=self.col_i)
+        self.col_i += 1
         sub_type = Combobox(self)
         sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
                               'PROP_PASSWORD', 'PROP_PIXEL',
