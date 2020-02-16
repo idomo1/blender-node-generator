@@ -245,8 +245,7 @@ class CodeGenerator:
                 rna='def_sh_{tex}{name}'.format(
                     tex='tex_' if self._gui.is_texture_node() else '',
                     name=code_generator_util.string_lower_underscored(
-                        self._gui.get_node_name())) if code_generator_util.uses_dna(self._gui.get_props(),
-                                                                                    self._gui.get_node_type()) else 0,
+                        self._gui.get_node_name())) if self._gui.node_has_properties() else 0,
                 struct='{Tex}{Name}'.format(Tex='Tex' if self._gui.is_texture_node() else '',
                                             Name=code_generator_util.string_capitalized_no_space(
                                                 self._gui.get_node_name())),

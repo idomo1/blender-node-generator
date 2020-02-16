@@ -3028,8 +3028,9 @@ class TestCodeGeneration(unittest.TestCase):
                 'DefNode(CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )\n'
                 'DefNode(CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )\n')
 
-    def test_add_node_definition_no_dna_correct_formatting(self):
+    def test_add_node_definition_no_props_correct_formatting(self):
         self.mock_gui.get_props.return_value = []
+        self.mock_gui.node_has_properties.return_value = False
         with patch('builtins.open', mock_open(
                 read_data=
                 'DefNode(ShaderNode,     SH_NODE_TEX_WHITE_NOISE,    def_sh_tex_white_noise, "TEX_WHITE_NOISE",    TexWhiteNoise,    "White Noise",       ""       )\n'
