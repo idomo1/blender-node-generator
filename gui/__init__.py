@@ -11,7 +11,7 @@ class GUI:
 
     def __init__(self, code_generator):
         self._window_title = 'Blender Node Generator'
-        self._window_size = '1400x500'
+        self._window_size = '1450x500'
 
         self.CodeGenerator = code_generator
 
