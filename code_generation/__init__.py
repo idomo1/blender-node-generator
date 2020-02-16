@@ -722,12 +722,8 @@ class CodeGenerator:
                     code_generator_util.string_lower_underscored(socket['name']))
 
             for prop in self._gui.get_props():
-                if prop['data-type'] != "String":
-                    props[types_convert[prop['data-type']]].append(
-                        code_generator_util.string_lower_underscored(prop['name']))
-                else:
-                    props['char'].append('{name}[{size}]'.format(
-                        name=code_generator_util.string_lower_underscored(prop['name']), size=prop['size']))
+                props[types_convert[prop['data-type']]].append(
+                    code_generator_util.string_lower_underscored(prop['name']))
 
             props_string = "".join(
                 '{type} {names};'.format(type=type,

@@ -535,7 +535,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            'float socket1, float1;'
                                                            'int dropdown1, dropdown2, int1;'
                                                            'bool box1, box2;'
-                                                           'char string1[64];'
+                                                           'ustring string1;'
                                                            '};')
 
     def test_write_node_class_level_0_correct_formatting(self):
@@ -576,7 +576,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            'float socket1, float1;'
                                                            'int dropdown1, dropdown2, int1;'
                                                            'bool box1, box2;'
-                                                           'char string1[64];'
+                                                           'ustring string1;'
                                                            '};')
 
     def test_write_node_class_no_bools_correct_formatting(self):
@@ -622,7 +622,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            'virtual int get_group(){return NODE_GROUP_LEVEL_3;}'
                                                            'float socket1, float1;'
                                                            'int dropdown1, dropdown2, int1;'
-                                                           'char string1[64];'
+                                                           'ustring string1;'
                                                            '};')
 
     def test_write_node_class_no_enums_correct_formatting(self):
@@ -669,7 +669,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            'float socket1, float1;'
                                                            'bool box1, box2;'
                                                            'int int1;'
-                                                           'char string1[64];'
+                                                           'ustring string1;'
                                                            '};')
 
     def test_write_node_class_no_sockets_correct_formatting(self):
@@ -711,7 +711,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                            'int dropdown1, dropdown2, int1;'
                                                            'bool box1, box2;'
                                                            'float float1;'
-                                                           'char string1[64];'
+                                                           'ustring string1;'
                                                            '};')
 
     def test_write_node_class_no_props_correct_formatting(self):
