@@ -346,7 +346,8 @@ class CodeGenerator:
             socket_text = '{{SOCK_{TYPE}, {input_count}, N_("{Name}"), {default}, {min}, {max}{subtype}{flag}}},'.format(
                 TYPE=sock['data-type'].upper(), Name=code_generator_util.string_capitalized_spaced(sock['name']),
                 input_count=1 if sock['type'] == 'Input' else 0,
-                default=code_generator_util.fill_socket_default(sock['default']) if sock['type'] == 'Input' else '0.0f,0.0f,0.0f',
+                default=code_generator_util.fill_socket_default(sock['default'])
+                if sock['type'] == 'Input' else '0.0f, 0.0f, 0.0f, 0.0f',
                 min=sock['min'] + 'f',
                 max=sock['max'] + 'f',
                 subtype=(', ' + sock['sub-type']) if sock['sub-type'] != 'PROP_NONE' or sock[

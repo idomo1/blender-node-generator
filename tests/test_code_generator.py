@@ -40,7 +40,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                                                        {'type': "Output", 'name': "socket2", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+                                                        'min': "-1.0", 'max': "1.0"}]
         self.mock_gui.get_socket_availability_maps.return_value = [{'socket-name': 'socket1', 'socket-type': 'in',
                                                                     'prop-avail': [('dropdown1=prop1', True),
                                                                                    ('dropdown1=prop2', True),
@@ -1515,7 +1515,7 @@ class TestCodeGeneration(unittest.TestCase):
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -1525,7 +1525,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                                                        {'type': "Output", 'name': "socket2", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                                                        'min': "-1.0", 'max': "1.0"},
                                                        {'type': "Input", 'name': "socket3", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.5"}
@@ -1540,7 +1540,7 @@ class TestCodeGeneration(unittest.TestCase):
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -1550,10 +1550,10 @@ class TestCodeGeneration(unittest.TestCase):
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                                                        {'type': "Output", 'name': "socket2", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                                                        'min': "-1.0", 'max': "1.0"},
                                                        {'type': "Output", 'name': "socket3", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}
+                                                        'min': "-1.0", 'max': "1.0"}
                                                        ]
         code_gen = CodeGenerator(self.mock_gui)
         defs = code_gen._generate_node_shader_sockets()
@@ -1564,21 +1564,21 @@ class TestCodeGeneration(unittest.TestCase):
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{SOCK_FLOAT, 0, N_("Socket3"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, 0, N_("Socket3"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
     def test_generate_socket_definitions_no_inputs_correct_formatting(self):
         self.mock_gui.get_node_sockets.return_value = [{'type': "Output", 'name': "socket2", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+                                                        'min': "-1.0", 'max': "1.0"}]
         code_gen = CodeGenerator(self.mock_gui)
         defs = code_gen._generate_node_shader_sockets()
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -1608,7 +1608,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.1,0.2,0.3"},
                                                        {'type': "Output", 'name': "socket2", 'data-type': "Vector",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.1,0.2,0.3"}]
+                                                        'min': "-1.0", 'max': "1.0"}]
         code_gen = CodeGenerator(self.mock_gui)
         defs = code_gen._generate_node_shader_sockets()
 
@@ -1618,7 +1618,7 @@ class TestCodeGeneration(unittest.TestCase):
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_VECTOR, 0, N_("Socket2"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_VECTOR, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -1628,7 +1628,7 @@ class TestCodeGeneration(unittest.TestCase):
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.1,0.2,0.3"},
                                                        {'type': "Output", 'name': "socket2", 'data-type': "RGBA",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.1,0.2,0.3"}]
+                                                        'min': "-1.0", 'max': "1.0"}]
         code_gen = CodeGenerator(self.mock_gui)
         defs = code_gen._generate_node_shader_sockets()
 
@@ -1638,7 +1638,7 @@ class TestCodeGeneration(unittest.TestCase):
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_RGBA, 0, N_("Socket2"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_RGBA, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -1649,7 +1649,7 @@ class TestCodeGeneration(unittest.TestCase):
               'min': "-1.0", 'max': "1.0", 'default': "0.1,0.2,0.3,0.4"},
              {'type': "Output", 'name': "socket2", 'data-type': "Vector",
               'sub-type': 'PROP_NONE', 'flag': 'None',
-              'min': "-1.0", 'max': "1.0", 'default': "0.1,0.2,0.3,0.4"}]
+              'min': "-1.0", 'max': "1.0"}]
         code_gen = CodeGenerator(self.mock_gui)
         defs = code_gen._generate_node_shader_sockets()
 
@@ -1659,7 +1659,7 @@ class TestCodeGeneration(unittest.TestCase):
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_VECTOR, 0, N_("Socket2"), 0.1f, 0.2f, 0.3f, 0.4f, -1.0f, 1.0f},'
+                        '{SOCK_VECTOR, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
