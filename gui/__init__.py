@@ -327,7 +327,46 @@ class SocketDefinitionsGUI:
     def get_sockets(self):
         return self._sort_sockets(list(filter(lambda p: p is not None, map(lambda p: p.get(), self._ios))))
 
+    def _is_socket_input_valid(self, socket):
+        if socket['data-type'] == 'Float':
+            try:
+                float(socket['min'])
+                float(socket['max'])
+                if socket['type'] == 'Input':
+                    float(socket['default'])
+                return True
+            except:
+                return False
+        elif socket['data-type'] == 'Int':
+            try:
+                int(socket['min'])
+                int(socket['max'])
+                if socket['type'] == 'Input':
+                    int(socket['default'])
+                return True
+            except:
+                return False
+        elif socket['data-type'] in ['Vector', 'Shader', 'RGBA']:
+            keys = ['min', 'max']
+            if socket['type'] == 'Input':
+                keys.append('default')
+            for key in keys:
+                for comp in socket[key].split(','):
+                    try:
+                        float(comp)
+                        return True
+                    except:
+                        return False
+        elif socket['data-type'] == 'String':
+            return True
+
     def is_input_valid(self):
+        if any(socket['name'] == '' for socket in self.get_sockets()):
+            messagebox.showerror('Bad Input', 'One or more socket names missing')
+            return False
+        if any(not self._is_socket_input_valid(socket) for socket in self.get_sockets()):
+            messagebox.showerror('Bad Input', 'One or more sockets has invalid input formatting')
+            return False
         return True
 
 
