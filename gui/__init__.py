@@ -22,14 +22,7 @@ class GUI:
                         message='This will modify your files, '
                                 'make sure you are using a version control system so you can undo changes')
         if proceed:
-            try:
-                self.generate_node()
-            except Exception as e:
-                messagebox.showerror('Error',
-                                     '{error_message}\n\nIf you believe this is a problem with the program,'
-                                     ' please report it\nhttps://github.com/id4m0/blender-node-generator/issues'.format(
-                                         error_message=e
-                                     ))
+            self.generate_node()
 
     def display(self):
         """Main driver to display the menu"""
@@ -129,9 +122,16 @@ class GUI:
     def generate_node(self):
         if self._is_input_valid():
             code_generator = self.CodeGenerator(self)
-            code_generator.generate_node()
-
-            messagebox.showinfo('Done', 'Node has been generated')
+            try:
+                code_generator.generate_node()
+                messagebox.showinfo('Done', 'Node has been generated')
+            except Exception as e:
+                messagebox.showerror('Error',
+                                     '{error_type}: {error_message}\n\nIf you believe this is a problem with the program,'
+                                     ' please report it\nhttps://github.com/id4m0/blender-node-generator/issues'.format(
+                                         error_type=type(e),
+                                         error_message=e
+                                     ))
 
 
 class GeneralGUI:
