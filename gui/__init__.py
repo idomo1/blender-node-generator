@@ -697,26 +697,30 @@ class RemovableSocketDefinitionInput(Frame):
     def __init__(self, window, label):
         super().__init__(window)
 
-        col_i = 0
+        self._type_components = []  # Holds type specific input elements
 
-        Label(self, text=label).grid(row=0, column=col_i)
-        col_i += 1
-        type = Combobox(self)
-        type['values'] = ["Input", "Output"]
-        type.current(0)
-        type.grid(row=0, column=col_i)
-        col_i += 1
+        self.col_i = 0
 
-        Label(self, text='Type').grid(row=0, column=col_i)
-        col_i += 1
-        data_type = Combobox(self)
-        data_type['values'] = ["Float", "Vector", "RGBA", "Shader", "String"]
-        data_type.current(0)
-        data_type.grid(row=0, column=col_i)
-        col_i += 1
+        Label(self, text=label).grid(row=0, column=self.col_i)
+        self.col_i += 1
+        self._type = Combobox(self)
+        self._type['values'] = ["Input", "Output"]
+        self._type.bind("<<ComboboxSelected>>", self._type_options_display)
+        self._type.current(0)
+        self._type.grid(row=0, column=self.col_i)
+        self.col_i += 1
 
-        Label(self, text='Sub-type').grid(row=0, column=col_i)
-        col_i += 1
+        Label(self, text='Type').grid(row=0, column=self.col_i)
+        self.col_i += 1
+        self._data_type = Combobox(self)
+        self._data_type['values'] = ["Float", "Vector", "RGBA", "Shader", "String"]
+        self._data_type.bind("<<ComboboxSelected>>", self._type_options_display)
+        self._data_type.current(0)
+        self._data_type.grid(row=0, column=self.col_i)
+        self.col_i += 1
+
+        Label(self, text='Sub-type').grid(row=0, column=self.col_i)
+        self.col_i += 1
         sub_type = Combobox(self)
         sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
                               'PROP_PASSWORD', 'PROP_PIXEL',
@@ -728,55 +732,89 @@ class RemovableSocketDefinitionInput(Frame):
                               'PROP_COORDS', 'PROP_LAYER',
                               'PROP_LAYER_MEMBER', 'PROP_POWER']
         sub_type.current(0)
-        sub_type.grid(row=0, column=col_i)
-        col_i += 1
+        sub_type.grid(row=0, column=self.col_i)
+        self.col_i += 1
 
-        Label(self, text='Flag').grid(row=0, column=col_i)
-        col_i += 1
+        Label(self, text='Flag').grid(row=0, column=self.col_i)
+        self.col_i += 1
         flag = Combobox(self)
         flag['values'] = ["None", "SOCK_HIDE_VALUE", "SOCK_NO_INTERNAL_LINK"]
         flag.current(0)
-        flag.grid(row=0, column=col_i)
-        col_i += 1
+        flag.grid(row=0, column=self.col_i)
+        self.col_i += 1
 
-        Label(self, text='Name').grid(row=0, column=col_i)
-        col_i += 1
+        Label(self, text='Name').grid(row=0, column=self.col_i)
+        self.col_i += 1
         name = Entry(self)
-        name.grid(row=0, column=col_i)
-        col_i += 1
+        name.grid(row=0, column=self.col_i)
+        self.col_i += 1
 
-        Label(self, text='Min').grid(row=0, column=col_i)
-        col_i += 1
-        min = Entry(self)
-        min.insert(0, "-1.0")
-        min.grid(row=0, column=col_i)
-        col_i += 1
+        self._type_options_display()
 
-        Label(self, text='Max').grid(row=0, column=col_i)
-        col_i += 1
-        max = Entry(self)
-        max.insert(0, '1.0')
-        max.grid(row=0, column=col_i)
-        col_i += 1
+    def _type_options_display(self, event=None):
+        """Type specific inputs"""
+        self._clear_type_inputs()
+        type = self._data_type.get()
+        if type in ['Float', 'Int', 'Shader', 'Vector', 'RGBA']:
+            label = Label(self, text='Min')
+            label.grid(row=0, column=self.col_i)
+            self.col_i += 1
+            min = Entry(self)
+            min.insert(0, "0.0")
+            min.grid(row=0, column=self.col_i)
+            self.col_i += 1
+            self._type_components.extend([label, min])
 
-        Label(self, text='default').grid(row=0, column=col_i)
-        col_i += 1
-        default = Entry(self)
-        default.insert(0, '0.0')
-        default.grid(row=0, column=col_i)
-        col_i += 1
+            label = Label(self, text='Max')
+            label.grid(row=0, column=self.col_i)
+            self.col_i += 1
+            max = Entry(self)
+            max.insert(0, '1.0')
+            max.grid(row=0, column=self.col_i)
+            self.col_i += 1
+            self._type_components.extend([label, max])
 
-        Button(self, text='Remove', command=self.destroy).grid(row=0, column=col_i)
-        col_i += 1
+            if self._type.get() == 'Input':
+                label = Label(self, text='Default')
+                label.grid(row=0, column=self.col_i)
+                self.col_i += 1
+                default = Entry(self)
+                if type == 'Float':
+                    default.insert(0, '0.0')
+                elif type == 'Int':
+                    default.insert(0, '0')
+                else:
+                    default.insert(0, '0.0,0.0,0.0')
+                default.grid(row=0, column=self.col_i)
+                self.col_i += 1
+                self._type_components.extend([label, default])
+
+        button = Button(self, text='Remove', command=self.destroy)
+        button.grid(row=0, column=self.col_i)
+        self.col_i += 1
+        self._type_components.append(button)
+
+    def _clear_type_inputs(self):
+        """Clears existing type specific input components"""
+        for item in self._type_components:
+            item.destroy()
+        self._type_components.clear()
 
     def get(self):
         """Returns None if the input has been destroyed"""
-        return {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(),
+        if not self.winfo_exists():
+            return None
+
+        socket = {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(),
                 'data-type': self.children['!combobox2'].get(),
                 'sub-type': self.children['!combobox3'].get(),
-                'flag': self.children['!combobox4'].get(),
-                'min': self.children['!entry2'].get(), 'max': self.children['!entry3'].get(),
-                'default': self.children['!entry4'].get()} if self.winfo_exists() else None
+                'flag': self.children['!combobox4'].get()}
+        if socket['data-type'] != 'String':
+            socket['min'] = self._type_components[1].get()
+            socket['max'] = self._type_components[3].get()
+            if socket['type'] == 'Input':
+                socket['default'] = self._type_components[5].get()
+        return socket
 
 
 class OptionInput(Frame):
