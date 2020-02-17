@@ -63,10 +63,6 @@ class SVMCompilationManager:
                 params=', '.join(
                     param_names[i:(i + 4) if i + 4 < len(param_names) else 2 * (i + 4) - len(param_names)]))
                              for i in range(0, len(param_names), 4))
-        elif len(param_names) > 12:
-            raise Exception("Only 12 Props + Sockets Supported")
-        else:
-            raise Exception("Invalid number of prop + sockets {0}".format(len(param_names)))
 
     def _generate_get_sockets(self):
         """Generate retrieving """
@@ -107,12 +103,13 @@ class SVMCompilationManager:
                        range(0, len(inputs), 4))
 
     def _generate_add_node(self):
+        # TODO For nodes with less than 3 params, add any float optimizations to the same node
         return 'compiler.add_node(NODE_{TEX}{NAME}, ' \
                '{params});{optimizations}'.format(
             TEX='TEX_' if self._is_texture_node else '',
             NAME=code_generator_util.string_upper_underscored(self._node_name),
             params=self._generate_svm_params(),
-            optimizations=self._generate_float_optimizations())
+            optimizations=self._generate_float_optimizations()) if len(self._props) + len(self._sockets) < 13 else ''
 
     def generate_svm_compile_func(self):
         """SVM compile function for nodes.cpp"""
@@ -171,10 +168,6 @@ class SVMCompilationManager:
             return ''.join([offset_def.format(
                 names=', '.join(names[i:(i + 4) if i + 4 < len(names) else 2 * (i + 4) - len(names)]))
                 for i in range(0, len(names), 4)])
-        elif len(names) > 12:
-            raise Exception("Only 12 Props + Sockets Supported")
-        else:
-            raise Exception("Invalid number of prop + sockets {0}".format(len(names)))
 
     def _generate_unpack(self):
         names = self._unpack_names()
@@ -249,10 +242,6 @@ class SVMCompilationManager:
                     name=name) for name in names[i:(i + 4) if i + 4 < len(names) else 2 * (i + 4) - len(names)]))
                 for i in range(0, len(names), 4)
             ])
-        elif len(names) > 12:
-            raise Exception("Only 12 Props + Sockets Supported")
-        else:
-            raise Exception("Invalid number of prop + sockets {0}".format(len(names)))
 
     def _generate_load_params(self):
         load = ['uint4 defaults{i} = read_node(kg, offset);'.format(i=i // 4 + 1) for i in range(0, len(
@@ -306,10 +295,6 @@ class SVMCompilationManager:
                 suffix='_stack_offset' if self._is_socket(items[-1]) else '')
         elif num_params >= 10 and num_params <= 12:
             params = 'uint stack_offsets1, uint stack_offsets2, uint stack_offsets3'
-        elif num_params > 12:
-            raise Exception("Only 12 Props + Sockets Supported")
-        else:
-            raise Exception("Invalid number of prop + sockets {0}".format(num_params))
 
         return '{params}{offset}'.format(
             params=params,
@@ -346,7 +331,8 @@ class SVMCompilationManager:
             shader_file_name=self._generate_shader_file_name()))
         with open(file_path, 'w') as f:
             code_generator_util.write_license(f)
-            f.write(self._generate_svm_shader())
+            if len(self._props) + len(self._sockets) < 13:
+                f.write(self._generate_svm_shader())
         code_generator_util.apply_clang_formatting(file_path, self._source_path)
 
     def _generate_svm_shader_include(self):
@@ -377,8 +363,6 @@ class SVMCompilationManager:
             return 'node.y'
         elif num_params == 0:
             return ''
-        else:
-            raise Exception("Invalid number of params {0}".format(num_params))
 
     def _generate_svm_shader_case(self):
         """Case to pass parameters to shader in svm.h"""

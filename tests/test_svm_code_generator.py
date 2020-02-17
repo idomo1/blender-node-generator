@@ -245,33 +245,6 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                   'compiler.encode_uchar4(box2, __float_as_int(float1), __float_as_int(float2), __float_as_int(float3)), '
                                   'compiler.encode_uchar4(socket1_stack_offset, socket2_stack_offset, socket3_stack_offset, socket4_stack_offset)')
 
-    def test_generate_svm_params_13_params_raises_exception(self):
-        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
-                  "default": 'prop1'},
-                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
-                  "default": 'prop3'},
-                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "box3", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0},
-                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0},
-                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0}]
-        sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0", 'max': "1.0", 'default': "0.5"},
-                   {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
-                   {'type': "Output", 'name': "socket3", 'data-type': "RGBA", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
-                   {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}
-                   ]
-        svm = self._create_default_svm_manager(props=props, sockets=sockets)
-        self.assertRaises(Exception, svm._generate_svm_params)
-
     def test_generate_stack_offsets_correct_formatting(self):
         svm = self._create_default_svm_manager()
         offsets = svm._generate_stack_offsets()
@@ -763,34 +736,6 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                 'uint box2, float1_stack_offset, float2_stack_offset, float3_stack_offset;'
                                 'uint socket1_stack_offset, socket2_stack_offset, socket3_stack_offset, socket4_stack_offset;')
 
-    def test_generate_offset_definitions_13_params_raises_exception(self):
-        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
-                  "default": 'prop1'},
-                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
-                  "default": 'prop3'},
-                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "box3", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0},
-                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0},
-                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0}]
-        sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0", 'max': "1.0", 'default': "0.5"},
-                   {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
-                   {'type': "Output", 'name': "socket3", 'data-type': "RGBA", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
-                   {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}
-                   ]
-        svm = self._create_default_svm_manager(props=props, sockets=sockets)
-        with self.assertRaises(Exception):
-            svm._generate_offset_definitions()
-
     def test_generate_unpack_3_params_correct_formatting(self):
         props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
                   "default": 'prop1'},
@@ -956,34 +901,6 @@ class TestSVMCodeGenerator(unittest.TestCase):
         self.assertTrue(unpack == 'svm_unpack_node_uchar4(stack_offsets1, &dropdown1, &dropdown2, &int1, &box1);'
                                   'svm_unpack_node_uchar4(stack_offsets2, &box2, &float1_stack_offset, &float2_stack_offset, &float3_stack_offset);'
                                   'svm_unpack_node_uchar4(stack_offsets3, &socket1_stack_offset, &socket2_stack_offset, &socket3_stack_offset, &socket4_stack_offset);')
-
-    def test_generate_unpack_13_params_raises_exception(self):
-        props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop1", "prop2"],
-                  "default": 'prop1'},
-                 {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": ["prop3", "prop4"],
-                  "default": 'prop3'},
-                 {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-                 {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
-                 {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "box3", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-                 {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0},
-                 {"name": "float2", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0},
-                 {"name": "float3", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0,
-                  "max": 1.0}]
-        sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0", 'max': "1.0", 'default': "0.5"},
-                   {'type': "Input", 'name': "socket2", 'data-type': "Vector", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
-                   {'type': "Output", 'name': "socket3", 'data-type': "RGBA", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0", 'default': "0.5,0.5,0.5"},
-                   {'type': "Output", 'name': "socket4", 'data-type': "Float", 'sub-type': 'PROP_NONE', 'flag': 'None',
-                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}
-                   ]
-        svm = self._create_default_svm_manager(props=props, sockets=sockets)
-        with self.assertRaises(Exception):
-            svm._generate_unpack()
 
     def test_generate_load_params_correct_formatting(self):
         svm = self._create_default_svm_manager()
