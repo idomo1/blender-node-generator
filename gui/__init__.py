@@ -15,6 +15,9 @@ class GUI:
 
         self.CodeGenerator = code_generator
 
+    def _display_cancel_generate_node_message(self):
+        messagebox.showinfo('Canceled', 'Node was not generated')
+
     def _display_pre_generation_message(self):
         """Message  displayed before code generation"""
         proceed = messagebox.askokcancel(
@@ -22,7 +25,31 @@ class GUI:
                         message='This will modify your files, '
                                 'make sure you are using a version control system so you can undo changes')
         if proceed:
-            self.generate_node()
+            self._display_pre_generation_warnings()
+
+    def _display_pre_generation_warnings(self):
+        """Warnings related to the users input"""
+        proceed = True
+        if any(item['data-type'] == 'String' for item in self.get_node_sockets() + self.get_props()):
+            proceed = messagebox.askyesno('Input Warning', "String type inputs aren't fully supported\n"
+                                          "You will need to do your own implementation for handling this input in\n"
+                                          "'blender_shader.cpp'\n"
+                                          "Do you want to proceed?")
+            if not proceed:
+                self._display_cancel_generate_node_message()
+                return
+
+        if len(self.get_node_sockets() + self.get_props()) > 12:
+            proceed = messagebox.askyesno('Input Warning', "More than 12 properties + sockets isn't fully supported\n"
+                                                           "You will need to implement the svm compile function in\n "
+                                                           "'node.cpp'"
+                                                           "And the svm shader"
+                                                           "Do you want to proceed?")
+            if not proceed:
+                self._display_cancel_generate_node_message()
+                return
+
+        self.generate_node()
 
     def display(self):
         """Main driver to display the menu"""
