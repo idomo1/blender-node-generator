@@ -322,16 +322,18 @@ class SocketAvailabilityGUI:
 
     def _remove_deleted_sockets(self):
         props = self._props_GUI.get_props()
-        for key in list(self._maps[self._dropdown.get()].keys()):
-            for prop in props:
-                if prop['data-type'] == 'Boolean':
-                    if key == prop['name'] + '=True' or key == prop['name'] + '=False':
-                        break
-                elif prop['data-type'] == 'Enum':
-                    if key in [prop['name'] + '=' + option['name'] for option in prop['options']]:
-                        break
-            else:
-                del self._maps[self._dropdown.get()][key]
+        # If there has been user input
+        if self._dropdown.get():
+            for key in list(self._maps[self._dropdown.get()].keys()):
+                for prop in props:
+                    if prop['data-type'] == 'Boolean':
+                        if key == prop['name'] + '=True' or key == prop['name'] + '=False':
+                            break
+                    elif prop['data-type'] == 'Enum':
+                        if key in [prop['name'] + '=' + option['name'] for option in prop['options']]:
+                            break
+                else:
+                    del self._maps[self._dropdown.get()][key]
 
     def _update_props(self):
         """Update for changes in props"""
