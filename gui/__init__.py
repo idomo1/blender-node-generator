@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox
+import os
 
 
 class GUI:
@@ -29,7 +30,6 @@ class GUI:
 
     def _display_pre_generation_warnings(self):
         """Warnings related to the users input"""
-        proceed = True
         if any(item['data-type'] == 'String' for item in self.get_node_sockets() + self.get_props()):
             proceed = messagebox.askyesno('Input Warning', "String type inputs aren't fully supported\n"
                                           "You will need to do your own implementation for handling this input in\n"
@@ -97,7 +97,9 @@ class GUI:
 
     def _is_input_valid(self):
         return self._general_GUI.is_input_valid() and \
-               self._prop_GUI.is_input_valid()
+               self._prop_GUI.is_input_valid() and \
+               self._socket_GUI.is_input_valid() and \
+               self._socket_avail_GUI.is_input_valid()
 
     def get_source_path(self):
         return self._general_GUI.get_source_path()
@@ -264,6 +266,15 @@ class GeneralGUI:
         if self.get_node_type() not in self._node_types:
             messagebox.showerror('Bad Input', 'Invalid node type')
             return False
+        if self.get_node_type() == 'Texture' and self.get_node_group_level() not in [0, 2]:
+            messagebox.showerror('Bad Input', 'Texture node must have a node group level of 0 or 2')
+            return False
+        if not os.path.isdir(self.get_source_path()):
+            messagebox.showerror('Bad Input', '{0} is not a valid path'.format(self.get_source_path()))
+            return False
+        if len(node_name) > 20:  # Greater than 20 characters causes writing NOD_static_types.h to timeout
+            messagebox.showerror('Bad Input', 'Name must be less than 20 characters long')
+            return False
         return True
 
 
@@ -315,6 +326,9 @@ class SocketDefinitionsGUI:
 
     def get_sockets(self):
         return self._sort_sockets(list(filter(lambda p: p is not None, map(lambda p: p.get(), self._ios))))
+
+    def is_input_valid(self):
+        return True
 
 
 class SocketAvailabilityGUI:
@@ -439,6 +453,9 @@ class SocketAvailabilityGUI:
                                         ['type'] == 'Input' else 'out',
                  'prop-avail': [(prop, value.get()) for prop, value in self._maps[socket_name].items()]}
                 for socket_name in self._maps.keys()]
+
+    def is_input_valid(self):
+        return True
 
 
 class RemovableTextInput(Frame):
