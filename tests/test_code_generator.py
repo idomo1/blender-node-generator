@@ -66,6 +66,8 @@ class TestCodeGeneration(unittest.TestCase):
                                                                    ]
         self.mock_gui.socket_availability_changes.return_value = True
         self.mock_gui.uses_texture_mapping.return_value = False
+        self.mock_gui.type_suffix_abbreviated.return_value = ''
+        self.mock_gui.type_suffix.return_value = ''
 
     def test_write_osl_file_correct_formatting(self):
         """Test OSL function generation is correct for paramaters"""
@@ -90,10 +92,38 @@ class TestCodeGeneration(unittest.TestCase):
         """Test OSL function generation is correct for texture node"""
         self.mock_gui.get_node_type.return_value = "Texture"
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
 
         m = mock.Mock()
         calls = [call().write('#include "stdosl.h"\n\n'),
                  call().write('shader node_node_name_texture('
+                              'string dropdown1 = "prop1",'
+                              'string dropdown2 = "prop3",'
+                              'int int1 = 0,'
+                              'int box1 = 0,'
+                              'int box2 = 1,'
+                              'float float1 = 0.0,'
+                              'float Socket1 = 0.5,'
+                              'output float Socket2 = 0.0){}\n')]
+
+        with patch('builtins.open', mock_open(m)) as mf:
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_osl_shader()
+
+                self.assertTrue(all(c in mf.mock_calls for c in calls))
+
+    def test_write_osl_file_bsdf_correct_formatting(self):
+        """Test OSL function generation is correct for texture node"""
+        self.mock_gui.get_node_type.return_value = "Bsdf"
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+
+        m = mock.Mock()
+        calls = [call().write('#include "stdosl.h"\n\n'),
+                 call().write('shader node_node_name_bsdf('
                               'string dropdown1 = "prop1",'
                               'string dropdown2 = "prop3",'
                               'int int1 = 0,'
@@ -119,6 +149,8 @@ class TestCodeGeneration(unittest.TestCase):
                                                                'sub-type': 'PROP_NONE', 'flag': 'None',
                                                                'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0",
                                                                'default': "0.5,0.5,0.5"})
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
 
         m = mock.Mock()
         calls = [call().write('#include "stdosl.h"\n\n'),
@@ -201,6 +233,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_dna_struct_texture_node_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data='typedef struct NodeTexWave {\n'
                                                         '  NodeTexBase base;\n'
                                                         '  int wave_type;\n'
@@ -326,6 +360,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_dna_struct_requires_padding_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         self.mock_gui.get_props.return_value = [
             {"name": "dropdown1", 'data-type': "Enum", "options": [{"name": "prop1", "desc": "Short description"},
                                                                    {"name": "prop2", "desc": "Short description"}],
@@ -355,6 +391,7 @@ class TestCodeGeneration(unittest.TestCase):
             with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
                 code_gen = CodeGenerator(self.mock_gui)
                 code_gen._add_dna_node_type()
+
                 self.assertTrue(mf.mock_calls[-3][1][0] == 'typedef struct NodeTexWave {\n'
                                                            '  NodeTexBase base;\n'
                                                            '  int wave_type;\n'
@@ -431,6 +468,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_drawnode_texture_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data=
                                               'static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)\n'
                                               '{\n'
@@ -465,6 +504,46 @@ class TestCodeGeneration(unittest.TestCase):
                 '}\n\n' in mf.mock_calls[-3][1][0]
                 and 'case SH_NODE_TEX_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
                 and 'ntype->draw_buttons = node_shader_buts_tex_node_name;\n' in mf.mock_calls[-3][1][0])
+
+    def test_write_drawnode_bsdf_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+        with patch('builtins.open', mock_open(read_data=
+                                              'static void node_shader_buts_white_noise(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)\n'
+                                              '{\n'
+                                              '  uiItemR(layout, ptr, "noise_dimensions", 0, "", ICON_NONE);\n'
+                                              '}\n'
+                                              '\n'
+                                              '/ * only once called * /\n'
+                                              'static void node_shader_set_butfunc(bNodeType *ntype)\n'
+                                              '{\n'
+                                              '   switch (ntype->type) {\n'
+                                              '       case SH_NODE_TEX_WHITE_NOISE:\n'
+                                              '           ntype->draw_buttons = node_shader_buts_white_noise;\n'
+                                              '           break;\n'
+                                              '       case SH_NODE_TEX_TRUCHET:\n'
+                                              '           ntype->draw_buttons = node_shader_buts_truchet;\n'
+                                              '           break;\n'
+                                              '   }\n'
+                                              '}\n')) as mf:
+            with patch('code_generation.code_generator_util.apply_clang_formatting', mock.Mock()):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_node_drawing()
+
+            self.assertTrue(
+                'static void node_shader_buts_bsdf_node_name(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)'
+                '{uiItemR(layout, ptr, "dropdown1", 0, "", ICON_NONE);'
+                'uiItemR(layout, ptr, "dropdown2", 0, "", ICON_NONE);'
+                'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
+                'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
+                'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);'
+                'uiItemR(layout, ptr, "float1", 0, NULL, ICON_NONE);'
+                'uiItemR(layout, ptr, "string1", 0, IFACE_("String1"), ICON_NONE);'
+                '}\n\n' in mf.mock_calls[-3][1][0]
+                and 'case SH_NODE_BSDF_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
+                and 'ntype->draw_buttons = node_shader_buts_bsdf_node_name;\n' in mf.mock_calls[-3][1][0])
 
     def test_write_node_class_correct_formatting(self):
         with patch('builtins.open', mock_open(read_data='};\n'
@@ -782,6 +861,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_texture_node_register_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data='void register_node_type_sh_tex_ies(void);\n'
                                                         'void register_node_type_sh_tex_white_noise(void);\n'
                                                         'void register_node_type_sh_tex_truchet(void);\n'
@@ -794,6 +875,24 @@ class TestCodeGeneration(unittest.TestCase):
             code_gen._add_node_register()
 
             self.assertTrue(mf.mock_calls[-3][1][0] == 'void register_node_type_sh_tex_node_name(void);\n')
+
+    def test_write_bsdf_node_register_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+        with patch('builtins.open', mock_open(read_data='void register_node_type_sh_tex_ies(void);\n'
+                                                        'void register_node_type_sh_tex_white_noise(void);\n'
+                                                        'void register_node_type_sh_tex_truchet(void);\n'
+                                                        '\n'
+                                                        'void register_node_type_sh_custom_group(bNodeType *ntype);\n'
+                                                        '\n'
+                                                        '#endif\n'
+                                                        '\n')) as mf:
+            code_gen = CodeGenerator(self.mock_gui)
+            code_gen._add_node_register()
+
+            self.assertTrue(mf.mock_calls[-3][1][0] == 'void register_node_type_sh_bsdf_node_name(void);\n')
 
     def test_generate_enum_definitions_correct_formatting(self):
         prop = {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE",
@@ -815,6 +914,8 @@ class TestCodeGeneration(unittest.TestCase):
                             {"name": "prop2", "desc": "Short description"}],
                 "default": 'prop1'}
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         code_gen = CodeGenerator(self.mock_gui)
         enum = code_gen._generate_enum_prop_item(prop)
 
@@ -906,6 +1007,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_write_rna_properties_tex_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = "Texture"
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data='#ifndef RNA_RUNTIME\n'
                                                         'const EnumPropertyItem rna_enum_node_filter_items[] = {'
                                                         '  {0, "SOFTEN", 0, "Soften", ""},\n'
@@ -1730,6 +1833,8 @@ class TestCodeGeneration(unittest.TestCase):
                                                                'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0",
                                                                'default': "0.5,0.5,0.5"})
         self.mock_gui.uses_texture_mapping.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_init()
 
@@ -1750,6 +1855,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_generate_node_init_texture_node_no_vector_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = 'Texture'
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_init()
 
@@ -1763,6 +1870,25 @@ class TestCodeGeneration(unittest.TestCase):
                                 'tex->box2 = 1;'
                                 'tex->float1 = 0.0f;\n\n'
                                 'node->storage = tex;'
+                                '}\n\n')
+
+    def test_generate_node_init_bsdf_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = 'Bsdf'
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+        code_gen = CodeGenerator(self.mock_gui)
+        text = code_gen._generate_node_shader_init()
+
+        self.assertTrue(text == 'static void node_shader_init_bsdf_node_name(bNodeTree *UNUSED(ntree), bNode *node)'
+                                '{'
+                                'NodeBsdfNodeName *attr = MEM_callocN(sizeof(NodeBsdfNodeName), "NodeBsdfNodeName");'
+                                'attr->dropdown1 = SHD_NODE_NAME_PROP1;'
+                                'attr->dropdown2 = SHD_NODE_NAME_PROP3;'
+                                'attr->int1 = 0;'
+                                'attr->box1 = 0;'
+                                'attr->box2 = 1;'
+                                'attr->float1 = 0.0f;\n\n'
+                                'node->storage = attr;'
                                 '}\n\n')
 
     def test_generate_node_init_no_dna_correct_formatting(self):
@@ -1953,6 +2079,8 @@ class TestCodeGeneration(unittest.TestCase):
                                                                'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0",
                                                                'default': "0.5,0.5,0.5"})
         self.mock_gui.uses_texture_mapping.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
@@ -1994,6 +2122,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_generate_node_gpu_texture_node_no_vector_correct_formatting(self):
         self.mock_gui.is_texture_node.return_value = True
         self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_gpu()
 
@@ -2029,6 +2159,45 @@ class TestCodeGeneration(unittest.TestCase):
                                 '};\n\n'
                         )
 
+    def test_generate_node_gpu_bsdf_correct_formatting(self):
+        self.mock_gui.get_node_type.return_value = "Bsdf"
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+        code_gen = CodeGenerator(self.mock_gui)
+        text = code_gen._generate_node_shader_gpu()
+
+        self.assertTrue(text == 'static int gpu_shader_bsdf_node_name(GPUMaterial *mat, '
+                                'bNode *node, '
+                                'bNodeExecData *UNUSED(execdata), '
+                                'GPUNodeStack *in, '
+                                'GPUNodeStack *out)'
+                                '{'
+                                'static const char *names[][2] = {'
+                                '[SHD_NODE_NAME_PROP1] = '
+                                '{'
+                                '"",'
+                                '"node_node_name_prop1_prop3",'
+                                '"node_node_name_prop1_prop4",'
+                                '},'
+                                '[SHD_NODE_NAME_PROP2] = '
+                                '{'
+                                '"",'
+                                '"node_node_name_prop2_prop3",'
+                                '"node_node_name_prop2_prop4",'
+                                '},'
+                                '};\n\n'
+                                'NodeBsdfNodeName *attr = (NodeBsdfNodeName *)node->storage;'
+                                'float int1 = attr->int1;'
+                                'float box1 = (attr->box1) ? 1.0f : 0.0f;'
+                                'float box2 = (attr->box2) ? 1.0f : 0.0f;'
+                                'float float1 = attr->float1;'
+                                '\n\n'
+                                'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);'
+                                'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n'
+                                'return GPU_stack_link(mat, node, names[attr->dropdown1][attr->dropdown2], in, out, GPU_constant(&int1), GPU_constant(&box1), GPU_constant(&box2), GPU_constant(&float1));'
+                                '};\n\n'
+                        )
+
     def test_generate_node_availability_correct_formatting(self):
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_socket_availability()
@@ -2043,6 +2212,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_generate_node_availability_texture_node_correct_formatting(self):
         self.mock_gui.get_node_type.return_value = 'Texture'
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_socket_availability()
 
@@ -2351,6 +2522,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_generate_node_register_texture_node_correct_formatting(self):
         self.mock_gui.get_node_group.return_value = 'Texture'
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         code_gen = CodeGenerator(self.mock_gui)
         text = code_gen._generate_node_shader_register()
 
@@ -2363,6 +2536,26 @@ class TestCodeGeneration(unittest.TestCase):
                                 'node_type_storage(&ntype, "NodeTexNodeName", node_free_standard_storage, node_copy_standard_storage);'
                                 'node_type_gpu(&ntype, gpu_shader_tex_node_name);'
                                 'node_type_update(&ntype, node_shader_update_tex_node_name);'
+                                '\n\n'
+                                'nodeRegisterType(&ntype);'
+                                '}\n')
+
+    def test_generate_node_register_bsdf_node_correct_formatting(self):
+        self.mock_gui.get_node_group.return_value = 'Shader'
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+        code_gen = CodeGenerator(self.mock_gui)
+        text = code_gen._generate_node_shader_register()
+
+        self.assertTrue(text == 'void register_node_type_sh_bsdf_node_name(void)'
+                                '{'
+                                'static bNodeType ntype;\n\n'
+                                'sh_node_type_base(&ntype, SH_NODE_BSDF_NODE_NAME, "Node Name", NODE_CLASS_SHADER, 0);'
+                                'node_type_socket_templates(&ntype, sh_node_bsdf_node_name_in, sh_node_bsdf_node_name_out);'
+                                'node_type_init(&ntype, node_shader_init_bsdf_node_name);'
+                                'node_type_storage(&ntype, "NodeBsdfNodeName", node_free_standard_storage, node_copy_standard_storage);'
+                                'node_type_gpu(&ntype, gpu_shader_bsdf_node_name);'
+                                'node_type_update(&ntype, node_shader_update_bsdf_node_name);'
                                 '\n\n'
                                 'nodeRegisterType(&ntype);'
                                 '}\n')
@@ -2473,6 +2666,8 @@ class TestCodeGeneration(unittest.TestCase):
 
     def test_add_cycles_class_instance_texture_node_no_vector_correct_formatting(self):
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data=
                                               'static ShaderNode *add_node(Scene *scene,\n'
                                               'BL::RenderEngine &b_engine,\n'
@@ -2521,15 +2716,78 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class_instance()
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
-                                'BL::ShaderNodeTexNodeName b_tex_node_name_node(b_node);'
+                                'BL::ShaderNodeTexNodeName b_node_name_node(b_node);'
                                 'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
-                                'node_name->dropdown1 = b_tex_node_name_node.dropdown1();'
-                                'node_name->dropdown2 = b_tex_node_name_node.dropdown2();'
-                                'node_name->int1 = b_tex_node_name_node.int1();'
-                                'node_name->box1 = b_tex_node_name_node.box1();'
-                                'node_name->box2 = b_tex_node_name_node.box2();'
-                                'node_name->float1 = b_tex_node_name_node.float1();'
-                                'node_name->string1 = b_tex_node_name_node.string1();'
+                                'node_name->dropdown1 = b_node_name_node.dropdown1();'
+                                'node_name->dropdown2 = b_node_name_node.dropdown2();'
+                                'node_name->int1 = b_node_name_node.int1();'
+                                'node_name->box1 = b_node_name_node.box1();'
+                                'node_name->box2 = b_node_name_node.box2();'
+                                'node_name->float1 = b_node_name_node.float1();'
+                                'node_name->string1 = b_node_name_node.string1();'
+                                'node = node_name;'
+                                '}\n' in mf.mock_calls[-3][1][0])
+
+    def test_add_cycles_class_instance_bsdf_node_correct_formatting(self):
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+        with patch('builtins.open', mock_open(read_data=
+                                              'static ShaderNode *add_node(Scene *scene,\n'
+                                              'BL::RenderEngine &b_engine,\n'
+                                              'BL::BlendData &b_data,\n'
+                                              'BL::Depsgraph &b_depsgraph,\n'
+                                              'BL::Scene &b_scene,\n'
+                                              'ShaderGraph *graph,\n'
+                                              'BL::ShaderNodeTree &b_ntree,\n'
+                                              'BL::ShaderNode &b_node)\n'
+                                              '{\n'
+                                              'ShaderNode *node = NULL;\n\n'
+
+                                              '/* existing blender nodes */\n'
+                                              'if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {\n'
+                                              'BL::ShaderNodeRGBCurve b_curve_node(b_node);\n'
+                                              'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+                                              'RGBCurvesNode *curves = new RGBCurvesNode();\n'
+                                              'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, true);\n'
+                                              'curvemapping_minmax(mapping, true, &curves->min_x, &curves->max_x);\n'
+                                              'node = curves;\n'
+                                              '}\n'
+                                              'if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {\n'
+                                              'BL::ShaderNodeVectorCurve b_curve_node(b_node);\n'
+                                              'BL::CurveMapping mapping(b_curve_node.mapping());\n'
+                                              'VectorCurvesNode *curves = new VectorCurvesNode();\n'
+                                              'curvemapping_color_to_array(mapping, curves->curves, RAMP_TABLE_SIZE, false);\n'
+                                              'curvemapping_minmax(mapping, false, &curves->min_x, &curves->max_x);\n'
+                                              'node = curves;\n'
+                                              '}\n'
+                                              '  else if (b_node.is_a(&RNA_ShaderNodeVectorDisplacement)) {\n'
+                                              'BL::ShaderNodeVectorDisplacement b_disp_node(b_node);\n'
+                                              'VectorDisplacementNode *disp = new VectorDisplacementNode();\n'
+                                              'disp->space = (NodeNormalMapSpace)b_disp_node.space();\n'
+                                              'disp->attribute = "";\n'
+                                              'node = disp;\n'
+                                              '}\n\n'
+                                              'if (node) {\n'
+                                              'node->name = b_node.name();\n'
+                                              'graph->add(node);\n'
+                                              '}\n'
+                                              'return node;\n'
+                                              '}\n'
+                                              )) as mf:
+            with patch('code_generation.code_generator_util.apply_clang_formatting'):
+                code_gen = CodeGenerator(self.mock_gui)
+                code_gen._add_cycles_class_instance()
+
+                self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeBsdfNodeName)) {'
+                                'BL::ShaderNodeBsdfNodeName b_node_name_node(b_node);'
+                                'NodeNameBsdfNode *node_name = new NodeNameBsdfNode();'
+                                'node_name->dropdown1 = b_node_name_node.dropdown1();'
+                                'node_name->dropdown2 = b_node_name_node.dropdown2();'
+                                'node_name->int1 = b_node_name_node.int1();'
+                                'node_name->box1 = b_node_name_node.box1();'
+                                'node_name->box2 = b_node_name_node.box2();'
+                                'node_name->float1 = b_node_name_node.float1();'
+                                'node_name->string1 = b_node_name_node.string1();'
                                 'node = node_name;'
                                 '}\n' in mf.mock_calls[-3][1][0])
 
@@ -2540,6 +2798,8 @@ class TestCodeGeneration(unittest.TestCase):
                                                                'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0",
                                                                'default': "0.5,0.5,0.5"})
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data=
                                               'static ShaderNode *add_node(Scene *scene,\n'
                                               'BL::RenderEngine &b_engine,\n'
@@ -2588,16 +2848,16 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class_instance()
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
-                                'BL::ShaderNodeTexNodeName b_tex_node_name_node(b_node);'
+                                'BL::ShaderNodeTexNodeName b_node_name_node(b_node);'
                                 'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
-                                'node_name->dropdown1 = b_tex_node_name_node.dropdown1();'
-                                'node_name->dropdown2 = b_tex_node_name_node.dropdown2();'
-                                'node_name->int1 = b_tex_node_name_node.int1();'
-                                'node_name->box1 = b_tex_node_name_node.box1();'
-                                'node_name->box2 = b_tex_node_name_node.box2();'
-                                'node_name->float1 = b_tex_node_name_node.float1();'
-                                'node_name->string1 = b_tex_node_name_node.string1();'
-                                'BL::TexMapping b_texture_mapping(b_tex_node_name_node.texture_mapping());'
+                                'node_name->dropdown1 = b_node_name_node.dropdown1();'
+                                'node_name->dropdown2 = b_node_name_node.dropdown2();'
+                                'node_name->int1 = b_node_name_node.int1();'
+                                'node_name->box1 = b_node_name_node.box1();'
+                                'node_name->box2 = b_node_name_node.box2();'
+                                'node_name->float1 = b_node_name_node.float1();'
+                                'node_name->string1 = b_node_name_node.string1();'
+                                'BL::TexMapping b_texture_mapping(b_node_name_node.texture_mapping());'
                                 'get_tex_mapping(&node_name->tex_mapping, b_texture_mapping);'
                                 'node = node_name;'
                                 '}\n' in mf.mock_calls[-3][1][0])
@@ -2663,6 +2923,8 @@ class TestCodeGeneration(unittest.TestCase):
                                                                'sub-type': 'PROP_NONE', 'flag': 'None',
                                                                'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0",
                                                                'default': "0.5,0.5,0.5"})
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data=
                                               'static ShaderNode *add_node(Scene *scene,\n'
                                               'BL::RenderEngine &b_engine,\n'
@@ -2711,9 +2973,9 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class_instance()
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
-                                'BL::ShaderNodeTexNodeName b_tex_node_name_node(b_node);'
+                                'BL::ShaderNodeTexNodeName b_node_name_node(b_node);'
                                 'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
-                                'BL::TexMapping b_texture_mapping(b_tex_node_name_node.texture_mapping());'
+                                'BL::TexMapping b_texture_mapping(b_node_name_node.texture_mapping());'
                                 'get_tex_mapping(&node_name->tex_mapping, b_texture_mapping);'
                                 'node = node_name;'
                                 '}\n' in mf.mock_calls[-3][1][0])
@@ -2721,6 +2983,8 @@ class TestCodeGeneration(unittest.TestCase):
     def test_add_cycles_class_instance_texture_node_no_props_no_vector_correct_formatting(self):
         self.mock_gui.is_texture_node.return_value = True
         self.mock_gui.get_props.return_value = []
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data=
                                               'static ShaderNode *add_node(Scene *scene,\n'
                                               'BL::RenderEngine &b_engine,\n'
@@ -2809,7 +3073,6 @@ class TestCodeGeneration(unittest.TestCase):
                 with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)
                     code_gen._add_cycles_node()
-
                     self.assertTrue(mf.mock_calls[-3][1][0] == '/* Node Name */\n\n'
                                                                'NODE_DEFINE(NodeNameNode){'
                                                                'NodeType *type = NodeType::add("node_name", create, NodeType::SHADER);\n\n'
@@ -2871,6 +3134,8 @@ class TestCodeGeneration(unittest.TestCase):
                                         '}\n\n'
         self.mock_gui.is_texture_node.return_value = True
         self.mock_gui.get_node_type.return_value = "Texture"
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data=
                                               'void VectorDisplacementNode::compile(OSLCompiler &compiler)\n'
                                               '{\n'
@@ -2942,6 +3207,93 @@ class TestCodeGeneration(unittest.TestCase):
                                                                '}\n\n'
                                     )
 
+    def test_add_cycles_node_bsdf_node_correct_formatting(self):
+        mock_svm_manager = mock.Mock()
+        mock_svm_manager.return_value = 'void NodeNameBsdfNode::compile(SVMCompiler &compiler){' \
+                                        'ShaderInput *socket1_in = input("Socket1");' \
+                                        'ShaderOutput *socket2_out = output("Socket2");\n\n' \
+                                        'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);' \
+                                        'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n' \
+                                        'compiler.add_node(NODE_BSDF_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), ' \
+                                        'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), ' \
+                                        'socket2_stack_offset' \
+                                        ');' \
+                                        'compiler.add_node(__float_as_int(socket1));' \
+                                        '}\n\n'
+        self.mock_gui.get_node_type.return_value = "Bsdf"
+        self.mock_gui.type_suffix_abbreviated.return_value = 'bsdf'
+        self.mock_gui.type_suffix.return_value = 'bsdf'
+        with patch('builtins.open', mock_open(read_data=
+                                              'void VectorDisplacementNode::compile(OSLCompiler &compiler)\n'
+                                              '{\n'
+                                              'if (space == NODE_NORMAL_MAP_TANGENT) {\n'
+                                              '  if (attribute.empty()) {\n'
+                                              '    compiler.parameter("attr_name", ustring("geom:tangent"));\n'
+                                              '    compiler.parameter("attr_sign_name", ustring("geom:tangent_sign"));\n'
+                                              '  }\n'
+                                              '  else {\n'
+                                              '    compiler.parameter("attr_name", ustring((string(attribute.c_str()) + ".tangent").c_str()));\n'
+                                              '    compiler.parameter("attr_sign_name",\n'
+                                              '                       ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));\n'
+                                              '  }\n'
+                                              '}\n\n'
+                                              'compiler.parameter(this, "space");\n'
+                                              'compiler.add(this, "node_vector_displacement");\n'
+                                              '}\n\n'
+                                              'CCL_NAMESPACE_END\n\n'
+                                              )) as mf:
+            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+                       mock_svm_manager):
+                with patch('code_generation.code_generator_util.apply_clang_formatting'):
+                    code_gen = CodeGenerator(self.mock_gui)
+                    code_gen._add_cycles_node()
+
+                    self.assertTrue(mf.mock_calls[-3][1][0] == '/* Node Name Bsdf */\n\n'
+                                                               'NODE_DEFINE(NodeNameBsdfNode){'
+                                                               'NodeType *type = NodeType::add("node_name_bsdf", create, NodeType::SHADER);\n\n'
+                                                               'static NodeEnum dropdown1_enum;'
+                                                               'dropdown1_enum.insert("PROP1", 1);'
+                                                               'dropdown1_enum.insert("PROP2", 2);'
+                                                               'SOCKET_ENUM(dropdown1, "Dropdown1", dropdown1_enum, 1);\n\n'
+                                                               'static NodeEnum dropdown2_enum;'
+                                                               'dropdown2_enum.insert("PROP3", 1);'
+                                                               'dropdown2_enum.insert("PROP4", 2);'
+                                                               'SOCKET_ENUM(dropdown2, "Dropdown2", dropdown2_enum, 1);\n\n'
+                                                               'SOCKET_INT(int1, "Int1", 0);'
+                                                               'SOCKET_BOOLEAN(box1, "Box1", false);'
+                                                               'SOCKET_BOOLEAN(box2, "Box2", true);'
+                                                               'SOCKET_FLOAT(float1, "Float1", 0.0f);'
+                                                               'SOCKET_STRING(string1, "String1", ustring());\n\n'
+                                                               'SOCKET_IN_FLOAT(socket1, "Socket1", 0.5f);'
+                                                               'SOCKET_OUT_FLOAT(socket2, "Socket2");\n\n'
+                                                               'return type;'
+                                                               '}\n\n'
+                                                               'NodeNameBsdfNode::NodeNameBsdfNode() : BsdfNode(node_type)'
+                                                               '{'
+                                                               '}\n\n'
+                                                               'void NodeNameBsdfNode::compile(SVMCompiler &compiler){'
+                                                               'ShaderInput *socket1_in = input("Socket1");'
+                                                               'ShaderOutput *socket2_out = output("Socket2");\n\n'
+                                                               'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
+                                                               'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n'
+                                                               'compiler.add_node(NODE_BSDF_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
+                                                               'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), '
+                                                               'socket2_stack_offset'
+                                                               ');'
+                                                               'compiler.add_node(__float_as_int(socket1));'
+                                                               '}\n\n'
+                                                               'void NodeNameBsdfNode::compile(OSLCompiler &compiler)'
+                                                               '{'
+                                                               'compiler.parameter(this, "dropdown1");'
+                                                               'compiler.parameter(this, "dropdown2");'
+                                                               'compiler.parameter(this, "int1");'
+                                                               'compiler.parameter(this, "box1");'
+                                                               'compiler.parameter(this, "box2");'
+                                                               'compiler.parameter(this, "float1");'
+                                                               'compiler.add(this, "node_node_name_bsdf");'
+                                                               '}\n\n'
+                                    )
+
     def test_add_cycles_node_texture_node_with_vector_correct_formatting(self):
         mock_svm_manager = mock.Mock()
         mock_svm_manager.return_value = 'void NodeNameTextureNode::compile(SVMCompiler &compiler){' \
@@ -2965,6 +3317,8 @@ class TestCodeGeneration(unittest.TestCase):
                                                                'sub-type': 'PROP_NONE', 'flag': 'None',
                                                                'min': "-1.0,-1.0,-1.0", 'max': "1.0,1.0,1.0",
                                                                'default': "0.5,0.5,0.5"})
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
+        self.mock_gui.type_suffix.return_value = 'texture'
         with patch('builtins.open', mock_open(read_data=
                                               'void VectorDisplacementNode::compile(OSLCompiler &compiler)\n'
                                               '{\n'

@@ -13,6 +13,8 @@ class CMakeCodeManager:
         self._source_path = gui.get_source_path()
         self._node_name = gui.get_node_name()
         self._is_texture_node = gui.is_texture_node()
+        self._type_suffix = gui.type_suffix()
+        self._type_suffix_abbreviated = gui.type_suffix_abbreviated()
 
     def _insert_cmake_file_path(self, names_start_i, file_text, new_file_path, names_end_i=None):
         """
@@ -72,9 +74,9 @@ class CMakeCodeManager:
                 raise Exception("Match not found")
             osl_start_i = match.end() + 1
 
-            osl_path = '  node_{name}{texture}.osl'.format(
+            osl_path = '  node_{name}{suffix}.osl'.format(
                 name=code_generator_util.string_lower_underscored(self._node_name),
-                texture='_texture' if self._is_texture_node else '')
+                suffix='_{suffix}'.format(suffix=self._type_suffix) if self._type_suffix else '')
 
             text = self._insert_cmake_file_path(osl_start_i, text, osl_path)
 
@@ -90,8 +92,8 @@ class CMakeCodeManager:
                 raise Exception("Match not found")
             node_start_i = match.end()
 
-            node_path = '  shader/nodes/node_shader_{tex}{name}.c'.format(
-                tex='tex_' if self._is_texture_node else '',
+            node_path = '  shader/nodes/node_shader_{suff}{name}.c'.format(
+                suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                 name=code_generator_util.string_lower_underscored(self._node_name)
             )
 
@@ -105,8 +107,8 @@ class CMakeCodeManager:
         with open(path.join(self._source_path, "source", "blender", "gpu", CMAKE_FILE_NAME), 'r+') as f:
             text = f.read()
 
-            glsl_path = 'shaders/material/gpu_shader_material_{tex}{name}.glsl'.format(
-                tex='tex_' if self._is_texture_node else '',
+            glsl_path = 'shaders/material/gpu_shader_material_{suff}{name}.glsl'.format(
+                suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                 name=code_generator_util.string_lower_underscored(self._node_name)
             )
             func_call = 'data_to_c_simple({path} SRC)'.format(path=glsl_path)

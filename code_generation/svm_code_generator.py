@@ -14,6 +14,8 @@ class SVMCompilationManager:
         self._sockets = gui.get_node_sockets()
         self._node_name = gui.get_node_name()
         self._is_texture_node = gui.is_texture_node()
+        self._type_suffix = gui.type_suffix()
+        self._type_suffix_abbreviated = gui.type_suffix_abbreviated()
         self._uses_texture_mapping = gui.uses_texture_mapping()
         self._source_path = gui.get_source_path()
         self._node_group_level = gui.get_node_group_level()
@@ -106,9 +108,9 @@ class SVMCompilationManager:
 
     def _generate_add_node(self):
         # TODO For nodes with less than 3 params, add any float optimizations to the same node
-        return 'compiler.add_node(NODE_{TEX}{NAME}, ' \
+        return 'compiler.add_node(NODE_{SUFF}{NAME}, ' \
                '{params});{optimizations}'.format(
-            TEX='TEX_' if self._is_texture_node else '',
+            SUFF='{SUFF}_'.format(SUFF=self._type_suffix_abbreviated.upper()) if self._type_suffix_abbreviated else '',
             NAME=code_generator_util.string_upper_underscored(self._node_name),
             params=self._generate_svm_params(),
             optimizations=self._generate_float_optimizations()) if len(self._props) + len(self._sockets) < 13 else ''
@@ -119,12 +121,12 @@ class SVMCompilationManager:
             first_input_vector = \
                 list(filter(lambda s: s['data-type'] == 'Vector' and s['type'] == 'Input', self._sockets))[0]
 
-        return 'void {Name}{Tex}Node::compile(SVMCompiler &compiler)' \
+        return 'void {Name}{Suffix}Node::compile(SVMCompiler &compiler)' \
                '{{' \
                '{body}' \
                '{texture_mapping}' \
                '}}\n\n'.format(Name=code_generator_util.string_capitalized_no_space(self._node_name),
-                               Tex='Texture' if self._is_texture_node else '',
+                               Suffix=self._type_suffix.capitalize(),
                                body='\n\n'.join(
                                    [self._generate_get_sockets(), self._generate_stack_offsets(),
                                     self._generate_add_node()]),
@@ -310,7 +312,7 @@ class SVMCompilationManager:
     def _generate_svm_shader(self):
         """Loading passed values in svm_*.h"""
         return 'CCL_NAMESPACE_BEGIN\n\n' \
-               'ccl_device void svm_node_{tex}{name}(KernelGlobals *kg,' \
+               'ccl_device void svm_node_{suff}{name}(KernelGlobals *kg,' \
                'ShaderData *sd,' \
                'float *stack,' \
                '{params}' \
@@ -320,7 +322,7 @@ class SVMCompilationManager:
                '{unpack_params}\n\n' \
                '{load_params}' \
                '}}\n\n' \
-               'CCL_NAMESPACE_END\n\n'.format(tex='tex_' if self._is_texture_node else '',
+               'CCL_NAMESPACE_END\n\n'.format(suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                                               name=code_generator_util.string_lower_underscored(self._node_name),
                                               params=self._generate_shader_params(),
                                               offset_defs=self._generate_offset_definitions(),
@@ -368,12 +370,12 @@ class SVMCompilationManager:
 
     def _generate_svm_shader_case(self):
         """Case to pass parameters to shader in svm.h"""
-        return 'case NODE_{TEX}{NAME}:' \
-               'svm_node_{tex}{name}(kg, sd, stack, {params}{offset});' \
+        return 'case NODE_{SUFF}{NAME}:' \
+               'svm_node_{suff}{name}(kg, sd, stack, {params}{offset});' \
                'break;\n'.format(
-            TEX='TEX_' if self._is_texture_node else '',
+            SUFF='{SUFF}_'.format(SUFF=self._type_suffix_abbreviated.upper()) if self._type_suffix_abbreviated else '',
             NAME=code_generator_util.string_upper_underscored(self._node_name),
-            tex='tex_' if self._is_texture_node else '',
+            suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
             name=code_generator_util.string_lower_underscored(self._node_name),
             params=self._generate_svm_shader_passed_params(),
             offset=', &offset' if self._has_multiple_nodes() else ''
@@ -433,8 +435,9 @@ class SVMCompilationManager:
             lines = f.readlines()
             for i, line in enumerate(lines):
                 if line == '} ShaderNodeType;\n':
-                    lines.insert(i, 'NODE_{TEX}{NAME},'.format(
-                        TEX='TEX_' if self._is_texture_node else '',
+                    lines.insert(i, 'NODE_{SUFF}{NAME},'.format(
+                        SUFF='{SUFF}_'.format(
+                            SUFF=self._type_suffix_abbreviated.upper()) if self._type_suffix_abbreviated else '',
                         NAME=code_generator_util.string_upper_underscored(self._node_name)
                     ))
                     lines.insert(i + 2, '\n')

@@ -15,6 +15,8 @@ class TestCMake(unittest.TestCase):
         self.mock_gui.get_source_path.return_value = 'C:/some/path'
         self.mock_gui.get_node_name.return_value = 'node name'
         self.mock_gui.is_texture_node.return_value = False
+        self.mock_gui.type_suffix.return_value = ''
+        self.mock_gui.type_suffix_abbreviated.return_value = ''
 
     def _create_default_cmake_manager(self):
         return CMakeCodeManager(self.mock_gui)
@@ -788,6 +790,8 @@ class TestCMake(unittest.TestCase):
 
     def test_write_node_cmake_texture_node_correct_formatting(self):
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix.return_value = 'texture'
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
         with patch('builtins.open', mock.mock_open(read_data=
                                                    'set(SRC\n'
                                                    '  composite/nodes/node_composite_alphaOver.c\n' \
@@ -1214,6 +1218,8 @@ class TestCMake(unittest.TestCase):
 
     def test_write_glsl_cmake_texture_node_correct_formatting(self):
         self.mock_gui.is_texture_node.return_value = True
+        self.mock_gui.type_suffix.return_value = 'texture'
+        self.mock_gui.type_suffix_abbreviated.return_value = 'tex'
         with patch('builtins.open', mock.mock_open(read_data=
                                                    'endif()\n' \
                                                    '\n' \

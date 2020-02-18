@@ -12,7 +12,8 @@ class TestSVMCodeGenerator(unittest.TestCase):
         """Default Props/Sockets"""
         cls.mock_gui = mock.Mock()
 
-    def _create_default_svm_manager(self, props=None, sockets=None, is_texture_node=False, uses_mapping=False):
+    def _create_default_svm_manager(self, props=None, sockets=None, is_texture_node=False, uses_mapping=False,
+                                    is_bsdf_node=False):
         self.mock_gui.get_props.return_value = [
             {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE",
              "options": [{"name": "prop1", "desc": "Short description"},
@@ -40,6 +41,18 @@ class TestSVMCodeGenerator(unittest.TestCase):
         self.mock_gui.is_texture_node.return_value = is_texture_node
         self.mock_gui.uses_texture_mapping.return_value = uses_mapping
         self.mock_gui.get_node_group_level.return_value = 0
+        if is_texture_node:
+            suff = 'tex'
+            suffix = 'texture'
+        elif is_bsdf_node:
+            suff = 'bsdf'
+            suffix = suff
+        else:
+            suff = ''
+            suffix = suff
+
+        self.mock_gui.type_suffix_abbreviated.return_value = suff
+        self.mock_gui.type_suffix.return_value = suffix
         return SVMCompilationManager(self.mock_gui)
 
     def test_generate_param_names_correct_formatting(self):
@@ -274,6 +287,20 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                    'int vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);'
                                    'int socket2_stack_offset = compiler.stack_assign(socket2_out);')
 
+    def test_generate_stack_offsets_bsdf_node_correct_formatting(self):
+        props = []
+        sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Float",
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"},
+                   {'type': "Output", 'name': "socket2", 'data-type': "Float",
+                    'sub-type': 'PROP_NONE', 'flag': 'None',
+                    'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+        svm = self._create_default_svm_manager(props=props, sockets=sockets, is_bsdf_node=True)
+        offsets = svm._generate_stack_offsets()
+
+        self.assertTrue(offsets == 'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
+                                   'int socket2_stack_offset = compiler.stack_assign(socket2_out);')
+
     def test_generate_float_optimizations_correct_formatting(self):
         svm = self._create_default_svm_manager()
         opt = svm._generate_float_optimizations()
@@ -332,6 +359,17 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                 ');'
                                 'compiler.add_node(__float_as_int(socket1));')
 
+    def test_generate_add_bsdf_node_correct_formatting(self):
+        svm = self._create_default_svm_manager(is_bsdf_node=True)
+        node = svm._generate_add_node()
+
+        self.assertTrue(node == 'compiler.add_node(NODE_BSDF_NODE_NAME, '
+                                'compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
+                                'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), '
+                                'socket2_stack_offset'
+                                ');'
+                                'compiler.add_node(__float_as_int(socket1));')
+
     def test_generate_get_sockets_correct_formatting(self):
         svm = self._create_default_svm_manager()
         socks = svm._generate_get_sockets()
@@ -365,6 +403,22 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                 'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
                                 'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n'
                                 'compiler.add_node(NODE_TEX_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
+                                'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), '
+                                'socket2_stack_offset'
+                                ');'
+                                'compiler.add_node(__float_as_int(socket1));'
+                                '}\n\n')
+
+    def test_generate_svm_func_bsdf_node_correct_formatting(self):
+        svm = self._create_default_svm_manager(is_bsdf_node=True)
+        func = svm.generate_svm_compile_func()
+
+        self.assertTrue(func == 'void NodeNameBsdfNode::compile(SVMCompiler &compiler){'
+                                'ShaderInput *socket1_in = input("Socket1");'
+                                'ShaderOutput *socket2_out = output("Socket2");\n\n'
+                                'int socket1_stack_offset = compiler.stack_assign_if_linked(socket1_in);'
+                                'int socket2_stack_offset = compiler.stack_assign(socket2_out);\n\n'
+                                'compiler.add_node(NODE_BSDF_NODE_NAME, compiler.encode_uchar4(dropdown1, dropdown2, int1, box1), '
                                 'compiler.encode_uchar4(box2, __float_as_int(float1), socket1_stack_offset), '
                                 'socket2_stack_offset'
                                 ');'
@@ -1233,6 +1287,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                                            )) as mf:
                     svm = self._create_default_svm_manager()
                     svm.add_svm_types()
+
                     self.assertTrue(mf.mock_calls[-3][1][0] == [
                         'typedef enum ShaderNodeType {\n',
                         'NODE_END = 0,\n',

@@ -39,6 +39,18 @@ class TestGLSLCodeGenerator(unittest.TestCase):
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
         self.mock_gui.uses_texture_mapping.return_value = uses_texture_mapping
+        if node_type == 'Texture':
+            suff = 'tex'
+            suffix = 'texture'
+        elif node_type == 'Bsdf':
+            suff = 'bsdf'
+            suffix = suff
+        else:
+            suff = ''
+            suffix = suff
+
+        self.mock_gui.type_suffix_abbreviated.return_value = suff
+        self.mock_gui.type_suffix.return_value = suffix
         return GLSLCodeManager(self.mock_gui)
 
     def test_generate_func_names_0_dropdowns_correct_formatting(self):
@@ -148,6 +160,12 @@ class TestGLSLCodeGenerator(unittest.TestCase):
         names = glsl._generate_get_function_name()
 
         self.assertTrue(names == 'names[tex->dropdown1][tex->dropdown2]')
+
+    def test_generate_get_function_name_2_dropdowns_with_dna_bsdf_node_correct_formatting(self):
+        glsl = self._create_default_class(node_type='Bsdf')
+        names = glsl._generate_get_function_name()
+
+        self.assertTrue(names == 'names[attr->dropdown1][attr->dropdown2]')
 
     def test_generate_return_statement_correct_formatting(self):
         additional_params_mock = mock.Mock()
@@ -327,6 +345,22 @@ class TestGLSLCodeGenerator(unittest.TestCase):
                                      'BLI_assert(tex->dropdown1 >= 0 && tex->dropdown1 < 3);'
                                      'BLI_assert(tex->dropdown2 >= 0 && tex->dropdown2 < 3);\n\n')
 
+    def test_generate_retrieve_props_bsdf_node_correct_formatting(self):
+        assertions_mock = mock.Mock()
+        assertions_mock.return_value = 'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);' \
+                                       'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n'
+        with patch('code_generation.glsl_code_generator.GLSLCodeManager._generate_assertions', assertions_mock):
+            glsl = self._create_default_class(node_type='Bsdf')
+            props = glsl._generate_retrieve_props()
+
+            self.assertTrue(props == 'NodeBsdfNodeName *attr = (NodeBsdfNodeName *)node->storage;'
+                                     'float int1 = attr->int1;'
+                                     'float box1 = (attr->box1) ? 1.0f : 0.0f;'
+                                     'float box2 = (attr->box2) ? 1.0f : 0.0f;'
+                                     'float float1 = attr->float1;\n\n'
+                                     'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);'
+                                     'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n')
+
     def test_generate_retrieve_props_no_props_correct_formatting(self):
         assertions_mock = mock.Mock()
         assertions_mock.return_value = ''
@@ -496,6 +530,88 @@ class TestGLSLCodeGenerator(unittest.TestCase):
                                                 'BLI_assert(tex->dropdown2 >= 0 && tex->dropdown2 < 3);\n\n'
                                                 'return GPU_stack_link(mat, node, '
                                                 'names[tex->dropdown1][tex->dropdown2], '
+                                                'in, out, GPU_constant(&int1), GPU_constant(&box1), '
+                                                'GPU_constant(&box2), GPU_constant(&float1));'
+                                                '};\n\n'
+                                        )
+
+    def test_generate_gpu_function_bsdf_node_correct_formatting(self):
+        names_array_mock = mock.Mock()
+        names_array_mock.return_value = 'static const char *names[][2] = {' \
+                                        '[SHD_NODE_NAME_PROP1] = {' \
+                                        '"",' \
+                                        '"node_node_name_prop1_prop3",' \
+                                        '"node_node_name_prop1_prop4",' \
+                                        '},' \
+                                        '[SHD_NODE_NAME_PROP2] = {' \
+                                        '"",' \
+                                        '"node_node_name_prop2_prop3",' \
+                                        '"node_node_name_prop2_prop4",' \
+                                        '},' \
+                                        '};\n\n'
+
+        retrieve_props_mock = mock.Mock()
+        retrieve_props_mock.return_value = 'NodeBsdfNodeName *attr = (NodeBsdfNodeName *)node->storage;' \
+                                           'float int1 = attr->int1;' \
+                                           'float box1 = (attr->box1) ? 1.0f : 0.0f;' \
+                                           'float box2 = (attr->box2) ? 1.0f : 0.0f;' \
+                                           'float float1 = attr->float1;\n\n' \
+                                           'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);' \
+                                           'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n'
+
+        additional_params_mock = mock.Mock()
+        additional_params_mock.return_value = ['GPU_constant(&int1)',
+                                               'GPU_constant(&box1)',
+                                               'GPU_constant(&box2)',
+                                               'GPU_constant(&float1)']
+
+        return_statement_mock = mock.Mock()
+        return_statement_mock.return_value = 'return GPU_stack_link(mat, node, ' \
+                                             'names[attr->dropdown1][attr->dropdown2], in, out,' \
+                                             ' GPU_constant(&int1), ' \
+                                             'GPU_constant(&box1), ' \
+                                             'GPU_constant(&box2), ' \
+                                             'GPU_constant(&float1));'
+
+        with patch('code_generation.glsl_code_generator.GLSLCodeManager._generate_names_array', names_array_mock):
+            with patch('code_generation.glsl_code_generator.GLSLCodeManager._generate_retrieve_props',
+                       retrieve_props_mock):
+                with patch('code_generation.glsl_code_generator.GLSLCodeManager._generate_additional_params',
+                           additional_params_mock):
+                    with patch('code_generation.glsl_code_generator.GLSLCodeManager._generate_return_statement',
+                               return_statement_mock):
+                        glsl = self._create_default_class(node_type='Bsdf')
+                        func = glsl.generate_gpu_func()
+
+                        self.assertTrue(func == 'static int gpu_shader_bsdf_node_name(GPUMaterial *mat, '
+                                                'bNode *node, '
+                                                'bNodeExecData *UNUSED(execdata), '
+                                                'GPUNodeStack *in, '
+                                                'GPUNodeStack *out)'
+                                                '{'
+                                                'static const char *names[][2] = {'
+                                                '[SHD_NODE_NAME_PROP1] = '
+                                                '{'
+                                                '"",'
+                                                '"node_node_name_prop1_prop3",'
+                                                '"node_node_name_prop1_prop4",'
+                                                '},'
+                                                '[SHD_NODE_NAME_PROP2] = '
+                                                '{'
+                                                '"",'
+                                                '"node_node_name_prop2_prop3",'
+                                                '"node_node_name_prop2_prop4",'
+                                                '},'
+                                                '};\n\n'
+                                                'NodeBsdfNodeName *attr = (NodeBsdfNodeName *)node->storage;'
+                                                'float int1 = attr->int1;'
+                                                'float box1 = (attr->box1) ? 1.0f : 0.0f;'
+                                                'float box2 = (attr->box2) ? 1.0f : 0.0f;'
+                                                'float float1 = attr->float1;\n\n'
+                                                'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);'
+                                                'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n'
+                                                'return GPU_stack_link(mat, node, '
+                                                'names[attr->dropdown1][attr->dropdown2], '
                                                 'in, out, GPU_constant(&int1), GPU_constant(&box1), '
                                                 'GPU_constant(&box2), GPU_constant(&float1));'
                                                 '};\n\n'

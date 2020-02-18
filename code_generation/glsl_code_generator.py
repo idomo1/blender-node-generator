@@ -14,6 +14,7 @@ class GLSLCodeManager:
         self._props = gui.get_props()
         self._node_name = gui.get_node_name()
         self._is_texture_node = gui.get_node_type() == 'Texture'
+        self._type_suffix_abbreviated = gui.type_suffix_abbreviated()
         self._uses_texture_mapping = gui.uses_texture_mapping()
         self._node_type = gui.get_node_type()
         self._dropdowns = list(filter(lambda p: p['data-type'] == 'Enum', self._props))
@@ -36,7 +37,6 @@ class GLSLCodeManager:
             return ['']
         elif self._dropdowns_count() == 1:
             return [func_name.format(
-                tex='tex_' if self._is_texture_node else '',
                 name=self._node_name,
                 options=code_generator_util.string_lower_underscored(option['name'])
             ) for option in self._get_dropdowns()[0]['options']]
@@ -44,8 +44,7 @@ class GLSLCodeManager:
             return [
                 [func_name.format(
                     options='{option1}_{option2}'.format(option1=option1['name'], option2=option2['name'])) for option2
-                 in
-                 self._get_dropdowns()[1]['options']] for option1 in self._get_dropdowns()[0]['options']
+                    in self._get_dropdowns()[1]['options']] for option1 in self._get_dropdowns()[0]['options']
             ]
         else:
             raise Exception('More than 2 dropdowns not supported')
@@ -100,8 +99,8 @@ class GLSLCodeManager:
         retrieved_props = []
         if code_generator_util.uses_dna(self._props, self._node_type):
             struct = 'tex' if self._is_texture_node else 'attr'
-            retrieved_props.append('Node{Tex}{Name} *{struct} = (Node{Tex}{Name} *)node->storage;'.format(
-                Tex='Tex' if self._is_texture_node else '',
+            retrieved_props.append('Node{Suff}{Name} *{struct} = (Node{Suff}{Name} *)node->storage;'.format(
+                Suff=self._type_suffix_abbreviated.capitalize(),
                 Name=code_generator_util.string_capitalized_no_space(self._node_name),
                 struct=struct
             ))
@@ -154,8 +153,7 @@ class GLSLCodeManager:
 
     def _generate_get_function_name(self):
         if self._dropdowns_count() == 0:
-            return '"node_{tex}{name}"'.format(
-                tex='tex_' if self._is_texture_node else '',
+            return '"node_{name}"'.format(
                 name=code_generator_util.string_lower_underscored(self._node_name)
             )
         elif self._dropdowns_count() == 1:
@@ -197,7 +195,7 @@ class GLSLCodeManager:
 
     def generate_gpu_func(self):
         """gpu func in node_shader_*.c"""
-        gpu_text = 'static int gpu_shader_{tex}{name}(GPUMaterial *mat,' \
+        gpu_text = 'static int gpu_shader_{suff}{name}(GPUMaterial *mat,' \
                    ' bNode *node, ' \
                    'bNodeExecData *UNUSED(execdata), ' \
                    'GPUNodeStack *in, ' \
@@ -208,7 +206,7 @@ class GLSLCodeManager:
                    '{dna}' \
                    '{return_statement}' \
                    '}};\n\n'.format(
-            tex='tex_' if self._is_texture_node else '',
+            suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
             name=code_generator_util.string_lower_underscored(self._node_name),
             texture_mapping='node_shader_gpu_default_tex_coord(mat, '
                             'node, &in[0].link);'
@@ -234,8 +232,7 @@ class GLSLCodeManager:
                           [prop for prop in self._props if prop['data-type'] not in ['Enum', 'String']] +
                           [socket for socket in self._sockets if socket['data-type'] != 'String'])
         if self._dropdowns_count() == 0:
-            return 'void node_{tex}{name}({params}){{}}'.format(
-                tex='tex_' if self._is_texture_node else '',
+            return 'void node_{name}({params}){{}}'.format(
                 name=code_generator_util.string_lower_underscored(self._node_name),
                 params=params
             )
@@ -251,8 +248,9 @@ class GLSLCodeManager:
 
     def add_glsl_shader(self):
         file_path = path.join(self._source_path, "source", "blender", "gpu", "shaders", "material",
-                              "gpu_shader_material_{tex}{name}.glsl".format(
-                                  tex='tex_' if self._is_texture_node else '',
+                              "gpu_shader_material_{suff}{name}.glsl".format(
+                                  suff='{suff}_'.format(
+                                      suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                                   name=code_generator_util.string_lower_underscored(self._node_name)
                               ))
         with open(file_path, 'w') as f:
