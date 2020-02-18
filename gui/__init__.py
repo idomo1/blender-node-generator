@@ -158,6 +158,24 @@ class GUI:
                     return True
         return False
 
+    def type_suffix_abbreviated(self):
+        """Type suffix but abbreviated"""
+        if self.get_node_type() == 'Texture':
+            return 'tex'
+        elif self.get_node_type() in ['Bsdf', 'BsdfBase']:
+            return 'bsdf'
+        else:
+            return ''
+
+    def type_suffix(self):
+        """Type related suffix which is appended to type definitions"""
+        if self.get_node_type() == 'Texture':
+            return 'texture'
+        elif self.get_node_type() in ['Bsdf', 'BsdfBase']:
+            return 'bsdf'
+        else:
+            return ''
+
     def generate_node(self):
         if self._is_input_valid():
             code_generator = self.CodeGenerator(self)
