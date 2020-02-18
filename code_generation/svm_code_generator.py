@@ -256,7 +256,7 @@ class SVMCompilationManager:
         float_i = 0
         type_map = {'Float': 'float', 'Vector': 'float3', 'RGBA': 'float3', 'Int': 'int', 'Shader': 'float3'}
         for socket in self._sockets:
-            if socket['type'] == 'Input':
+            if socket['type'] == 'Input' and socket['data-type'] != 'String':
                 load.append(
                     '{type} {name} = stack_load_{type}{default}(stack, {name}_stack_offset{default_address});'.format(
                         type=type_map[socket['data-type']],

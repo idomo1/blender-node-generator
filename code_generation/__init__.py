@@ -1048,7 +1048,7 @@ class CodeGenerator:
                     name=code_generator_util.string_capitalized_no_space(socket['name']),
                     default=socket['default'] if socket['data-type'] not in ['Vector', 'RGBA', 'Shader'] else
                     'point({0})'.format(socket['default'].replace(',', ', ')))
-                    for socket in sockets if socket['type'] == 'Input']),
+                    for socket in sockets if socket['type'] == 'Input' and socket['data-type'] != 'String']),
                 out_sockets=','.join(
                     ['output {type} {name} = {default}'.format(
                         type=type_conversion[socket['data-type']],
