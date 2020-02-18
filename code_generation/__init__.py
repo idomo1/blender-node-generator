@@ -671,7 +671,7 @@ class CodeGenerator:
         """node_shader_*.c"""
         file_path = path.join(self._gui.get_source_path(), "source", "blender", "nodes", "shader", "nodes",
                               "node_shader_{suff}{name}.c".format(
-                                  suff="{suff}_".format(suff=self._gui.type_suffix_abbreviated()),
+                                  suff="{suff}_".format(suff=self._gui.type_suffix_abbreviated()) if self._gui.type_suffix_abbreviated() else '',
                                   name=code_generator_util.string_lower_underscored(
                                       self._gui.get_node_name())))
         with open(file_path, "w") as f:
