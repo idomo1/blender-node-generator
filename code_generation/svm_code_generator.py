@@ -311,10 +311,11 @@ class SVMCompilationManager:
 
     def _generate_svm_shader(self):
         """Loading passed values in svm_*.h"""
+        params = self._generate_shader_params()
         return 'CCL_NAMESPACE_BEGIN\n\n' \
                'ccl_device void svm_node_{suff}{name}(KernelGlobals *kg,' \
                'ShaderData *sd,' \
-               'float *stack,' \
+               'float *stack' \
                '{params}' \
                ')' \
                '{{' \
@@ -324,7 +325,7 @@ class SVMCompilationManager:
                '}}\n\n' \
                'CCL_NAMESPACE_END\n\n'.format(suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                                               name=code_generator_util.string_lower_underscored(self._node_name),
-                                              params=self._generate_shader_params(),
+                                              params=',{params}'.format(params=params) if params else '',
                                               offset_defs=self._generate_offset_definitions(),
                                               unpack_params=self._generate_unpack(),
                                               load_params=self._generate_load_params())
@@ -370,14 +371,15 @@ class SVMCompilationManager:
 
     def _generate_svm_shader_case(self):
         """Case to pass parameters to shader in svm.h"""
+        params=self._generate_svm_shader_passed_params()
         return 'case NODE_{SUFF}{NAME}:' \
-               'svm_node_{suff}{name}(kg, sd, stack, {params}{offset});' \
+               'svm_node_{suff}{name}(kg, sd, stack{params}{offset});' \
                'break;\n'.format(
             SUFF='{SUFF}_'.format(SUFF=self._type_suffix_abbreviated.upper()) if self._type_suffix_abbreviated else '',
             NAME=code_generator_util.string_upper_underscored(self._node_name),
             suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
             name=code_generator_util.string_lower_underscored(self._node_name),
-            params=self._generate_svm_shader_passed_params(),
+            params=',{params}'.format(params=params) if params else '',
             offset=', &offset' if self._has_multiple_nodes() else ''
         )
 
