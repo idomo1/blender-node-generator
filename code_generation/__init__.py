@@ -355,9 +355,9 @@ class CodeGenerator:
                 TYPE=sock['data-type'].upper(), Name=code_generator_util.string_capitalized_spaced(sock['name']),
                 input_count=1 if sock['type'] == 'Input' else 0,
                 default=code_generator_util.fill_socket_default(sock['default'])
-                if sock['type'] == 'Input' else '0.0f, 0.0f, 0.0f, 0.0f',
-                min=sock['min'] + 'f',
-                max=sock['max'] + 'f',
+                if 'default' in sock else '0.0f, 0.0f, 0.0f, 0.0f',
+                min=sock['min'] + 'f' if 'min' in sock else '0.0f',
+                max=sock['max'] + 'f' if 'max' in sock else '1.0f',
                 subtype=(', ' + sock['sub-type']) if sock['sub-type'] != 'PROP_NONE' or sock[
                     'flag'] != "None" else '',
                 flag=(', ' + sock['flag']) if sock['flag'] != 'None' else '')
