@@ -47,12 +47,10 @@ class GLSLCodeManager:
                     in self._get_dropdowns()[1]['options']] for option1 in self._get_dropdowns()[0]['options']
             ]
         else:
-            raise Exception('More than 2 dropdowns not supported')
+            return ['/* glsl func name */']
 
     def _generate_names_array(self):
-        if self._dropdowns_count() == 0:
-            return ''
-        elif self._dropdowns_count() == 1:
+        if self._dropdowns_count() == 1:
             return 'static const char *names[] = {{' \
                    '"",' \
                    '{funcs},' \
@@ -74,6 +72,8 @@ class GLSLCodeManager:
                     names=','.join(names)) for names, option in
                               zip(self._generate_shader_func_names(), self._get_dropdowns()[0]['options']))
             )
+        else:
+            return ''
 
     def _generate_assertions(self):
         assertions = []
@@ -174,7 +174,7 @@ class GLSLCodeManager:
             else:
                 return 'names[node->custom1][node->custom2]'
         else:
-            raise Exception('More than 2 dropdowns not supported')
+            return '/* glsl func name */'
 
     def _generate_additional_params(self):
         """
@@ -220,7 +220,7 @@ class GLSLCodeManager:
 
     def _generate_glsl_shader(self):
         if self._dropdowns_count() > 2:
-            raise Exception("More than 2 dropdowns not supported")
+            return '// glsl functions'
         type_map = {'Vector': 'vec3', 'Float': 'float', 'Int': 'float', 'Boolean': 'float',
                     'RGBA': 'vec4', 'Shader': 'Closure'}
         params = ','.join('{out}{type} {name}'.format(

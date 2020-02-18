@@ -49,6 +49,16 @@ class GUI:
                 self._display_cancel_generate_node_message()
                 return
 
+        if len([prop for prop in self.get_props() if prop['data-type'] == 'Enum']) > 2:
+            proceed = messagebox.askyesno('Input Warning', "More than 2 enums isn't fully supported\n"
+                                                           "You will need to implement the GLSL related functions in\n"
+                                                           "'node_shader_(your_node_name).h'\n"
+                                                           "'gpu_shader_material_(your_node_name).glsl'\n"
+                                                           "Do you want to proceed?")
+            if not proceed:
+                self._display_cancel_generate_node_message()
+                return
+
         self.generate_node()
 
     def display(self):
