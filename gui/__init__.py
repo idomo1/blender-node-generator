@@ -300,8 +300,16 @@ class GeneralGUI:
         if not os.path.isdir(self.get_source_path()):
             messagebox.showerror('Bad Input', '{0} is not a valid path'.format(self.get_source_path()))
             return False
-        if len(node_name) > 20:  # Greater than 20 characters causes writing NOD_static_types.h to timeout
-            messagebox.showerror('Bad Input', 'Name must be less than 20 characters long')
+        if self.get_node_type() == 'Texture':
+            character_limit = 15
+        elif self.get_node_type() in ['Bsdf', 'BsdfBase']:
+            character_limit = 16
+        else:
+            character_limit = 20
+        if len(node_name) > character_limit:  # Greater than 20 characters causes writing NOD_static_types.h to timeout
+            messagebox.showerror('Bad Input', '{type} node name must be less than {limit} characters long'.format(
+                type=self.get_node_type(),
+                limit=character_limit))
             return False
         return True
 
