@@ -294,7 +294,7 @@ class GeneralGUI:
         if self.get_node_type() not in self._node_types:
             messagebox.showerror('Bad Input', 'Invalid node type')
             return False
-        if self.get_node_type() == 'Texture' and self.get_node_group_level() not in [0, 2]:
+        if self.get_node_type() == 'Texture' and self.get_node_group_level() not in ['0', '2']:
             messagebox.showerror('Bad Input', 'Texture node must have a node group level of 0 or 2')
             return False
         if not os.path.isdir(self.get_source_path()):
