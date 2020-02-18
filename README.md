@@ -14,7 +14,7 @@ Using git, you can run the following command to undo any changes
 ```
 git reset --hard && git clean -f -d  
 ```
-<b>Be careful you don't have any uncomitted changes you wish to keep!</b>
+<b>Be careful you don't have any uncommitted changes you wish to keep!</b>
 
 ## Unsupported Use Cases
 It's not possible for me to predict how all node variations will be implemented.  
