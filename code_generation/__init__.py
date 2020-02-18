@@ -729,7 +729,7 @@ class CodeGenerator:
                     while lines[i] != '}\n':
                         i += 1
                     lines.insert(i, 'register_node_type_sh_{suff}{name}();'.format(
-                        suff='{suff}_'.format(suff=self._gui.type_suffix_abbreviated()),
+                        suff='{suff}_'.format(suff=self._gui.type_suffix_abbreviated()) if self._gui.type_suffix_abbreviated() else '',
                         name=code_generator_util.string_lower_underscored(self._gui.get_node_name())
                     ))
                     break
