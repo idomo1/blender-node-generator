@@ -379,7 +379,7 @@ class SVMCompilationManager:
             NAME=code_generator_util.string_upper_underscored(self._node_name),
             suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
             name=code_generator_util.string_lower_underscored(self._node_name),
-            params=',{params}'.format(params=params) if params else '',
+            params=', {params}'.format(params=params) if params else '',
             offset=', &offset' if self._has_multiple_nodes() else ''
         )
 
