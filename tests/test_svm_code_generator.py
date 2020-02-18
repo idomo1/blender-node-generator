@@ -14,9 +14,13 @@ class TestSVMCodeGenerator(unittest.TestCase):
 
     def _create_default_svm_manager(self, props=None, sockets=None, is_texture_node=False, uses_mapping=False):
         self.mock_gui.get_props.return_value = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop1", "desc": "Short description"}, {"name": "prop2", "desc": "Short description"}],
+            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE",
+             "options": [{"name": "prop1", "desc": "Short description"},
+                         {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
-            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE", "options": [{"name": "prop3", "desc": "Short description"}, {"name": "prop4", "desc": "Short description"}],
+            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE",
+             "options": [{"name": "prop3", "desc": "Short description"},
+                         {"name": "prop4", "desc": "Short description"}],
              "default": 'prop3'},
             {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
             {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
@@ -1131,7 +1135,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                                                '#include "kernel/svm/svm_truchet.h"\n'
                                                                '\n'
                                                                '#ifdef __SHADER_RAYTRACE__\n'
-    
+
                                                                '    switch (node.x) {\n'
                                                                '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
                                                                '      case NODE_CLOSURE_BSDF:\n'
@@ -1171,7 +1175,7 @@ class TestSVMCodeGenerator(unittest.TestCase):
                                                                '#include "kernel/svm/svm_truchet.h"\n'
                                                                '\n'
                                                                '#ifdef __SHADER_RAYTRACE__\n'
-    
+
                                                                '    switch (node.x) {\n'
                                                                '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
                                                                '#  ifdef __TEXTURES__\n'

@@ -74,7 +74,7 @@ class CMakeCodeManager:
 
             osl_path = '  node_{name}{texture}.osl'.format(
                 name=code_generator_util.string_lower_underscored(self._node_name),
-            texture='_texture' if self._is_texture_node else '')
+                texture='_texture' if self._is_texture_node else '')
 
             text = self._insert_cmake_file_path(osl_start_i, text, osl_path)
 

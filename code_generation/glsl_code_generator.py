@@ -42,7 +42,9 @@ class GLSLCodeManager:
             ) for option in self._get_dropdowns()[0]['options']]
         elif self._dropdowns_count() == 2:
             return [
-                [func_name.format(options='{option1}_{option2}'.format(option1=option1['name'], option2=option2['name'])) for option2 in
+                [func_name.format(
+                    options='{option1}_{option2}'.format(option1=option1['name'], option2=option2['name'])) for option2
+                 in
                  self._get_dropdowns()[1]['options']] for option1 in self._get_dropdowns()[0]['options']
             ]
         else:
@@ -224,12 +226,13 @@ class GLSLCodeManager:
         type_map = {'Vector': 'vec3', 'Float': 'float', 'Int': 'float', 'Boolean': 'float',
                     'RGBA': 'vec4', 'Shader': 'Closure'}
         params = ','.join('{out}{type} {name}'.format(
-                type=type_map[param['data-type']],
-                out='out ' if 'type' in param and param['type'] == 'Output' else '', # Must check if 'type' is a key since props don't have 'type' key
-                name=code_generator_util.string_lower_underscored(param['name']))
-                            for param in
-                            [prop for prop in self._props if prop['data-type'] not in ['Enum', 'String']] +
-                            [socket for socket in self._sockets if socket['data-type'] != 'String'])
+            type=type_map[param['data-type']],
+            out='out ' if 'type' in param and param['type'] == 'Output' else '',
+            # Must check if 'type' is a key since props don't have 'type' key
+            name=code_generator_util.string_lower_underscored(param['name']))
+                          for param in
+                          [prop for prop in self._props if prop['data-type'] not in ['Enum', 'String']] +
+                          [socket for socket in self._sockets if socket['data-type'] != 'String'])
         if self._dropdowns_count() == 0:
             return 'void node_{tex}{name}({params}){{}}'.format(
                 tex='tex_' if self._is_texture_node else '',

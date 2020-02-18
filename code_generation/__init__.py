@@ -83,7 +83,7 @@ class CodeGenerator:
                     name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                     props=props_definitions,
                     pad=' char _pad[{size}];'.format(size=code_generator_util.dna_padding_size(self._gui.get_props()))
-                        if code_generator_util.dna_padding_size(self._gui.get_props()) != 0 else '')
+                    if code_generator_util.dna_padding_size(self._gui.get_props()) != 0 else '')
 
                 match = re.search('} NodeTex'[::-1], text[::-1])  # Reversed to find last occurrence
                 if not match:
@@ -995,7 +995,6 @@ class CodeGenerator:
                 osl_f.write('#include "stdcycles.h"\n\n')
             else:
                 osl_f.write('#include "stdosl.h"\n\n')
-
 
             props = self._gui.get_props()
             sockets = self._gui.get_node_sockets()

@@ -62,7 +62,8 @@ class TestUsesDna(unittest.TestCase):
         self.assertFalse(code_generator_util.uses_dna(props, "Shader"))
 
     def test_two_float_enum_one_int_true(self):
-        props = [{'data-type': "Enum"}, {'data-type': "Enum"}, {'data-type': "Int"}, {'data-type': "Float"}, {'data-type': "Float"}]
+        props = [{'data-type': "Enum"}, {'data-type': "Enum"}, {'data-type': "Int"}, {'data-type': "Float"},
+                 {'data-type': "Float"}]
         self.assertTrue(code_generator_util.uses_dna(props, "Shader"))
 
     def test_three_enum_true(self):
@@ -77,7 +78,7 @@ class TestUsesDna(unittest.TestCase):
         items = ['ShaderNode', 'SH_NODE_OUTPUT_MATERIAL', 'def_sh_output', '"OUTPUT_MATERIAL"',
                  'OutputMaterial', '"Material Output"', '""']
         size = 138
-        gaps = [0,16,44,68,90,108,129]
+        gaps = [0, 16, 44, 68, 90, 108, 129]
         text = code_generator_util.fill_white_space(items, size, gaps)
 
         self.assertTrue(text ==
@@ -87,7 +88,7 @@ class TestUsesDna(unittest.TestCase):
         items = ['ShaderNode', 'SH_NODE_EEVEE_SPECULAR', '0', '"EEVEE_SPECULAR"',
                  'EeveeSpecular', '"Specular"', '""']
         size = 138
-        gaps = [0,16,44,68,90,108,129]
+        gaps = [0, 16, 44, 68, 90, 108, 129]
         text = code_generator_util.fill_white_space(items, size, gaps)
 
         self.assertTrue(text ==

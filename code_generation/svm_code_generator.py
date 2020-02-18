@@ -26,9 +26,11 @@ class SVMCompilationManager:
                 names.append(
                     '__float_as_int({name})'.format(name=code_generator_util.string_lower_underscored(prop['name'])))
             elif prop['data-type'] != 'String':
-                names.append(code_generator_util.string_lower_underscored(code_generator_util.string_lower_underscored(prop['name'])))
+                names.append(code_generator_util.string_lower_underscored(
+                    code_generator_util.string_lower_underscored(prop['name'])))
         for socket in self._sockets:
-            names.append('{name}_stack_offset'.format(name=code_generator_util.string_lower_underscored(socket['name'])))
+            names.append(
+                '{name}_stack_offset'.format(name=code_generator_util.string_lower_underscored(socket['name'])))
         return names
 
     def _generate_svm_params(self):
@@ -435,7 +437,7 @@ class SVMCompilationManager:
                         TEX='TEX_' if self._is_texture_node else '',
                         NAME=code_generator_util.string_upper_underscored(self._node_name)
                     ))
-                    lines.insert(i+2, '\n')
+                    lines.insert(i + 2, '\n')
                     lines.insert(i + 3, self._generate_enum_typedefs())
                     break
             else:

@@ -22,9 +22,9 @@ class GUI:
     def _display_pre_generation_message(self):
         """Message  displayed before code generation"""
         proceed = messagebox.askokcancel(
-                        title='File Changes',
-                        message='This will modify your files, '
-                                'make sure you are using a version control system so you can undo changes')
+            title='File Changes',
+            message='This will modify your files, '
+                    'make sure you are using a version control system so you can undo changes')
         if proceed:
             self._display_pre_generation_warnings()
 
@@ -32,9 +32,9 @@ class GUI:
         """Warnings related to the users input"""
         if any(item['data-type'] == 'String' for item in self.get_node_sockets() + self.get_props()):
             proceed = messagebox.askyesno('Input Warning', "String type inputs aren't fully supported\n"
-                                          "You will need to do your own implementation for handling this input in\n"
-                                          "'blender_shader.cpp'\n"
-                                          "Do you want to proceed?")
+                                                           "You will need to do your own implementation for handling this input in\n"
+                                                           "'blender_shader.cpp'\n"
+                                                           "Do you want to proceed?")
             if not proceed:
                 self._display_cancel_generate_node_message()
                 return
@@ -845,9 +845,9 @@ class RemovableSocketDefinitionInput(Frame):
             return None
 
         socket = {'type': self.children['!combobox'].get(), 'name': self.children['!entry'].get(),
-                'data-type': self.children['!combobox2'].get(),
-                'sub-type': self.children['!combobox3'].get(),
-                'flag': self.children['!combobox4'].get()}
+                  'data-type': self.children['!combobox2'].get(),
+                  'sub-type': self.children['!combobox3'].get(),
+                  'flag': self.children['!combobox4'].get()}
         if socket['data-type'] != 'String':
             socket['min'] = self._type_components[1].get()
             socket['max'] = self._type_components[3].get()
