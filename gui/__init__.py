@@ -30,8 +30,8 @@ class GUI:
 
     def _display_pre_generation_warnings(self):
         """Warnings related to the users input"""
-        if any(item['data-type'] == 'String' for item in self.get_node_sockets() + self.get_props()):
-            proceed = messagebox.askyesno('Input Warning', "String type inputs aren't fully supported\n"
+        if any(item['data-type'] == 'String' for item in self.get_props()):
+            proceed = messagebox.askyesno('Input Warning', "String type props aren't fully supported\n"
                                                            "You will need to do your own implementation for handling this input in\n"
                                                            "'blender_shader.cpp'\n"
                                                            "Do you want to proceed?")
