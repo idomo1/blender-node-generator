@@ -21,3 +21,4 @@ It's not possible for me to predict how all node variations will be implemented.
 The following use cases aren't fully support(i.e You won't be able to successfully build Blender after running the tool)  
   * Nodes with \> 2 Enum Properties
   * Nodes with string properties
+  * Nodes with more than 12 properties + sockets
