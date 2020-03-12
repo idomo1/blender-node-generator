@@ -6,8 +6,8 @@ from . import code_generator_util
 CMAKE_FILE_NAME = 'CMakeLists.txt'
 
 
-class CMakeCodeManager:
-    """Adds new files to Cmake build list"""
+class WritesCMake:
+    """Writes new files to Cmake build list"""
 
     def __init__(self, gui):
         self._source_path = gui.get_source_path()

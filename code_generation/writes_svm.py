@@ -3,9 +3,9 @@ from os import path
 from . import code_generator_util
 
 
-class SVMCompilationManager:
+class WritesSVM:
     """
-    Generates code related to SVM
+    Writes code related to SVM
     Keeps svm parameters consistent between files
     """
 

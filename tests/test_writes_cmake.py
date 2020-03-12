@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import patch
 
-from code_generation.cmake_code_generator import CMakeCodeManager
+from code_generation.writes_cmake import WritesCMake
 
 
 class TestCMake(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestCMake(unittest.TestCase):
         self.mock_gui.type_suffix_abbreviated.return_value = ''
 
     def _create_default_cmake_manager(self):
-        return CMakeCodeManager(self.mock_gui)
+        return WritesCMake(self.mock_gui)
 
     def test_insert_cmake_middle_sorted_path_correct_formatting(self):
         """Insert a path which alphabetically will fall in the middle of the file list"""

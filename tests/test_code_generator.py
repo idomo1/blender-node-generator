@@ -3068,7 +3068,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               '}\n\n'
                                               'CCL_NAMESPACE_END\n\n'
                                               )) as mf:
-            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+            with patch('code_generation.writes_svm.WritesSVM.generate_svm_compile_func',
                        mock_svm_manager):
                 with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)
@@ -3155,7 +3155,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               '}\n\n'
                                               'CCL_NAMESPACE_END\n\n'
                                               )) as mf:
-            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+            with patch('code_generation.writes_svm.WritesSVM.generate_svm_compile_func',
                        mock_svm_manager):
                 with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)
@@ -3242,7 +3242,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               '}\n\n'
                                               'CCL_NAMESPACE_END\n\n'
                                               )) as mf:
-            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+            with patch('code_generation.writes_svm.WritesSVM.generate_svm_compile_func',
                        mock_svm_manager):
                 with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)
@@ -3338,7 +3338,7 @@ class TestCodeGeneration(unittest.TestCase):
                                               '}\n\n'
                                               'CCL_NAMESPACE_END\n\n'
                                               )) as mf:
-            with patch('code_generation.svm_code_generator.SVMCompilationManager.generate_svm_compile_func',
+            with patch('code_generation.writes_svm.WritesSVM.generate_svm_compile_func',
                        mock_svm_manager):
                 with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     code_gen = CodeGenerator(self.mock_gui)

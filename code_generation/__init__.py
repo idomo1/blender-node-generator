@@ -3,9 +3,9 @@ import re
 from collections import defaultdict
 
 from . import code_generator_util
-from .svm_code_generator import SVMCompilationManager
-from .glsl_code_generator import GLSLCodeManager
-from .cmake_code_generator import CMakeCodeManager
+from .writes_svm import WritesSVM
+from .writes_glsl import WritesGLSL
+from .writes_cmake import WritesCMake
 
 
 class CodeGenerator:
@@ -478,7 +478,7 @@ class CodeGenerator:
         Generate node gpu function code
         :return: gpu function as text
         """
-        glsl_manager = GLSLCodeManager(self._gui)
+        glsl_manager = WritesGLSL(self._gui)
         return glsl_manager.generate_gpu_func()
 
     def _generate_node_shader_socket_availability(self):
@@ -889,7 +889,7 @@ class CodeGenerator:
             props = self._gui.get_props()
             sockets = self._gui.get_node_sockets()
 
-            svm_node_manager = SVMCompilationManager(self._gui)
+            svm_node_manager = WritesSVM(self._gui)
 
             socket_defs = []
             for prop in props:
@@ -1074,13 +1074,13 @@ class CodeGenerator:
         self._add_cycles_node()
         self._add_call_node_register()
 
-        svm_manager = svm_code_generator.SVMCompilationManager(self._gui)
+        svm_manager = writes_svm.WritesSVM(self._gui)
         svm_manager.add_svm_shader()
         svm_manager.add_register_svm()
         svm_manager.add_svm_types()
 
-        glsl_manager = GLSLCodeManager(self._gui)
+        glsl_manager = WritesGLSL(self._gui)
         glsl_manager.add_glsl_shader()
 
-        cmake_manager = CMakeCodeManager(self._gui)
+        cmake_manager = WritesCMake(self._gui)
         cmake_manager.add_to_cmake()
