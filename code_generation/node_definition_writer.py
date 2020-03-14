@@ -2,11 +2,13 @@ from os import path
 
 from . import code_generator_util
 from . import GLSLWriter
+from .node_register_writer import NodeRegisterWriter
 
 
 class NodeDefinitionWriter:
-
+    """Writes node_shader_*.c"""
     def __init__(self, gui):
+        self._node_register_writer = NodeRegisterWriter(gui)
         self._glsl_writer = GLSLWriter(gui)
         self._node_sockets = gui.get_node_sockets()
         self._type_suffix_abbreviated = gui.type_suffix_abbreviated()
@@ -18,7 +20,6 @@ class NodeDefinitionWriter:
         self._uses_texture_mapping = gui.uses_texture_mapping()
         self._socket_availability_changes = gui.socket_availability_changes()
         self._socket_availability_maps = gui.get_socket_availability_maps()
-        self._node_group = gui.get_node_group()
         self._source_path = gui.get_source_path()
 
     def _generate_node_shader_sockets(self):
@@ -285,60 +286,6 @@ class NodeDefinitionWriter:
             availability=''.join(socket_availability))
         return socket_availability_func
 
-    def _generate_node_shader_register(self):
-        register_text = 'void register_node_type_sh_{suff}{name}(void)' \
-                        '{{' \
-                        'static bNodeType ntype;\n\n' \
-                        'sh_node_type_base(&ntype, SH_NODE_{SUFF}{NAME}, "{Name}", NODE_CLASS_{CLASS}, 0);' \
-                        'node_type_socket_templates(&ntype, {sockets_in}, {sockets_out});' \
-                        '{init}' \
-                        '{storage}' \
-                        'node_type_gpu(&ntype, gpu_shader_{suff}{name});' \
-                        '{update}\n\n' \
-                        'nodeRegisterType(&ntype);' \
-                        '}}\n'.format(suff='{suff}_'.format(
-            suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
-                                      name=code_generator_util.string_lower_underscored(self._node_name),
-                                      SUFF='{SUFF}_'.format(
-                                          SUFF=self._type_suffix_abbreviated.upper()) if self._type_suffix_abbreviated else '',
-                                      NAME=code_generator_util.string_upper_underscored(self._node_name),
-                                      Name=code_generator_util.string_capitalized_spaced(self._node_name),
-                                      CLASS=self._node_group.upper(),
-                                      sockets_in='sh_node_{suff}{name}_in'.format(
-                                          suff='{suff}_'.format(
-                                              suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
-                                          name=code_generator_util.string_lower_underscored(
-                                              self._node_name)) if len(
-                                          [sock for sock in self._node_sockets if
-                                           sock['type'] == 'Input' and sock['data-type'] != 'String']) > 0 else 'NULL',
-                                      sockets_out='sh_node_{suff}{name}_out'.format(
-                                          suff='{suff}_'.format(
-                                              suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
-                                          name=code_generator_util.string_lower_underscored(
-                                              self._node_name)) if len(
-                                          [sock for sock in self._node_sockets if
-                                           sock['type'] == 'Output' and sock['data-type'] != 'String']) > 0 else 'NULL',
-                                      init='node_type_init(&ntype, node_shader_init_{tex}{name});'.format(
-                                          tex='{suff}_'.format(
-                                              suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
-                                          name=code_generator_util.string_lower_underscored(
-                                              self._node_name)) if self._node_has_properties else '',
-                                      storage='node_type_storage(&ntype, "Node{Suff}{Name}", node_free_standard_storage, node_copy_standard_storage);'.format(
-                                          Suff=self._type_suffix_abbreviated.capitalize(),
-                                          Name=code_generator_util.string_capitalized_no_space(
-                                              self._node_name)
-                                      )
-                                      if code_generator_util.uses_dna(
-                                          self._props,
-                                          self._node_type) else 'node_type_storage(&ntype, "", NULL, NULL);',
-                                      Suff=self._type_suffix_abbreviated.capitalize(),
-                                      update='node_type_update(&ntype, node_shader_update_{suff}{name});'.format(
-                                          suff='{suff}_'.format(
-                                              suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
-                                          name=code_generator_util.string_lower_underscored(self._node_name))
-                                      if self._socket_availability_changes else '')
-        return register_text
-
     def write_node_definition_file(self):
         """node_shader_*.c"""
         file_path = path.join(self._source_path, "source", "blender", "nodes", "shader", "nodes",
@@ -361,7 +308,7 @@ class NodeDefinitionWriter:
 
             file_lines.append(self._generate_node_shader_socket_availability())
 
-            file_lines.append(self._generate_node_shader_register())
+            file_lines.append(self._node_register_writer.generate_node_shader_register())
 
             f.writelines(file_lines)
 

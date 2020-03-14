@@ -9,6 +9,7 @@ from .cmake_writer import CMakeWriter
 from .node_definition_writer import NodeDefinitionWriter
 from .osl_writer import OSLWriter
 from .dna_writer import DNAWriter
+from .node_register_writer import NodeRegisterWriter
 
 
 class CodeGenerator:
@@ -258,53 +259,6 @@ class CodeGenerator:
                 f.writelines(lines)
                 f.truncate()
         code_generator_util.apply_clang_formatting(drawnode_path, self._gui.get_source_path())
-
-    def _add_node_register(self):
-        """NOD_shader.h"""
-        file_path = path.join(self._gui.get_source_path(), "source", "blender", "nodes", "NOD_shader.h")
-        with open(file_path, 'r+') as f:
-
-            func = 'void register_node_type_sh_{suff}{name}(void);\n'. \
-                format(suff="{suff}_".format(
-                suff=self._gui.type_suffix_abbreviated()) if self._gui.type_suffix_abbreviated() else '',
-                       name=code_generator_util.string_lower_underscored(self._gui.get_node_name()))
-
-            f.seek(0, SEEK_END)
-            f.seek(f.tell() - 500, SEEK_SET)
-            line = f.readline()
-            while line != '\n':
-                if line == '':
-                    raise Exception("Reached end of file")
-                line = f.readline()
-            f.seek(f.tell() - 2, SEEK_SET)
-            f.write(func)
-            f.write('\n'
-                    'void register_node_type_sh_custom_group(bNodeType *ntype);\n'
-                    '\n'
-                    '#endif\n'
-                    '\n')
-
-    def _add_call_node_register(self):
-        """node.c"""
-        file_path = path.join(self._gui.get_source_path(), "source", "blender", "blenkernel", "intern", "node.c")
-        with open(file_path, 'r+') as f:
-            lines = f.readlines()
-            for i, line in enumerate(lines):
-                if line == 'static void registerShaderNodes(void)\n':
-                    while lines[i] != '}\n':
-                        i += 1
-                    lines.insert(i, 'register_node_type_sh_{suff}{name}();'.format(
-                        suff='{suff}_'.format(suff=self._gui.type_suffix_abbreviated()) if self._gui.type_suffix_abbreviated() else '',
-                        name=code_generator_util.string_lower_underscored(self._gui.get_node_name())
-                    ))
-                    break
-            else:
-                raise Exception("Match not found")
-
-            f.seek(0)
-            f.writelines(lines)
-            f.truncate()
-        code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_cycles_class(self):
         """nodes.h"""
@@ -576,12 +530,10 @@ class CodeGenerator:
         self._add_node_type_id()
         self._add_node_drawing()
         self._add_cycles_class()
-        self._add_node_register()
         self._add_rna_properties()
         self._add_cycles_class_instance()
         self._add_node_definition()
         self._add_cycles_node()
-        self._add_call_node_register()
 
         svm_manager = svm_writer.SVMWriter(self._gui)
         svm_manager.add_svm_shader()
@@ -602,3 +554,7 @@ class CodeGenerator:
 
         dna_writer = DNAWriter(self._gui)
         dna_writer.write_dna_node_type()
+
+        register_writer = NodeRegisterWriter(self._gui)
+        register_writer.write_call_node_register()
+        register_writer.write_node_register()

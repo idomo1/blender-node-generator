@@ -388,32 +388,6 @@ class TestWritesNodeDefinition(unittest.TestCase):
                                 'nodeSetSocketAvailability(outSocket2Sock, node->custom1 != SHD_NODE_NAME_PROP2 && (node->custom2 >> 0) & 1 != 0 && (node->custom2 >> 1) & 1 != 0);'
                                 '}\n\n')
 
-    def test_generate_node_register_no_dna_correct_formatting(self):
-        props = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE",
-             "options": [{"name": "prop1", "desc": "Short description"},
-                         {"name": "prop2", "desc": "Short description"}],
-             "default": 'prop1'},
-            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE",
-             "options": [{"name": "prop3", "desc": "Short description"},
-                         {"name": "prop4", "desc": "Short description"}],
-             "default": 'prop3'}]
-        code_gen = self._create_default_class(props=props)
-        text = code_gen._generate_node_shader_register()
-
-        self.assertTrue(text == 'void register_node_type_sh_node_name(void)'
-                                '{'
-                                'static bNodeType ntype;\n\n'
-                                'sh_node_type_base(&ntype, SH_NODE_NODE_NAME, "Node Name", NODE_CLASS_SHADER, 0);'
-                                'node_type_socket_templates(&ntype, sh_node_node_name_in, sh_node_node_name_out);'
-                                'node_type_init(&ntype, node_shader_init_node_name);'
-                                'node_type_storage(&ntype, "", NULL, NULL);'
-                                'node_type_gpu(&ntype, gpu_shader_node_name);'
-                                'node_type_update(&ntype, node_shader_update_node_name);'
-                                '\n\n'
-                                'nodeRegisterType(&ntype);'
-                                '}\n')
-
     def test_generate_node_init_correct_formatting(self):
         code_gen = self._create_default_class()
         text = code_gen._generate_node_shader_init()
@@ -530,73 +504,6 @@ class TestWritesNodeDefinition(unittest.TestCase):
                                 'node->custom2 |= 0 << 1;'
                                 'node->custom3 = 0.0f;\n\n'
                                 '}\n\n')
-
-    def test_generate_node_register_correct_formatting(self):
-        code_gen = self._create_default_class()
-        text = code_gen._generate_node_shader_register()
-
-        self.assertTrue(text == 'void register_node_type_sh_node_name(void)'
-                                '{'
-                                'static bNodeType ntype;\n\n'
-                                'sh_node_type_base(&ntype, SH_NODE_NODE_NAME, "Node Name", NODE_CLASS_SHADER, 0);'
-                                'node_type_socket_templates(&ntype, sh_node_node_name_in, sh_node_node_name_out);'
-                                'node_type_init(&ntype, node_shader_init_node_name);'
-                                'node_type_storage(&ntype, "NodeNodeName", node_free_standard_storage, node_copy_standard_storage);'
-                                'node_type_gpu(&ntype, gpu_shader_node_name);'
-                                'node_type_update(&ntype, node_shader_update_node_name);'
-                                '\n\n'
-                                'nodeRegisterType(&ntype);'
-                                '}\n')
-
-    def test_generate_node_register_texture_node_correct_formatting(self):
-        code_gen = self._create_default_class(node_type='Texture', node_group='Texture')
-        text = code_gen._generate_node_shader_register()
-
-        self.assertTrue(text == 'void register_node_type_sh_tex_node_name(void)'
-                                '{'
-                                'static bNodeType ntype;\n\n'
-                                'sh_node_type_base(&ntype, SH_NODE_TEX_NODE_NAME, "Node Name", NODE_CLASS_TEXTURE, 0);'
-                                'node_type_socket_templates(&ntype, sh_node_tex_node_name_in, sh_node_tex_node_name_out);'
-                                'node_type_init(&ntype, node_shader_init_tex_node_name);'
-                                'node_type_storage(&ntype, "NodeTexNodeName", node_free_standard_storage, node_copy_standard_storage);'
-                                'node_type_gpu(&ntype, gpu_shader_tex_node_name);'
-                                'node_type_update(&ntype, node_shader_update_tex_node_name);'
-                                '\n\n'
-                                'nodeRegisterType(&ntype);'
-                                '}\n')
-
-    def test_generate_node_register_bsdf_node_correct_formatting(self):
-        code_gen = self._create_default_class(node_type='Bsdf')
-        text = code_gen._generate_node_shader_register()
-
-        self.assertTrue(text == 'void register_node_type_sh_bsdf_node_name(void)'
-                                '{'
-                                'static bNodeType ntype;\n\n'
-                                'sh_node_type_base(&ntype, SH_NODE_BSDF_NODE_NAME, "Node Name", NODE_CLASS_SHADER, 0);'
-                                'node_type_socket_templates(&ntype, sh_node_bsdf_node_name_in, sh_node_bsdf_node_name_out);'
-                                'node_type_init(&ntype, node_shader_init_bsdf_node_name);'
-                                'node_type_storage(&ntype, "NodeBsdfNodeName", node_free_standard_storage, node_copy_standard_storage);'
-                                'node_type_gpu(&ntype, gpu_shader_bsdf_node_name);'
-                                'node_type_update(&ntype, node_shader_update_bsdf_node_name);'
-                                '\n\n'
-                                'nodeRegisterType(&ntype);'
-                                '}\n')
-
-    def test_generate_node_register_no_update_correct_formatting(self):
-        code_gen = self._create_default_class(socket_availability_changes=False)
-        text = code_gen._generate_node_shader_register()
-
-        self.assertTrue(text == 'void register_node_type_sh_node_name(void)'
-                                '{'
-                                'static bNodeType ntype;\n\n'
-                                'sh_node_type_base(&ntype, SH_NODE_NODE_NAME, "Node Name", NODE_CLASS_SHADER, 0);'
-                                'node_type_socket_templates(&ntype, sh_node_node_name_in, sh_node_node_name_out);'
-                                'node_type_init(&ntype, node_shader_init_node_name);'
-                                'node_type_storage(&ntype, "NodeNodeName", node_free_standard_storage, node_copy_standard_storage);'
-                                'node_type_gpu(&ntype, gpu_shader_node_name);'
-                                '\n\n'
-                                'nodeRegisterType(&ntype);'
-                                '}\n')
 
     def test_generate_socket_definitions_correct_formatting(self):
         code_gen = self._create_default_class()
@@ -734,8 +641,6 @@ class TestWritesNodeDefinition(unittest.TestCase):
                         '{SOCK_VECTOR, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
-
-
 
 
 if __name__ == '__main__':
