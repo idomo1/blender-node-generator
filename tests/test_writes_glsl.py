@@ -37,7 +37,7 @@ class TestWritesGLSL(unittest.TestCase):
                                                         'min': "-1.0", 'max': "1.0", 'default': "0.5"},
                                                        {'type': "Output", 'name': "socket2", 'data-type': "Float",
                                                         'sub-type': 'PROP_NONE', 'flag': 'None',
-                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}]
+                                                        'min': "-1.0", 'max': "1.0", 'default': "0.5"}] if sockets is None else sockets
         self.mock_gui.uses_texture_mapping.return_value = uses_texture_mapping
         if node_type == 'Texture':
             suff = 'tex'
