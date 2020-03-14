@@ -7,6 +7,7 @@ from .writes_svm import WritesSVM
 from .writes_glsl import WritesGLSL
 from .writes_cmake import WritesCMake
 from .writes_node_definition import WritesNodeDefinition
+from .writes_osl import WritesOSL
 
 
 class CodeGenerator:
@@ -652,61 +653,7 @@ class CodeGenerator:
             f.writelines(lines)
             f.truncate()
 
-    def _add_osl_shader(self):
-        """"""
-        node_name_underscored = code_generator_util.string_lower_underscored(self._gui.get_node_name())
-        osl_path = path.join(self._gui.get_source_path(), "intern", "cycles", "kernel", "shaders",
-                             "node_{name}{suffix}.osl".format(
-                                 name=node_name_underscored,
-                                 suffix='_{suffix}'.format(
-                                     suffix=self._gui.type_suffix()) if self._gui.type_suffix() else ''
-                             ))
-        with open(osl_path, "w") as osl_f:
-            code_generator_util.write_license(osl_f)
-
-            # Must include stdcycles for closure type definition
-            if any(sock['data-type'] == 'Shader' for sock in self._gui.get_node_sockets()):
-                osl_f.write('#include "stdcycles.h"\n\n')
-            else:
-                osl_f.write('#include "stdosl.h"\n\n')
-
-            props = self._gui.get_props()
-            sockets = self._gui.get_node_sockets()
-
-            type_conversion = {"Boolean": "int", "String": "string", "Int": "int", "Float": "float", "Enum": "string",
-                               "Vector": "point", "RGBA": "point", 'Shader': 'closure color'}
-
-            out_socket_default = {"RGBA": "0.0", "Shader": "0", "Vector": "point(0.0, 0.0, 0.0)", "Float": "0.0"}
-
-            function = "shader node_{name}{suffix}({mapping}{props}{in_sockets}{out_sockets}){{}}\n".format(
-                name=node_name_underscored,
-                suffix='_{suffix}'.format(suffix=self._gui.type_suffix()) if self._gui.type_suffix() else '',
-                mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),'
-                if self._gui.uses_texture_mapping() else '',
-                props=''.join('{type} {name} = {default},'.format(
-                    type=type_conversion[prop['data-type']],
-                    name=code_generator_util.string_lower_underscored(prop['name']),
-                    default='"{default}"'.format(default=prop['default']) if prop['data-type'] == 'Enum' else prop[
-                        'default'])
-                              for prop in props if prop['data-type'] != 'String'),
-                in_sockets=''.join(['{type} {name} = {default},'.format(
-                    type=type_conversion[socket['data-type']],
-                    name=code_generator_util.string_capitalized_no_space(socket['name']),
-                    default=socket['default'] if socket['data-type'] not in ['Vector', 'RGBA', 'Shader'] else
-                    'point({0})'.format(socket['default'].replace(',', ', ')))
-                    for socket in sockets if socket['type'] == 'Input' and socket['data-type'] != 'String']),
-                out_sockets=','.join(
-                    ['output {type} {name} = {default}'.format(
-                        type=type_conversion[socket['data-type']],
-                        name=code_generator_util.string_capitalized_no_space(socket['name']),
-                        default=out_socket_default[socket['data-type']])
-                        for socket in sockets if socket['type'] == 'Output']))
-
-            osl_f.write(function)
-        code_generator_util.apply_clang_formatting(osl_path, self._gui.get_source_path())
-
     def generate_node(self):
-        self._add_osl_shader()
         self._add_to_node_menu()
         self._add_node_type_id()
         self._add_dna_node_type()
@@ -732,3 +679,6 @@ class CodeGenerator:
 
         node_definition_writer = WritesNodeDefinition(self._gui)
         node_definition_writer.write_node_definition_file()
+
+        osl_writer = WritesOSL(self._gui)
+        osl_writer.write_osl_shader()
