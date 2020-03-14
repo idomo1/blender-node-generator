@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import patch, mock_open
 
-from code_generation.writes_node_definition import WritesNodeDefinition
+from code_generation.node_definition_writer import NodeDefinitionWriter
 
 
 class TestWritesNodeDefinition(unittest.TestCase):
@@ -69,7 +69,7 @@ class TestWritesNodeDefinition(unittest.TestCase):
                                                                                    ('box2=False', True)]}] if socket_availability is None else socket_availability
         self._mock_gui.get_node_group.return_value = node_group
         self._mock_gui.socket_availability_changes.return_value = socket_availability_changes
-        return WritesNodeDefinition(self._mock_gui)
+        return NodeDefinitionWriter(self._mock_gui)
 
     def test_generate_socket_definitions_vector_correct_formatting(self):
         sockets = [{'type': "Input", 'name': "socket1", 'data-type': "Vector",

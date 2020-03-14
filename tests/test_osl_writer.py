@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch, call, mock_open
 
-from code_generation import WritesOSL
+from code_generation import OSLWriter
 
 
 class TestWritesOsl(unittest.TestCase):
@@ -43,7 +43,7 @@ class TestWritesOsl(unittest.TestCase):
             suffix = ''
         self._mock_gui.type_suffix.return_value = suffix
 
-        return WritesOSL(self._mock_gui)
+        return OSLWriter(self._mock_gui)
 
     def test_write_osl_file_correct_formatting(self):
         """Test OSL function generation is correct for paramaters"""

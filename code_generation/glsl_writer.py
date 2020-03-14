@@ -4,7 +4,7 @@ from os import path
 from . import code_generator_util
 
 
-class WritesGLSL:
+class GLSLWriter:
     """
     Writes GLSL related code
     Keeps GLSL parameters consistent between files

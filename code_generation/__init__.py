@@ -3,11 +3,11 @@ import re
 from collections import defaultdict
 
 from . import code_generator_util
-from .writes_svm import WritesSVM
-from .writes_glsl import WritesGLSL
-from .writes_cmake import WritesCMake
-from .writes_node_definition import WritesNodeDefinition
-from .writes_osl import WritesOSL
+from .svm_writer import SVMWriter
+from .glsl_writer import GLSLWriter
+from .cmake_writer import CMakeWriter
+from .node_definition_writer import NodeDefinitionWriter
+from .osl_writer import OSLWriter
 
 
 class CodeGenerator:
@@ -536,7 +536,7 @@ class CodeGenerator:
             props = self._gui.get_props()
             sockets = self._gui.get_node_sockets()
 
-            svm_node_manager = WritesSVM(self._gui)
+            svm_node_manager = SVMWriter(self._gui)
 
             socket_defs = []
             for prop in props:
@@ -666,19 +666,19 @@ class CodeGenerator:
         self._add_cycles_node()
         self._add_call_node_register()
 
-        svm_manager = writes_svm.WritesSVM(self._gui)
+        svm_manager = svm_writer.SVMWriter(self._gui)
         svm_manager.add_svm_shader()
         svm_manager.add_register_svm()
         svm_manager.add_svm_types()
 
-        glsl_manager = WritesGLSL(self._gui)
+        glsl_manager = GLSLWriter(self._gui)
         glsl_manager.add_glsl_shader()
 
-        cmake_manager = WritesCMake(self._gui)
+        cmake_manager = CMakeWriter(self._gui)
         cmake_manager.add_to_cmake()
 
-        node_definition_writer = WritesNodeDefinition(self._gui)
+        node_definition_writer = NodeDefinitionWriter(self._gui)
         node_definition_writer.write_node_definition_file()
 
-        osl_writer = WritesOSL(self._gui)
+        osl_writer = OSLWriter(self._gui)
         osl_writer.write_osl_shader()

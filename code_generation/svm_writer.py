@@ -3,7 +3,7 @@ from os import path
 from . import code_generator_util
 
 
-class WritesSVM:
+class SVMWriter:
     """
     Writes code related to SVM
     Keeps svm parameters consistent between files

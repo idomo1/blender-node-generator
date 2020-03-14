@@ -1,13 +1,13 @@
 from os import path
 
 from . import code_generator_util
-from . import WritesGLSL
+from . import GLSLWriter
 
 
-class WritesNodeDefinition:
+class NodeDefinitionWriter:
 
     def __init__(self, gui):
-        self._glsl_writer = WritesGLSL(gui)
+        self._glsl_writer = GLSLWriter(gui)
         self._node_sockets = gui.get_node_sockets()
         self._type_suffix_abbreviated = gui.type_suffix_abbreviated()
         self._node_name = gui.get_node_name()

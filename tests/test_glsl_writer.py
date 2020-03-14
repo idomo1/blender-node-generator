@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import patch
 
-from code_generation.writes_glsl import WritesGLSL
+from code_generation.glsl_writer import GLSLWriter
 
 
 class TestWritesGLSL(unittest.TestCase):
@@ -51,7 +51,7 @@ class TestWritesGLSL(unittest.TestCase):
 
         self.mock_gui.type_suffix_abbreviated.return_value = suff
         self.mock_gui.type_suffix.return_value = suffix
-        return WritesGLSL(self.mock_gui)
+        return GLSLWriter(self.mock_gui)
 
     def test_generate_func_names_0_dropdowns_correct_formatting(self):
         glsl = self._create_default_class(props=[])
@@ -176,9 +176,9 @@ class TestWritesGLSL(unittest.TestCase):
 
         func_name_mock = mock.Mock()
         func_name_mock.return_value = 'names[attr->dropdown1][attr->dropdown2]'
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_additional_params',
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_additional_params',
                    additional_params_mock):
-            with patch('code_generation.writes_glsl.WritesGLSL._generate_get_function_name',
+            with patch('code_generation.writes_glsl.GLSLWriter._generate_get_function_name',
                        func_name_mock):
                 glsl = self._create_default_class()
                 statement = glsl._generate_return_statement()
@@ -193,7 +193,7 @@ class TestWritesGLSL(unittest.TestCase):
         names_mock = mock.Mock()
         names_mock.return_value = []
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_shader_func_names', names_mock):
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_shader_func_names', names_mock):
             glsl = self._create_default_class(props=[])
             arr = glsl._generate_names_array()
             self.assertTrue(arr == '')
@@ -202,7 +202,7 @@ class TestWritesGLSL(unittest.TestCase):
         names_mock = mock.Mock()
         names_mock.return_value = ['"node_node_name_prop1"', '"node_node_name_prop2"']
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_shader_func_names', names_mock):
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_shader_func_names', names_mock):
             props = [{"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE",
                       "options": [{"name": "prop1", "desc": "Short description"},
                                   {"name": "prop2", "desc": "Short description"}],
@@ -221,7 +221,7 @@ class TestWritesGLSL(unittest.TestCase):
         names_mock.return_value = [['"node_node_name_prop1_prop3"', '"node_node_name_prop1_prop4"'],
                                    ['"node_node_name_prop2_prop3"', '"node_node_name_prop2_prop4"']]
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_shader_func_names', names_mock):
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_shader_func_names', names_mock):
             glsl = self._create_default_class()
             arr = glsl._generate_names_array()
             self.assertTrue(arr == 'static const char *names[][2] = {'
@@ -317,7 +317,7 @@ class TestWritesGLSL(unittest.TestCase):
         assertions_mock = mock.Mock()
         assertions_mock.return_value = 'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);' \
                                        'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n'
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_assertions', assertions_mock):
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_assertions', assertions_mock):
             glsl = self._create_default_class()
             props = glsl._generate_retrieve_props()
 
@@ -333,7 +333,7 @@ class TestWritesGLSL(unittest.TestCase):
         assertions_mock = mock.Mock()
         assertions_mock.return_value = 'BLI_assert(tex->dropdown1 >= 0 && tex->dropdown1 < 3);' \
                                        'BLI_assert(tex->dropdown2 >= 0 && tex->dropdown2 < 3);\n\n'
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_assertions', assertions_mock):
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_assertions', assertions_mock):
             glsl = self._create_default_class(node_type='Texture')
             props = glsl._generate_retrieve_props()
 
@@ -349,7 +349,7 @@ class TestWritesGLSL(unittest.TestCase):
         assertions_mock = mock.Mock()
         assertions_mock.return_value = 'BLI_assert(attr->dropdown1 >= 0 && attr->dropdown1 < 3);' \
                                        'BLI_assert(attr->dropdown2 >= 0 && attr->dropdown2 < 3);\n\n'
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_assertions', assertions_mock):
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_assertions', assertions_mock):
             glsl = self._create_default_class(node_type='Bsdf')
             props = glsl._generate_retrieve_props()
 
@@ -364,7 +364,7 @@ class TestWritesGLSL(unittest.TestCase):
     def test_generate_retrieve_props_no_props_correct_formatting(self):
         assertions_mock = mock.Mock()
         assertions_mock.return_value = ''
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_assertions', assertions_mock):
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_assertions', assertions_mock):
             glsl = self._create_default_class(props=[])
             props = glsl._generate_retrieve_props()
             self.assertTrue(props == '')
@@ -407,12 +407,12 @@ class TestWritesGLSL(unittest.TestCase):
                                              'GPU_constant(&box2), ' \
                                              'GPU_constant(&float1));'
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_names_array', names_array_mock):
-            with patch('code_generation.writes_glsl.WritesGLSL._generate_retrieve_props',
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_names_array', names_array_mock):
+            with patch('code_generation.writes_glsl.GLSLWriter._generate_retrieve_props',
                        retrieve_props_mock):
-                with patch('code_generation.writes_glsl.WritesGLSL._generate_additional_params',
+                with patch('code_generation.writes_glsl.GLSLWriter._generate_additional_params',
                            additional_params_mock):
-                    with patch('code_generation.writes_glsl.WritesGLSL._generate_return_statement',
+                    with patch('code_generation.writes_glsl.GLSLWriter._generate_return_statement',
                                return_statement_mock):
                         glsl = self._create_default_class()
                         func = glsl.generate_gpu_func()
@@ -489,12 +489,12 @@ class TestWritesGLSL(unittest.TestCase):
                                              'GPU_constant(&box2), ' \
                                              'GPU_constant(&float1));'
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_names_array', names_array_mock):
-            with patch('code_generation.writes_glsl.WritesGLSL._generate_retrieve_props',
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_names_array', names_array_mock):
+            with patch('code_generation.writes_glsl.GLSLWriter._generate_retrieve_props',
                        retrieve_props_mock):
-                with patch('code_generation.writes_glsl.WritesGLSL._generate_additional_params',
+                with patch('code_generation.writes_glsl.GLSLWriter._generate_additional_params',
                            additional_params_mock):
-                    with patch('code_generation.writes_glsl.WritesGLSL._generate_return_statement',
+                    with patch('code_generation.writes_glsl.GLSLWriter._generate_return_statement',
                                return_statement_mock):
                         glsl = self._create_default_class(node_type='Texture', uses_texture_mapping=True)
                         func = glsl.generate_gpu_func()
@@ -573,12 +573,12 @@ class TestWritesGLSL(unittest.TestCase):
                                              'GPU_constant(&box2), ' \
                                              'GPU_constant(&float1));'
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_names_array', names_array_mock):
-            with patch('code_generation.writes_glsl.WritesGLSL._generate_retrieve_props',
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_names_array', names_array_mock):
+            with patch('code_generation.writes_glsl.GLSLWriter._generate_retrieve_props',
                        retrieve_props_mock):
-                with patch('code_generation.writes_glsl.WritesGLSL._generate_additional_params',
+                with patch('code_generation.writes_glsl.GLSLWriter._generate_additional_params',
                            additional_params_mock):
-                    with patch('code_generation.writes_glsl.WritesGLSL._generate_return_statement',
+                    with patch('code_generation.writes_glsl.GLSLWriter._generate_return_statement',
                                return_statement_mock):
                         glsl = self._create_default_class(node_type='Bsdf')
                         func = glsl.generate_gpu_func()
@@ -655,12 +655,12 @@ class TestWritesGLSL(unittest.TestCase):
                                              'GPU_constant(&box2), ' \
                                              'GPU_constant(&float1));'
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_names_array', names_array_mock):
-            with patch('code_generation.writes_glsl.WritesGLSL._generate_retrieve_props',
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_names_array', names_array_mock):
+            with patch('code_generation.writes_glsl.GLSLWriter._generate_retrieve_props',
                        retrieve_props_mock):
-                with patch('code_generation.writes_glsl.WritesGLSL._generate_additional_params',
+                with patch('code_generation.writes_glsl.GLSLWriter._generate_additional_params',
                            additional_params_mock):
-                    with patch('code_generation.writes_glsl.WritesGLSL._generate_return_statement',
+                    with patch('code_generation.writes_glsl.GLSLWriter._generate_return_statement',
                                return_statement_mock):
                         glsl = self._create_default_class(node_type='Texture')
                         func = glsl.generate_gpu_func()
@@ -713,12 +713,12 @@ class TestWritesGLSL(unittest.TestCase):
         return_statement_mock.return_value = 'return GPU_stack_link(mat, node, ' \
                                              '"node_node_name", in, out);'
 
-        with patch('code_generation.writes_glsl.WritesGLSL._generate_names_array', names_array_mock):
-            with patch('code_generation.writes_glsl.WritesGLSL._generate_retrieve_props',
+        with patch('code_generation.writes_glsl.GLSLWriter._generate_names_array', names_array_mock):
+            with patch('code_generation.writes_glsl.GLSLWriter._generate_retrieve_props',
                        retrieve_props_mock):
-                with patch('code_generation.writes_glsl.WritesGLSL._generate_additional_params',
+                with patch('code_generation.writes_glsl.GLSLWriter._generate_additional_params',
                            additional_params_mock):
-                    with patch('code_generation.writes_glsl.WritesGLSL._generate_return_statement',
+                    with patch('code_generation.writes_glsl.GLSLWriter._generate_return_statement',
                                return_statement_mock):
                         glsl = self._create_default_class(props=[])
                         func = glsl.generate_gpu_func()

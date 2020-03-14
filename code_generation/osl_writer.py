@@ -3,7 +3,7 @@ from os import path
 from . import code_generator_util
 
 
-class WritesOSL:
+class OSLWriter:
     """Writes OSL related code"""
     def __init__(self, gui):
         self._source_path = gui.get_source_path()

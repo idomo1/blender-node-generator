@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import patch
 
-from code_generation import WritesSVM
+from code_generation import SVMWriter
 
 
 class TestWritesSVM(unittest.TestCase):
@@ -53,7 +53,7 @@ class TestWritesSVM(unittest.TestCase):
 
         self.mock_gui.type_suffix_abbreviated.return_value = suff
         self.mock_gui.type_suffix.return_value = suffix
-        return WritesSVM(self.mock_gui)
+        return SVMWriter(self.mock_gui)
 
     def test_generate_param_names_correct_formatting(self):
         svm = self._create_default_svm_manager()
@@ -1076,10 +1076,10 @@ class TestWritesSVM(unittest.TestCase):
         mock_load_params.return_value = 'uint4 defaults1 = read_node(kg, offset);\n\n' \
                                         'float socket1 = stack_load_float_default(stack, socket1_stack_offset, defaults1.x);'
 
-        with patch('code_generation.WritesSVM._generate_shader_params', mock_params):
-            with patch('code_generation.WritesSVM._generate_offset_definitions', mock_offset):
-                with patch('code_generation.WritesSVM._generate_unpack', mock_unpack):
-                    with patch('code_generation.WritesSVM._generate_load_params', mock_load_params):
+        with patch('code_generation.SVMWriter._generate_shader_params', mock_params):
+            with patch('code_generation.SVMWriter._generate_offset_definitions', mock_offset):
+                with patch('code_generation.SVMWriter._generate_unpack', mock_unpack):
+                    with patch('code_generation.SVMWriter._generate_load_params', mock_load_params):
                         svm = self._create_default_svm_manager()
                         shader = svm._generate_svm_shader()
 
@@ -1151,7 +1151,7 @@ class TestWritesSVM(unittest.TestCase):
     def test_generate_svm_shader_case_with_additional_nodes_correct_formatting(self):
         param_mock = mock.Mock()
         param_mock.return_value = 'node.y, node.z, node.w'
-        with patch('code_generation.writes_svm.WritesSVM._generate_svm_shader_passed_params',
+        with patch('code_generation.writes_svm.SVMWriter._generate_svm_shader_passed_params',
                    param_mock):
             svm = self._create_default_svm_manager()
             case = svm._generate_svm_shader_case()
@@ -1162,7 +1162,7 @@ class TestWritesSVM(unittest.TestCase):
     def test_generate_svm_shader_case_no_nodes_correct_formatting(self):
         param_mock = mock.Mock()
         param_mock.return_value = 'node.y'
-        with patch('code_generation.writes_svm.WritesSVM._generate_svm_shader_passed_params',
+        with patch('code_generation.writes_svm.SVMWriter._generate_svm_shader_passed_params',
                    param_mock):
             props = [{'data-type': 'Enum'}]
             svm = self._create_default_svm_manager(props=props, sockets=[])
@@ -1180,9 +1180,9 @@ class TestWritesSVM(unittest.TestCase):
                                  'svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);' \
                                  'break;\n'
 
-        with patch('code_generation.writes_svm.WritesSVM._generate_svm_shader_include',
+        with patch('code_generation.writes_svm.SVMWriter._generate_svm_shader_include',
                    include_mock):
-            with patch('code_generation.writes_svm.WritesSVM._generate_svm_shader_case',
+            with patch('code_generation.writes_svm.SVMWriter._generate_svm_shader_case',
                        case_mock):
                 with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     with patch('builtins.open', mock.mock_open(read_data=
@@ -1220,9 +1220,9 @@ class TestWritesSVM(unittest.TestCase):
                                  'svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);' \
                                  'break;\n'
 
-        with patch('code_generation.writes_svm.WritesSVM._generate_svm_shader_include',
+        with patch('code_generation.writes_svm.SVMWriter._generate_svm_shader_include',
                    include_mock):
-            with patch('code_generation.writes_svm.WritesSVM._generate_svm_shader_case',
+            with patch('code_generation.writes_svm.SVMWriter._generate_svm_shader_case',
                        case_mock):
                 with patch('code_generation.code_generator_util.apply_clang_formatting'):
                     with patch('builtins.open', mock.mock_open(read_data=
@@ -1277,7 +1277,7 @@ class TestWritesSVM(unittest.TestCase):
                                    'NODE_NODE_NAME_PROP3 = 1,'
                                    'NODE_NODE_NAME_PROP4 = 2'
                                    '} NodeNodeNameDropdown2;')
-        with patch('code_generation.writes_svm.WritesSVM._generate_enum_typedefs', mock_enums):
+        with patch('code_generation.writes_svm.SVMWriter._generate_enum_typedefs', mock_enums):
             with patch('code_generation.code_generator_util.apply_clang_formatting'):
                 with patch('builtins.open', mock.mock_open(read_data=
                                                            'typedef enum ShaderNodeType {\n'
