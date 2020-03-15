@@ -10,6 +10,7 @@ from .node_definition_writer import NodeDefinitionWriter
 from .osl_writer import OSLWriter
 from .dna_writer import DNAWriter
 from .node_register_writer import NodeRegisterWriter
+from .rna_writer import RNAWriter
 
 
 class CodeGenerator:
@@ -39,118 +40,6 @@ class CodeGenerator:
             f.seek(0)
             f.write(file_text)
             f.truncate()
-
-    def _generate_enum_prop_item(self, enum):
-        """Generates RNA enum property item"""
-        if enum['data-type'] != 'Enum':
-            raise Exception("Given prop must be an Enum")
-
-        return 'static const EnumPropertyItem rna_enum_node_{suff}{enum}_items[] = {{' \
-               '{options}' \
-               '{{0, NULL, 0, NULL, NULL}},' \
-               '}};\n\n'.format(suff='{suff}_'.format(
-            suff=self._gui.type_suffix_abbreviated()) if self._gui.type_suffix_abbreviated() else '',
-                                enum=code_generator_util.string_lower_underscored(enum['name']),
-                                options=''.join('{{{i}, "{OPTION}", 0, "{Option}", "{desc}"}},'.format(
-                                    i=i + 1,
-                                    OPTION=code_generator_util.string_upper_underscored(option['name']),
-                                    Option=code_generator_util.string_capitalized_spaced(option['name']),
-                                    desc=option['desc']
-                                ) for i, option in enumerate(enum['options'])))
-
-    def _add_rna_properties(self):
-        """rna_nodetree.c"""
-        if self._gui.node_has_properties():
-            file_path = path.join(self._gui.get_source_path(), "source", "blender", "makesrna", "intern",
-                                  "rna_nodetree.c")
-            with open(file_path, 'r+') as f:
-                props = []
-                enum_defs = []
-                s_custom_i = 1
-                f_custom_i = 3
-                uses_dna = code_generator_util.uses_dna(self._gui.get_props(), self._gui.get_node_type())
-                for prop in self._gui.get_props():
-                    if not uses_dna:
-                        if prop['data-type'] == "Enum" or prop['data-type'] == "Int":
-                            custom_i = s_custom_i
-                            s_custom_i += 1
-                        elif prop['data-type'] == "Boolean":
-                            custom_i = s_custom_i
-                        elif prop['data-type'] == "Float":
-                            custom_i = f_custom_i
-                            f_custom_i += 1
-                    if prop['data-type'] == "Enum":
-                        enum_name = 'rna_enum_node_{suff}{name}_items'. \
-                            format(suff='{suff}_'.format(
-                            suff=self._gui.type_suffix_abbreviated()) if self._gui.type_suffix_abbreviated() else '',
-                                   name=code_generator_util.string_lower_underscored(prop['name']))
-                        enum_defs.append(self._generate_enum_prop_item(prop))
-
-                    props.append('prop = RNA_def_property(srna, "{name}", PROP_{TYPE}, {SUBTYPE});'
-                                 'RNA_def_property_{type}_sdna(prop, NULL, "{sdna}"{enum});'
-                                 '{enum_items}'
-                                 '{prop_range}'
-                                 'RNA_def_property_ui_text(prop, "{Name}", "{desc}");'
-                                 'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");'.
-                        format(
-                        name=code_generator_util.string_lower_underscored(prop['name']),
-                        TYPE=code_generator_util.string_upper_underscored(prop['data-type']),
-                        SUBTYPE=prop['sub-type'],
-                        type=code_generator_util.string_lower_underscored(prop['data-type']),
-                        sdna=code_generator_util.string_lower_underscored(
-                            prop['name'] if uses_dna else "custom{index}".format(index=custom_i)),
-                        enum=', SHD_{NAME}_{PROP}'.format(
-                            NAME=code_generator_util.string_upper_underscored(self._gui.get_node_name()),
-                            PROP=code_generator_util.string_upper_underscored(prop['name']))
-                        if prop['data-type'] == "Boolean" else '',
-                        enum_items='RNA_def_property_enum_items(prop, {enum_name});'.format(enum_name=enum_name) if
-                        prop['data-type'] == "Enum" else '',
-                        prop_range='RNA_def_property_range(prop, {min}, {max});'.format(min=prop['min'],
-                                                                                        max=prop['max']) if prop[
-                                                                                                                'data-type'] == "Int" or
-                                                                                                            prop[
-                                                                                                                'data-type'] == "Float" else '',
-                        Name=code_generator_util.string_capitalized_spaced(prop['name']),
-                        desc=""))
-
-                func = 'static void def_sh_{suff}{name}(StructRNA *srna)\n' \
-                       '{{\n' \
-                       'PropertyRNA *prop;\n\n' \
-                       '{sdna}' \
-                       '{props}\n' \
-                       '}}\n\n'.format(suff="{suff}_".format(
-                    suff=self._gui.type_suffix_abbreviated()) if self._gui.type_suffix_abbreviated() else '',
-                                       name=self._gui.get_node_name().replace(" ", "_").lower(),
-                                       sdna='RNA_def_struct_sdna_from(srna, "Node{Tex}{Name}", "storage");\ndef_sh_tex(srna);\n\n'. \
-                                       format(Name=code_generator_util.string_capitalized_no_space(
-                                           self._gui.get_node_name()),
-                                           Tex="Tex" if self._gui.is_texture_node() else "")
-                                       if self._gui.is_texture_node() else '',
-                                       props="\n\n".join(props))
-                lines = f.readlines()
-                for i, line in enumerate(lines):
-                    if line == '/* -- Compositor Nodes ------------------------------------------------------ */\n':
-                        lines.insert(i, func)
-                        break
-                else:
-                    raise Exception("Reached end of file without match")
-
-                if len(enum_defs) > 0:
-                    for i, line in enumerate(lines):
-                        if line == '#ifndef RNA_RUNTIME\n':
-                            j = i
-                            while lines[j] != '#endif\n':
-                                j += 1
-                            for enum in enum_defs:
-                                lines.insert(j + 1, enum)
-                            break
-                    else:
-                        raise Exception("Reached end of file without match")
-
-                f.seek(0, SEEK_SET)
-                f.writelines(lines)
-                f.truncate()
-            code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_node_definition(self):
         """NOD_static_types.h"""
@@ -530,7 +419,6 @@ class CodeGenerator:
         self._add_node_type_id()
         self._add_node_drawing()
         self._add_cycles_class()
-        self._add_rna_properties()
         self._add_cycles_class_instance()
         self._add_node_definition()
         self._add_cycles_node()
@@ -558,3 +446,6 @@ class CodeGenerator:
         register_writer = NodeRegisterWriter(self._gui)
         register_writer.write_call_node_register()
         register_writer.write_node_register()
+
+        rna_writer = RNAWriter(self._gui)
+        rna_writer.write_rna_properties()
