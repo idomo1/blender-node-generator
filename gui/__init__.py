@@ -3,6 +3,8 @@ from tkinter.ttk import *
 from tkinter import messagebox
 import os
 
+from .node_config import NodeConfig
+
 
 class GUI:
     """
@@ -61,12 +63,40 @@ class GUI:
 
         self.generate_node()
 
+    def _save_config(self):
+        config = NodeConfig(self)
+        config.save_config()
+
+    def _load_config(self):
+        config = NodeConfig(self)
+        config.load_config()
+
+    def serialize(self):
+        return [self._general_GUI.serialize(),
+                self._socket_GUI.serialize(),
+                self._prop_GUI.serialize(),
+                self._socket_avail_GUI.serialize()]
+
+    def deserialize(self, data):
+        self._general_GUI.deserialize(data[0])
+        self._socket_GUI.deserialize(data[1])
+        self._prop_GUI.deserialize(data[2])
+        self._socket_avail_GUI.deserialize(data[3])     # Important to do last, reliant on socket/prop GUI
+
     def display(self):
         """Main driver to display the menu"""
         self.window = Tk()
 
         self.window.title(self._window_title)
         self.window.geometry(self._window_size)
+
+        # Top Menu
+        menubar = Menu(self.window)
+        filemenu = Menu(menubar, tearoff=0)
+        filemenu.add_command(label='Save', command=self._save_config)
+        filemenu.add_command(label='Load', command=self._load_config)
+        menubar.add_cascade(label='File', menu=filemenu)
+        self.window.config(menu=menubar)
 
         tab_control = Notebook(self.window)
 
@@ -313,6 +343,27 @@ class GeneralGUI:
             return False
         return True
 
+    def serialize(self):
+        """Return a serialized version of the GUI inputs"""
+        return {'name': self.get_node_name(),
+                'type': self.get_node_type(),
+                'group': self.get_node_group(),
+                'group-level': self.get_node_group_level(),
+                'path': self.get_source_path()}
+
+    def deserialize(self, data):
+        """Reconstruct GUI state from serialized object"""
+        self._name_input.delete(0, END)
+        self._name_input.insert(0, data['name'])
+        self._type_input.delete(0, END)
+        self._type_input.insert(0, data['type'])
+        self._group_input.delete(0, END)
+        self._group_input.insert(0, data['group'])
+        self._group_level_input.delete(0, END)
+        self._group_level_input.insert(0, data['group-level'])
+        self._path_input.delete(0, END)
+        self._path_input.insert(0, data['path'])
+
 
 class SocketDefinitionsGUI:
     """GUI for entering input and output sockets for the node"""
@@ -405,6 +456,20 @@ class SocketDefinitionsGUI:
             return False
         return True
 
+    def serialize(self):
+        """Return a serialized version of the GUI inputs"""
+        return self.get_sockets()
+
+    def deserialize(self, data):
+        """Reconstruct GUI state from serialized object"""
+        for el in self._ios:
+            el.destroy()
+        self._ios = [RemovableSocketDefinitionInput(self.window, 'IO') for _ in data]
+        for socket, serialized_socket in zip(self._ios, data):
+            socket.deserialize(serialized_socket)
+            socket.grid(row=self._row_i)
+            self._row_i += 1
+
 
 class SocketAvailabilityGUI:
     """Socket availability"""
@@ -424,7 +489,13 @@ class SocketAvailabilityGUI:
 
     def _update_options(self, event=None):
         """For when dropdown options are changed"""
-        self._dropdown['values'] = [socket['name'] for socket in self._IO_GUI.get_sockets()]
+        self._socket_selection['values'] = [socket['name'] for socket in self._IO_GUI.get_sockets()]
+
+    def _remove_deleted_sockets(self):
+        """Remove sockets which have been deleted"""
+        for socket in list(self._maps.keys()):
+            if not list(filter(lambda s: s['name'] == socket, self._IO_GUI.get_sockets())):
+                del self._maps[socket]
 
     def _display_mapping(self, map_key):
         self._remove_existing_menu()
@@ -436,11 +507,13 @@ class SocketAvailabilityGUI:
             Checkbutton(self.window, var=self._maps[map_key][prop]).grid(row=self._row_i, column=1)
             self._row_i += 1
 
-    def _remove_deleted_sockets(self):
+    def _remove_deleted_props(self, selected_socket=None):
         props = self._props_GUI.get_props()
+        if selected_socket is None:
+            selected_socket = self._socket_selection.get()
         # If there has been user input
-        if self._dropdown.get():
-            for key in list(self._maps[self._dropdown.get()].keys()):
+        if selected_socket:
+            for key in list(self._maps[selected_socket].keys()):
                 for prop in props:
                     if prop['data-type'] == 'Boolean':
                         if key == prop['name'] + '=True' or key == prop['name'] + '=False':
@@ -449,32 +522,35 @@ class SocketAvailabilityGUI:
                         if key in [prop['name'] + '=' + option['name'] for option in prop['options']]:
                             break
                 else:
-                    del self._maps[self._dropdown.get()][key]
+                    del self._maps[selected_socket][key]
 
     def _update_props(self):
         """Update for changes in props"""
+        selected_socket = self._socket_selection.get()
         for prop in self._props_GUI.get_props():
             if prop['data-type'] == 'Boolean':
-                if prop['name'] + '=True' not in self._maps[self._dropdown.get()]:
+                if prop['name'] + '=True' not in self._maps[selected_socket]:
                     var = BooleanVar()
                     var.set(True)
-                    self._maps[self._dropdown.get()][prop['name'] + '=True'] = var
-                if prop['name'] + '=False' not in self._maps[self._dropdown.get()]:
+                    self._maps[selected_socket][prop['name'] + '=True'] = var
+                if prop['name'] + '=False' not in self._maps[selected_socket]:
                     var = BooleanVar()
                     var.set(True)
-                    self._maps[self._dropdown.get()][prop['name'] + '=False'] = var
+                    self._maps[selected_socket][prop['name'] + '=False'] = var
             elif prop['data-type'] == 'Enum':
                 for option in prop['options']:
                     prop_option_name = prop['name'] + '=' + option['name']
-                    if prop_option_name not in self._maps[self._dropdown.get()]:
+                    if prop_option_name not in self._maps[selected_socket]:
                         var = BooleanVar()
                         var.set(True)
-                        self._maps[self._dropdown.get()][prop_option_name] = var
+                        self._maps[selected_socket][prop_option_name] = var
 
-    def _on_selected(self, event):
+    def _on_selected(self, event=None, selected_socket=None):
         props = self._props_GUI.get_props()
         # If new socket(s) added
-        if self._dropdown.get() not in self._maps:
+        if selected_socket is None:
+            selected_socket = self._socket_selection.get()
+        if selected_socket not in self._maps:
             options = []
             for prop in props:
                 if prop['data-type'] == 'Boolean':
@@ -485,17 +561,17 @@ class SocketAvailabilityGUI:
             vars = [BooleanVar() for _ in range(len(options))]
 
             if len(options) == 0:
-                self._maps[self._dropdown.get()] = {}
+                self._maps[selected_socket] = {}
 
             for var in vars:
                 var.set(True)
-                self._maps[self._dropdown.get()] = dict()
+                self._maps[selected_socket] = dict()
             for i, option in enumerate(options):
-                self._maps[self._dropdown.get()][option] = vars[i]
+                self._maps[selected_socket][option] = vars[i]
         else:
             self._update_props()
-        self._remove_deleted_sockets()
-        self._display_mapping(self._dropdown.get())
+        self._remove_deleted_props(selected_socket)
+        self._display_mapping(selected_socket)
 
     def _help_info_display(self):
         """Display help info for the current tab"""
@@ -513,15 +589,15 @@ class SocketAvailabilityGUI:
     def display(self):
         Button(self.window, text='Refresh', command=self._update_options).grid(row=self._row_i)
         self._row_i += 1
-        self._dropdown = Combobox(self.window)
+        self._socket_selection = Combobox(self.window)
         self._update_options()
-        self._dropdown.bind('<<ComboboxSelected>>', self._on_selected)
-        self._dropdown.grid(row=self._row_i)
+        self._socket_selection.bind('<<ComboboxSelected>>', self._on_selected)
+        self._socket_selection.grid(row=self._row_i)
         self._row_i += 1
         self._help_button_display()
 
     def get_maps(self):
-        self._remove_deleted_sockets()
+        self._remove_deleted_props()
         sockets = self._IO_GUI.get_sockets()
         return [{'socket-name': socket_name,
                  'socket-type': 'in' if next(socket for socket in sockets if socket['name'] == socket_name)
@@ -531,6 +607,24 @@ class SocketAvailabilityGUI:
 
     def is_input_valid(self):
         return True
+
+    def serialize(self):
+        """Return a serialized version of the GUI inputs"""
+        serialized = {}
+        for socket in self._maps.keys():
+            serialized[socket] = [(prop, value.get()) for prop, value in self._maps[socket].items()]
+        return serialized
+
+    def deserialize(self, data):
+        self._maps = {}
+        self._update_options()
+        # self._remove_deleted_props()
+        # self._update_props()
+        for socket in data:
+            self._on_selected(selected_socket=socket)
+        for socket, avail in self._maps.items():
+            for prop, serialized in zip(avail, data[socket]):
+                self._maps[socket][prop].set(serialized[1])
 
 
 class RemovableTextInput(Frame):
@@ -602,6 +696,19 @@ class PropertiesGUI:
         props = [prop.get() for prop in self._props if prop.get() is not None]
         return self._sort_props(props)
 
+    def serialize(self):
+        return {'props': self.get_props()}
+
+    def deserialize(self, data):
+        for el in self._props:
+            el.destroy()
+        self._row_i = 0
+        self._props = [PropertyInput(self._window, self._row_i) for _ in data['props']]
+        for prop, serialized_prop in zip(self._props, data['props']):
+            prop.deserialize(serialized_prop)
+            prop.grid(row=self._row_i)
+            self._row_i += 1
+
 
 class PropertyInput(Frame):
     """Input data required for a property"""
@@ -628,23 +735,26 @@ class PropertyInput(Frame):
         # Sub-Type
         Label(self, text='Sub-Type').grid(row=self._row_i, column=self.col_i)
         self.col_i += 1
-        sub_type = Combobox(self)
-        sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
-                              'PROP_PASSWORD', 'PROP_PIXEL',
-                              'PROP_UNSIGNED', 'PROP_PERCENTAGE', 'PROP_FACTOR', 'PROP_ANGLE', 'PROP_TIME',
-                              'PROP_DISTANCE', 'PROP_DISTANCE_CAMERA',
-                              'PROP_COLOR', 'PROP_TRANSLATION', 'PROP_DIRECTION', 'PROP_VELOCITY', 'PROP_ACCELERATION',
-                              'PROP_MATRIX', 'PROP_EULER',
-                              'PROP_QUATERNION', 'PROP_AXISANGLE', 'PROP_XYZ', 'PROP_XYZ_LENGTH', 'PROP_COLOR_GAMMA',
-                              'PROP_COORDS', 'PROP_LAYER',
-                              'PROP_LAYER_MEMBER', 'PROP_POWER']
-        sub_type.current(0)
-        sub_type.grid(row=self._row_i, column=self.col_i)
+        self.sub_type = Combobox(self)
+        self.sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
+                                   'PROP_PASSWORD', 'PROP_PIXEL',
+                                   'PROP_UNSIGNED', 'PROP_PERCENTAGE', 'PROP_FACTOR', 'PROP_ANGLE', 'PROP_TIME',
+                                   'PROP_DISTANCE', 'PROP_DISTANCE_CAMERA',
+                                   'PROP_COLOR', 'PROP_TRANSLATION', 'PROP_DIRECTION', 'PROP_VELOCITY',
+                                   'PROP_ACCELERATION',
+                                   'PROP_MATRIX', 'PROP_EULER',
+                                   'PROP_QUATERNION', 'PROP_AXISANGLE', 'PROP_XYZ', 'PROP_XYZ_LENGTH',
+                                   'PROP_COLOR_GAMMA',
+                                   'PROP_COORDS', 'PROP_LAYER',
+                                   'PROP_LAYER_MEMBER', 'PROP_POWER']
+        self.sub_type.current(0)
+        self.sub_type.grid(row=self._row_i, column=self.col_i)
         self.col_i += 1
         # Name
         Label(self, text="Name").grid(row=self._row_i, column=self.col_i)
         self.col_i += 1
-        Entry(self).grid(row=self._row_i, column=self.col_i)
+        self.name = Entry(self)
+        self.name.grid(row=self._row_i, column=self.col_i)
         self.col_i += 1
 
         self._type_options_display()
@@ -765,6 +875,37 @@ class PropertyInput(Frame):
                 raise Exception("Invalid Property Type")
             return prop
 
+    def deserialize(self, data):
+        self.type.current(self.type['values'].index(data['data-type']))
+        self.sub_type.current(self.sub_type['values'].index(data['sub-type']))
+        self.name.delete(0, END)
+        self.name.insert(0, data['name'])
+        self._clear_type_inputs()
+        self._type_options_display()
+
+        data_type = self.type.get()
+        if data_type == 'Boolean':
+            self.default.set(data['default'])
+        elif data_type in ['Int', 'Float']:
+            self.type_components[1].delete(0, END)
+            self.type_components[1].insert(0, data['min'])
+            self.type_components[3].delete(0, END)
+            self.type_components[3].insert(0, data['max'])
+            self.type_components[5].delete(0, END)
+            self.type_components[5].insert(0, data['default'])
+        elif data_type == 'String':
+            self.type_components[1].delete(0, END)
+            self.type_components[1].insert(0, data['size'])
+        elif data_type == 'Enum':
+            self.type_components[1].delete(0, END)
+            self.type_components[1].insert(0, data['default'])
+            for el in self._enum_options:
+                el.destroy()
+            self._enum_options = [OptionInput(self) for _ in data['options']]
+            for opt, serialized_opt in zip(self._enum_options, data['options']):
+                opt.deserialize(serialized_opt)
+                opt.grid()
+
 
 class RemovableSocketDefinitionInput(Frame):
     """Node IO Template"""
@@ -796,32 +937,34 @@ class RemovableSocketDefinitionInput(Frame):
 
         Label(self, text='Sub-type').grid(row=0, column=self.col_i)
         self.col_i += 1
-        sub_type = Combobox(self)
-        sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
-                              'PROP_PASSWORD', 'PROP_PIXEL',
-                              'PROP_UNSIGNED', 'PROP_PERCENTAGE', 'PROP_FACTOR', 'PROP_ANGLE', 'PROP_TIME',
-                              'PROP_DISTANCE', 'PROP_DISTANCE_CAMERA',
-                              'PROP_COLOR', 'PROP_TRANSLATION', 'PROP_DIRECTION', 'PROP_VELOCITY', 'PROP_ACCELERATION',
-                              'PROP_MATRIX', 'PROP_EULER',
-                              'PROP_QUATERNION', 'PROP_AXISANGLE', 'PROP_XYZ', 'PROP_XYZ_LENGTH', 'PROP_COLOR_GAMMA',
-                              'PROP_COORDS', 'PROP_LAYER',
-                              'PROP_LAYER_MEMBER', 'PROP_POWER']
-        sub_type.current(0)
-        sub_type.grid(row=0, column=self.col_i)
+        self._sub_type = Combobox(self)
+        self._sub_type['values'] = ['PROP_NONE', 'PROP_FILEPATH', 'PROP_DIRPATH', 'PROP_FILENAME', 'PROP_BYTESTRING',
+                                    'PROP_PASSWORD', 'PROP_PIXEL',
+                                    'PROP_UNSIGNED', 'PROP_PERCENTAGE', 'PROP_FACTOR', 'PROP_ANGLE', 'PROP_TIME',
+                                    'PROP_DISTANCE', 'PROP_DISTANCE_CAMERA',
+                                    'PROP_COLOR', 'PROP_TRANSLATION', 'PROP_DIRECTION', 'PROP_VELOCITY',
+                                    'PROP_ACCELERATION',
+                                    'PROP_MATRIX', 'PROP_EULER',
+                                    'PROP_QUATERNION', 'PROP_AXISANGLE', 'PROP_XYZ', 'PROP_XYZ_LENGTH',
+                                    'PROP_COLOR_GAMMA',
+                                    'PROP_COORDS', 'PROP_LAYER',
+                                    'PROP_LAYER_MEMBER', 'PROP_POWER']
+        self._sub_type.current(0)
+        self._sub_type.grid(row=0, column=self.col_i)
         self.col_i += 1
 
         Label(self, text='Flag').grid(row=0, column=self.col_i)
         self.col_i += 1
-        flag = Combobox(self)
-        flag['values'] = ["None", "SOCK_HIDE_VALUE", "SOCK_NO_INTERNAL_LINK"]
-        flag.current(0)
-        flag.grid(row=0, column=self.col_i)
+        self._flag = Combobox(self)
+        self._flag['values'] = ["None", "SOCK_HIDE_VALUE", "SOCK_NO_INTERNAL_LINK"]
+        self._flag.current(0)
+        self._flag.grid(row=0, column=self.col_i)
         self.col_i += 1
 
         Label(self, text='Name').grid(row=0, column=self.col_i)
         self.col_i += 1
-        name = Entry(self)
-        name.grid(row=0, column=self.col_i)
+        self._name = Entry(self)
+        self._name.grid(row=0, column=self.col_i)
         self.col_i += 1
 
         self._type_options_display()
@@ -891,6 +1034,25 @@ class RemovableSocketDefinitionInput(Frame):
                 socket['default'] = self._type_components[5].get()
         return socket
 
+    def deserialize(self, data):
+        """Reconstruct GUI state from serialized object"""
+        self._type.current(self._type['values'].index(data['type']))
+        self._data_type.current(self._data_type['values'].index(data['data-type']))
+        self._sub_type.current(self._sub_type['values'].index(data['sub-type']))
+        self._flag.current(self._flag['values'].index(data['flag']))
+        self._name.delete(0, END)
+        self._name.insert(0, data['name'])
+        self._type_options_display()
+
+        data_type = self._data_type.get()
+        if data_type in ['Float', 'Int', 'Shader', 'Vector', 'RGBA']:
+            # Relies on all type inputs having delete/insert methods, keep in mind when changing inputs
+            for input, serialized_input in zip([comp for comp in self._type_components if type(comp) not in [Label, Button]],
+                                               [data[key] for key in data if
+                                                key not in ['type', 'data-type', 'sub-type', 'flag']]):
+                input.delete(0, END)
+                input.insert(0, serialized_input)
+
 
 class OptionInput(Frame):
     """An input for an enum option"""
@@ -901,18 +1063,24 @@ class OptionInput(Frame):
         col_i = 0
         Label(self, text='Name').grid(row=0, column=col_i)
         col_i += 1
-        name = Entry(self)
-        name.grid(row=0, column=col_i)
+        self._name = Entry(self)
+        self._name.grid(row=0, column=col_i)
         col_i += 1
 
         Label(self, text='Description').grid(row=0, column=col_i)
         col_i += 1
-        description = Entry(self)
-        description.grid(row=0, column=col_i)
+        self._description = Entry(self)
+        self._description.grid(row=0, column=col_i)
         col_i += 1
 
         Button(self, text='Remove', command=self.destroy).grid(row=0, column=col_i)
 
     def get(self):
-        return {"name": self.children['!entry'].get(),
-                "desc": self.children['!entry2'].get()}
+        return {"name": self._name.get(),
+                "desc": self._description.get()}
+
+    def deserialize(self, data):
+        self._name.delete(0, END)
+        self._name.insert(0, data['name'])
+        self._description.delete(0, END)
+        self._description.insert(0, data['desc'])
