@@ -12,7 +12,6 @@ class NodeConfig:
             return
         with open(file_path, 'w') as f:
             data = self._gui.serialize()
-            print(data)
             json.dump(data, f)
 
     def load_config(self):
