@@ -7,7 +7,7 @@ class NodeConfig:
         self._gui = gui
 
     def save_config(self):
-        file_path = filedialog.asksaveasfilename()
+        file_path = filedialog.asksaveasfilename(filetypes=[('All files', '*')], defaultextension='')
         if not file_path:
             return
         with open(file_path, 'w') as f:
