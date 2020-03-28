@@ -1049,7 +1049,7 @@ class RemovableSocketDefinitionInput(Frame):
             # Relies on all type inputs having delete/insert methods, keep in mind when changing inputs
             for input, serialized_input in zip([comp for comp in self._type_components if type(comp) not in [Label, Button]],
                                                [data[key] for key in data if
-                                                key not in ['type', 'data-type', 'sub-type', 'flag']]):
+                                                key not in ['type', 'data-type', 'sub-type', 'flag', 'name']]):
                 input.delete(0, END)
                 input.insert(0, serialized_input)
 
