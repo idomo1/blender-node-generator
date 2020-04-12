@@ -34,9 +34,8 @@ class NodeDefinitionWriter:
         sockets_out = []
         out = []
         for sock in sockets:
-            socket_text = '{{SOCK_{TYPE}, {input_count}, N_("{Name}"), {default}, {min}, {max}{subtype}{flag}}},'.format(
+            socket_text = '{{SOCK_{TYPE}, N_("{Name}"), {default}, {min}, {max}{subtype}{flag}}},'.format(
                 TYPE=sock['data-type'].upper(), Name=code_generator_util.string_capitalized_spaced(sock['name']),
-                input_count=1 if sock['type'] == 'Input' else 0,
                 default=code_generator_util.fill_socket_default(sock['default'])
                 if 'default' in sock else '0.0f, 0.0f, 0.0f, 0.0f',
                 min=sock['min'] + 'f' if 'min' in sock else '0.0f',

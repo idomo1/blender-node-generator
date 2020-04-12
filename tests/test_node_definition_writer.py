@@ -82,11 +82,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
         defs = writer._generate_node_shader_sockets()
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
-                        '{SOCK_VECTOR, 1, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_VECTOR, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_VECTOR, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_VECTOR, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -511,11 +511,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
-                        '{SOCK_FLOAT, 1, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -535,12 +535,12 @@ class TestWritesNodeDefinition(unittest.TestCase):
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
-                        '{SOCK_FLOAT, 1, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{SOCK_FLOAT, 1, N_("Socket3"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket3"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -560,12 +560,12 @@ class TestWritesNodeDefinition(unittest.TestCase):
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
-                        '{SOCK_FLOAT, 1, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{SOCK_FLOAT, 0, N_("Socket3"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket3"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -578,7 +578,7 @@ class TestWritesNodeDefinition(unittest.TestCase):
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_FLOAT, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -591,7 +591,7 @@ class TestWritesNodeDefinition(unittest.TestCase):
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
-                        '{SOCK_FLOAT, 1, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -613,11 +613,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
-                        '{SOCK_RGBA, 1, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_RGBA, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_RGBA, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_RGBA, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
@@ -634,11 +634,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
 
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
-                        '{SOCK_VECTOR, 1, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.4f, -1.0f, 1.0f},'
+                        '{SOCK_VECTOR, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.4f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
-                        '{SOCK_VECTOR, 0, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
+                        '{SOCK_VECTOR, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{-1, 0, ""},'
                         '};\n\n')
 
