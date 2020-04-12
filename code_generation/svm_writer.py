@@ -406,9 +406,6 @@ class SVMWriter:
                             group=self._node_group_level):
                         j += 1
 
-                    if self._is_texture_node:
-                        while lines[j] != '#  ifdef __TEXTURES__\n':
-                            j += 1
                     lines.insert(j + 1, shader_case)
                     break
             else:

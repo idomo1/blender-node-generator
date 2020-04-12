@@ -1232,7 +1232,6 @@ class TestWritesSVM(unittest.TestCase):
 
                                                                '    switch (node.x) {\n'
                                                                '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n'
-                                                               '#  ifdef __TEXTURES__\n'
                                                                '      case NODE_CLOSURE_BSDF:\n'
                                                                '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n'
                                                                '        break;\n'
@@ -1246,7 +1245,6 @@ class TestWritesSVM(unittest.TestCase):
                                                                     '#ifdef __SHADER_RAYTRACE__\n',
                                                                     '    switch (node.x) {\n',
                                                                     '#if NODES_GROUP(NODE_GROUP_LEVEL_0)\n',
-                                                                    '#  ifdef __TEXTURES__\n',
                                                                     'case NODE_NODE_NAME:svm_node_node_name(kg, sd, stack, node.y, node.z, node.w, &offset);break;\n',
                                                                     '      case NODE_CLOSURE_BSDF:\n',
                                                                     '        svm_node_closure_bsdf(kg, sd, stack, node, type, path_flag, &offset);\n',
