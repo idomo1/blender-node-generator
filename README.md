@@ -4,8 +4,19 @@ A tool for generating a new blender shading node
 
 ## Running the Tool
 To run the tool, download the repository and run main.py using a python interpreter.   
-I have developed the tool using python 3.7, 
-if you encounter issues running the program make sure you are using a compatible python version
+### Windows and Mac
+Dependencies
+- Python 3.8
+### Linux
+Dependencies
+- Python 3.8
+- Tkinter  
+
+Linux's python installation doesn't come with Tkinter by default, so it needs to be installed manually.  
+Instructions differ per distribution, if you are on a Debian based distro, tkinter can be installed with the following command:  
+```
+sudo apt-get install python3-tk
+```
 
 ## Undoing Changes
 There is currently no undo option in the tool.  
