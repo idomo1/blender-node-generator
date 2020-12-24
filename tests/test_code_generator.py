@@ -475,7 +475,7 @@ class TestCodeGeneration(unittest.TestCase):
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeNodeName)) {'
                                 'BL::ShaderNodeNodeName b_node_name_node(b_node);'
-                                'NodeNameNode *node_name = new NodeNameNode();'
+                                'NodeNameNode *node_name = graph->create_node<NodeNameNode>();'
                                 'node_name->dropdown1 = b_node_name_node.dropdown1();'
                                 'node_name->dropdown2 = b_node_name_node.dropdown2();'
                                 'node_name->int1 = b_node_name_node.int1();'
@@ -539,7 +539,7 @@ class TestCodeGeneration(unittest.TestCase):
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
                                 'BL::ShaderNodeTexNodeName b_node_name_node(b_node);'
-                                'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
+                                'NodeNameTextureNode *node_name = graph->create_node<NodeNameTextureNode>();'
                                 'node_name->dropdown1 = b_node_name_node.dropdown1();'
                                 'node_name->dropdown2 = b_node_name_node.dropdown2();'
                                 'node_name->int1 = b_node_name_node.int1();'
@@ -602,7 +602,7 @@ class TestCodeGeneration(unittest.TestCase):
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeBsdfNodeName)) {'
                                 'BL::ShaderNodeBsdfNodeName b_node_name_node(b_node);'
-                                'NodeNameBsdfNode *node_name = new NodeNameBsdfNode();'
+                                'NodeNameBsdfNode *node_name = graph->create_node<NodeNameBsdfNode>();'
                                 'node_name->dropdown1 = b_node_name_node.dropdown1();'
                                 'node_name->dropdown2 = b_node_name_node.dropdown2();'
                                 'node_name->int1 = b_node_name_node.int1();'
@@ -671,7 +671,7 @@ class TestCodeGeneration(unittest.TestCase):
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
                                 'BL::ShaderNodeTexNodeName b_node_name_node(b_node);'
-                                'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
+                                'NodeNameTextureNode *node_name = graph->create_node<NodeNameTextureNode>();'
                                 'node_name->dropdown1 = b_node_name_node.dropdown1();'
                                 'node_name->dropdown2 = b_node_name_node.dropdown2();'
                                 'node_name->int1 = b_node_name_node.int1();'
@@ -680,7 +680,7 @@ class TestCodeGeneration(unittest.TestCase):
                                 'node_name->float1 = b_node_name_node.float1();'
                                 'node_name->string1 = b_node_name_node.string1();'
                                 'BL::TexMapping b_texture_mapping(b_node_name_node.texture_mapping());'
-                                'get_tex_mapping(&node_name->tex_mapping, b_texture_mapping);'
+                                'get_tex_mapping(node_name, b_texture_mapping);'
                                 'node = node_name;'
                                 '}\n' in mf.mock_calls[-3][1][0])
 
@@ -734,7 +734,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class_instance()
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeNodeName)) {'
-                                'node = new NodeNameNode();'
+                                'node = graph->create_node<NodeNameNode>();'
                                 '}\n' in mf.mock_calls[-3][1][0])
 
     def test_add_cycles_class_instance_texture_node_no_props_with_vector_correct_formatting(self):
@@ -796,9 +796,9 @@ class TestCodeGeneration(unittest.TestCase):
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
                                 'BL::ShaderNodeTexNodeName b_node_name_node(b_node);'
-                                'NodeNameTextureNode *node_name = new NodeNameTextureNode();'
+                                'NodeNameTextureNode *node_name = graph->create_node<NodeNameTextureNode>();'
                                 'BL::TexMapping b_texture_mapping(b_node_name_node.texture_mapping());'
-                                'get_tex_mapping(&node_name->tex_mapping, b_texture_mapping);'
+                                'get_tex_mapping(node_name, b_texture_mapping);'
                                 'node = node_name;'
                                 '}\n' in mf.mock_calls[-3][1][0])
 
@@ -855,7 +855,7 @@ class TestCodeGeneration(unittest.TestCase):
                 code_gen._add_cycles_class_instance()
 
                 self.assertTrue('else if (b_node.is_a(&RNA_ShaderNodeTexNodeName)) {'
-                                'node = new NodeNameTextureNode();'
+                                'node = graph->create_node<NodeNameTextureNode>();'
                                 '}\n' in mf.mock_calls[-3][1][0])
 
     def test_add_cycles_node_correct_formatting(self):
