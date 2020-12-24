@@ -1,5 +1,5 @@
 # Blender Node Generator
-A tool for generating a new blender shading node
+A tool for generating the boilerplate for a new blender shading node, allowing you to focus on writing the shaders
 ![](demo.gif)
 
 ## Running the Tool
@@ -19,7 +19,7 @@ sudo apt-get install python3-tk
 ```
 
 ## Undoing Changes
-There is currently no undo option in the tool.  
+There is currently no undo option in the tool  
 That is why it is important that you use version control so that you can undo any unwanted changes  
 Using git, you can run the following command to undo any changes  
 ```
