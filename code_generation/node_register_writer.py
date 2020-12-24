@@ -89,10 +89,12 @@ class NodeRegisterWriter:
                 line = f.readline()
             f.seek(f.tell() - 2, SEEK_SET)
             f.write(func)
-            f.write('\n'
-                    'void register_node_type_sh_custom_group(bNodeType *ntype);\n'
-                    '\n'
-                    '#endif\n'
+            f.write('\n' \
+                    'void register_node_type_sh_custom_group(bNodeType *ntype);\n' \
+                    '\n' \
+                    '#ifdef __cplusplus\n' \
+                    '}\n' \
+                    '#endif\n' \
                     '\n')
 
     def write_call_node_register(self):
