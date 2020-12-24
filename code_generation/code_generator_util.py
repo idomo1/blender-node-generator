@@ -14,10 +14,11 @@ def apply_clang_formatting(file_path, source_path):
     """
     Applies clang formatting to the given file
     """
-    clang_format_dir_path = path.normpath(path.join(source_path, "..", "lib", "win64_vc15", "llvm", "bin"))
+    lib_dir_name = os.listdir(path.normpath(path.join(source_path, "..", "lib")))[0]
+    clang_format_dir_path = path.normpath(path.join(source_path, "..", "lib", lib_dir_name, "llvm", "bin"))
     if os.path.exists(clang_format_dir_path):
         os.chdir(clang_format_dir_path)
-        subprocess.call(["clang-format", file_path, "-i", "--verbose"])
+        subprocess.call(["./clang-format", file_path, "-i", "--verbose"])
     else:
         raise Exception("Clang format executable not found at {path},"
                         " make sure the source path is correct and that you have built blender at least once".format(
