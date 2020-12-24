@@ -215,7 +215,7 @@ class GUI:
             except Exception as e:
                 messagebox.showerror('Error',
                                      '{error_type}: {error_message}\n\nIf you believe this is a problem with the program,'
-                                     ' please report it\nhttps://github.com/id4m0/blender-node-generator/issues'.format(
+                                     ' please report it\nhttps://github.com/idomo1/blender-node-generator/issues'.format(
                                          error_type=type(e),
                                          error_message=e
                                      ))
@@ -331,12 +331,12 @@ class GeneralGUI:
             messagebox.showerror('Bad Input', '{0} is not a valid path'.format(self.get_source_path()))
             return False
         if self.get_node_type() == 'Texture':
-            character_limit = 15
+            character_limit = 10
         elif self.get_node_type() in ['Bsdf', 'BsdfBase']:
-            character_limit = 16
+            character_limit = 14
         else:
-            character_limit = 20
-        if len(node_name) > character_limit:  # Greater than 20 characters causes writing NOD_static_types.h to timeout
+            character_limit = 17
+        if len(node_name) > character_limit:  # Greater than 17 characters causes writing NOD_static_types.h to timeout
             messagebox.showerror('Bad Input', '{type} node name must be less than {limit} characters long'.format(
                 type=self.get_node_type(),
                 limit=character_limit))

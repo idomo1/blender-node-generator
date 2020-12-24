@@ -44,8 +44,6 @@ class CodeGenerator:
 
     def _add_node_definition(self):
         """NOD_static_types.h"""
-        def_node_line_length = 138
-        def_node_parameter_offsets = [0, 16, 44, 68, 90, 108, 129]
         file_path = path.join(self._gui.get_source_path(), "source", "blender", "nodes", "NOD_static_types.h")
         with open(file_path, "r+") as f:
             params = 'ShaderNode,' \
@@ -69,6 +67,8 @@ class CodeGenerator:
                 Suffix=' {Suffix}'.format(
                     Suffix='Texture' if self._gui.is_texture_node() else 'BSDF') if self._gui.type_suffix() else '')
 
+            def_node_line_length = 138
+            def_node_parameter_offsets = [0, 16, 44, 68, 90, 108, 129]
             node_definition = 'DefNode({params})\n'.format(
                 params=code_generator_util.fill_white_space(
                     params.split(','), def_node_line_length, def_node_parameter_offsets))
@@ -146,7 +146,7 @@ class CodeGenerator:
             props = self._gui.get_props()
             text = 'else if (b_node.is_a(&RNA_ShaderNode{Suff}{Name})) {{' \
                    'BL::ShaderNode{Suff}{Name} b_{name}_node(b_node);' \
-                   '{Name}{Suffix}Node *{name} = new {Name}{Suffix}Node();' \
+                   '{Name}{Suffix}Node *{name} = graph->create_node<{Name}{Suffix}Node>();' \
                    '{props}' \
                    '{texture_mapping}' \
                    'node = {name};' \
@@ -162,12 +162,12 @@ class CodeGenerator:
                         name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                         prop=code_generator_util.string_lower_underscored(prop['name'])) for prop in props]),
                 texture_mapping='BL::TexMapping b_texture_mapping(b_{name}_node.texture_mapping());'
-                                'get_tex_mapping(&{name}->tex_mapping, b_texture_mapping);'.format(
+                                'get_tex_mapping({name}, b_texture_mapping);'.format(
                     name=code_generator_util.string_lower_underscored(
                         self._gui.get_node_name())) if self._gui.uses_texture_mapping() else '') \
                 if len(props) > 0 or self._gui.uses_texture_mapping() else \
                 'else if (b_node.is_a(&RNA_ShaderNode{Suff}{Name})) {{' \
-                'node = new {Name}{Suffix}Node();}}\n'.format(
+                'node = graph->create_node<{Name}{Suffix}Node>();}}\n'.format(
                     Name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                     Suff=self._gui.type_suffix_abbreviated().capitalize(),
                     Suffix=self._gui.type_suffix().capitalize())
@@ -312,18 +312,15 @@ class CodeGenerator:
                                    prop['data-type'] != 'String')
             )
 
-            f.seek(0, SEEK_END)
-            f.seek(f.tell() - 30, SEEK_SET)
             text = f.read()
-            match = re.search('\n\n', text)
+            match = re.search('CCL_NAMESPACE_END\n', text)
 
             if not match:
                 raise Exception("Match not found")
 
-            f.seek(f.tell() - 30 + match.end() + 3)
+            f.seek(match.start())
             f.write(node)
-
-            f.write('CCL_NAMESPACE_END\n\n')
+            f.write('CCL_NAMESPACE_END\n')
         code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_to_node_menu(self):

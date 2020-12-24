@@ -48,7 +48,7 @@ class NodeDefinitionWriter:
             else:
                 sockets_out.append(socket_text)
         if len(sockets_in) > 0:
-            in_sockets_text = 'static bNodeSocketTemplate sh_node_{tex}{name}_in[] = {{{sockets}{{-1, 0, ""}},}};\n\n'.format(
+            in_sockets_text = 'static bNodeSocketTemplate sh_node_{tex}{name}_in[] = {{{sockets}{{-1, ""}},}};\n\n'.format(
                 tex="{suff}_".format(
                     suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                 name=code_generator_util.string_lower_underscored(self._node_name),
@@ -56,7 +56,7 @@ class NodeDefinitionWriter:
             out.append(in_sockets_text)
 
         if len(sockets_out) > 0:
-            out_sockets_text = 'static bNodeSocketTemplate sh_node_{tex}{name}_out[] = {{{sockets}{{-1, 0, ""}},}};\n\n'.format(
+            out_sockets_text = 'static bNodeSocketTemplate sh_node_{tex}{name}_out[] = {{{sockets}{{-1, ""}},}};\n\n'.format(
                 tex="{suff}_".format(
                     suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                 name=code_generator_util.string_lower_underscored(self._node_name),

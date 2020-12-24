@@ -83,11 +83,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
                         '{SOCK_VECTOR, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
                         '{SOCK_VECTOR, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
     def test_generate_node_availability_correct_formatting(self):
@@ -512,11 +512,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
                         '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
                         '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
     def test_generate_socket_definitions_two_inputs_correct_formatting(self):
@@ -537,11 +537,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
                         '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{SOCK_FLOAT, N_("Socket3"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
                         '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
     def test_generate_socket_definitions_two_outputs_correct_formatting(self):
@@ -561,12 +561,12 @@ class TestWritesNodeDefinition(unittest.TestCase):
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
                         '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
                         '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
                         '{SOCK_FLOAT, N_("Socket3"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
     def test_generate_socket_definitions_no_inputs_correct_formatting(self):
@@ -579,7 +579,7 @@ class TestWritesNodeDefinition(unittest.TestCase):
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
                         '{SOCK_FLOAT, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
     def test_generate_socket_definitions_no_outputs_correct_formatting(self):
@@ -592,7 +592,7 @@ class TestWritesNodeDefinition(unittest.TestCase):
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
                         '{SOCK_FLOAT, N_("Socket1"), 0.5f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
     def test_generate_socket_definitions_no_sockets_correct_formatting(self):
@@ -614,11 +614,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
                         '{SOCK_RGBA, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
                         '{SOCK_RGBA, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
     def test_generate_socket_definitions_four_defaults_correct_formatting(self):
@@ -635,11 +635,11 @@ class TestWritesNodeDefinition(unittest.TestCase):
         self.assertTrue(defs ==
                         'static bNodeSocketTemplate sh_node_node_name_in[] = {'
                         '{SOCK_VECTOR, N_("Socket1"), 0.1f, 0.2f, 0.3f, 0.4f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n'
                         'static bNodeSocketTemplate sh_node_node_name_out[] = {'
                         '{SOCK_VECTOR, N_("Socket2"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f},'
-                        '{-1, 0, ""},'
+                        '{-1, ""},'
                         '};\n\n')
 
 
