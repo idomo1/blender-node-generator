@@ -2,6 +2,9 @@ import unittest
 from unittest.mock import Mock, patch, mock_open
 
 from code_generation import NodeDrawingWriter
+from node_types.prop_bool import BoolProp
+from node_types.prop_enum import EnumProp
+from node_types.prop_int import IntProp
 
 
 class TestNodeDrawingWriter(unittest.TestCase):
@@ -14,20 +17,17 @@ class TestNodeDrawingWriter(unittest.TestCase):
         self._mock_gui.get_source_path.return_value = 'C:/some/path'
         self._mock_gui.get_node_type.return_value = node_type
         self._mock_gui.get_props.return_value = [
-            {"name": "dropdown1", 'data-type': "Enum", "sub-type": "PROP_NONE",
+            {"name": "dropdown1", 'data-type': EnumProp(), "sub-type": "PROP_NONE",
              "options": [{"name": "prop1", "desc": "Short description"},
                          {"name": "prop2", "desc": "Short description"}],
              "default": 'prop1'},
-            {"name": "dropdown2", 'data-type': "Enum", "sub-type": "PROP_NONE",
+            {"name": "dropdown2", 'data-type': EnumProp(), "sub-type": "PROP_NONE",
              "options": [{"name": "prop3", "desc": "Short description"},
                          {"name": "prop4", "desc": "Short description"}],
              "default": 'prop3'},
-            {"name": "int1", 'data-type': "Int", "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
-            {"name": "box1", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 0},
-            {"name": "box2", 'data-type': "Boolean", "sub-type": "PROP_NONE", "default": 1},
-            {"name": "float1", 'data-type': "Float", "sub-type": "PROP_NONE", "default": 0.0, "min": -1.0, "max": 1.0},
-            {"name": "string1", 'data-type': "String", "sub-type": "PROP_NONE", "size": 64,
-             "default": '""'}] if props is None else props
+            {"name": "int1", 'data-type': IntProp(), "sub-type": "PROP_NONE", "default": 0, "min": -1, "max": 1},
+            {"name": "box1", 'data-type': BoolProp(), "sub-type": "PROP_NONE", "default": 0},
+            {"name": "box2", 'data-type': BoolProp(), "sub-type": "PROP_NONE", "default": 1}] if props is None else props
         if node_type == 'Texture':
             suffix = 'tex'
         elif node_type == 'Bsdf':
@@ -67,8 +67,6 @@ class TestNodeDrawingWriter(unittest.TestCase):
                 'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "float1", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "string1", 0, IFACE_("String1"), ICON_NONE);'
                 '}\n\n' in mf.mock_calls[-3][1][0]
                 and 'case SH_NODE_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
                 and 'ntype->draw_buttons = node_shader_buts_node_name;\n' in mf.mock_calls[-3][1][0])
@@ -103,8 +101,6 @@ class TestNodeDrawingWriter(unittest.TestCase):
                 'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "float1", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "string1", 0, IFACE_("String1"), ICON_NONE);'
                 '}\n\n' in mf.mock_calls[-3][1][0]
                 and 'case SH_NODE_TEX_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
                 and 'ntype->draw_buttons = node_shader_buts_tex_node_name;\n' in mf.mock_calls[-3][1][0])
@@ -139,8 +135,6 @@ class TestNodeDrawingWriter(unittest.TestCase):
                 'uiItemR(layout, ptr, "int1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box1", 0, NULL, ICON_NONE);'
                 'uiItemR(layout, ptr, "box2", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "float1", 0, NULL, ICON_NONE);'
-                'uiItemR(layout, ptr, "string1", 0, IFACE_("String1"), ICON_NONE);'
                 '}\n\n' in mf.mock_calls[-3][1][0]
                 and 'case SH_NODE_BSDF_NODE_NAME:\n' in mf.mock_calls[-3][1][0]
                 and 'ntype->draw_buttons = node_shader_buts_bsdf_node_name;\n' in mf.mock_calls[-3][1][0])
