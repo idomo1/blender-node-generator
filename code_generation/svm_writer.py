@@ -1,6 +1,14 @@
 from os import path
+from socket import SocketType
+from node_types.prop_bool import BoolProp
+from node_types.prop_enum import EnumProp
+from node_types.prop_int import IntProp
 
-from . import code_generator_util
+from node_types.socket_vector import VectorSocket
+
+from node_types.socket_float import FloatSocket
+
+import code_generation.code_generator_util as code_generator_util
 
 
 class SVMWriter:
@@ -18,18 +26,13 @@ class SVMWriter:
         self._type_suffix_abbreviated = gui.type_suffix_abbreviated()
         self._uses_texture_mapping = gui.uses_texture_mapping()
         self._source_path = gui.get_source_path()
-        self._node_group_level = gui.get_node_group_level()
 
     def _generate_param_names(self):
         """How the props/sockets are passed to the compiler"""
         names = []
         for prop in self._props:
-            if prop['data-type'] == 'Float':
-                names.append(
-                    '__float_as_int({name})'.format(name=code_generator_util.string_lower_underscored(prop['name'])))
-            elif prop['data-type'] != 'String':
-                names.append(code_generator_util.string_lower_underscored(
-                    code_generator_util.string_lower_underscored(prop['name'])))
+            names.append(code_generator_util.string_lower_underscored(
+                code_generator_util.string_lower_underscored(prop['name'])))
         for socket in self._sockets:
             names.append(
                 '{name}_stack_offset'.format(name=code_generator_util.string_lower_underscored(socket['name'])))
@@ -79,16 +82,16 @@ class SVMWriter:
     def _generate_stack_offsets(self):
 
         def is_first_vector(socket, sockets):
-            return socket == list(filter(lambda s: s['data-type'] == 'Vector' and s['type'] == 'Input', sockets))[0]
+            return socket == list(filter(lambda s: isinstance(s['data-type'], VectorSocket) and s['type'] == 'Input', sockets))[0]
 
         socket_type_map = {"Input": 'in', "Output": 'out'}
 
         stack_offsets = []
         for socket in self._sockets:
-            if socket['data-type'] == 'Vector' and self._is_texture_node and is_first_vector(socket, self._sockets):
+            if isinstance(socket['data-type'], VectorSocket) and self._is_texture_node and socket['type'] == 'Input' and is_first_vector(socket, self._sockets):
                 stack_offsets.append('int {name}_stack_offset = tex_mapping.compile_begin(compiler, {name}_in);'.format(
                     name=code_generator_util.string_lower_underscored(socket['name'])))
-            elif socket['data-type'] == 'Float' and socket['type'] == 'Input':
+            elif isinstance(socket['data-type'], FloatSocket) and socket['type'] == 'Input':
                 stack_offsets.append('int {name}_stack_offset = compiler.stack_assign_if_linked({name}_in);'.format(
                     name=code_generator_util.string_lower_underscored(socket['name'])))
             else:
@@ -100,7 +103,7 @@ class SVMWriter:
     def _generate_float_optimizations(self):
         """Generate code for passing floats directly to shader for optimization"""
         inputs = ['__float_as_int({socket})'.format(socket=code_generator_util.string_lower_underscored(socket['name']))
-                  for socket in self._sockets if socket['data-type'] == 'Float' and socket['type'] == 'Input']
+                  for socket in self._sockets if isinstance(socket['data-type'], FloatSocket) and socket['type'] == 'Input']
 
         return ''.join('compiler.add_node({params});'.format(
             params=', '.join(inputs[i:(i + 4) if i + 4 < len(inputs) else 2 * (i + 4) - len(inputs)])) for i in
@@ -119,7 +122,7 @@ class SVMWriter:
         """SVM compile function for nodes.cpp"""
         if self._uses_texture_mapping:
             first_input_vector = \
-                list(filter(lambda s: s['data-type'] == 'Vector' and s['type'] == 'Input', self._sockets))[0]
+                list(filter(lambda s: isinstance(s['data-type'], VectorSocket) and s['type'] == 'Input', self._sockets))[0]
 
         return 'void {Name}{Suffix}Node::compile(SVMCompiler &compiler)' \
                '{{' \
@@ -136,17 +139,17 @@ class SVMWriter:
 
     def _passed_params_count(self):
         """Returns the no. of props/sockets passed to the shader"""
-        return len(list(filter(lambda p: p['data-type'] != 'String', self._props + self._sockets)))
+        return len(self._props) + len(self._sockets)
 
     def _unpack_names(self):
         def unpack_name(item):
             name = code_generator_util.string_lower_underscored(item['name'])
-            if item['data-type'] in ['Boolean', 'Int', 'Enum']:
+            if isinstance(item['data-type'], (BoolProp, IntProp, EnumProp)):
                 return name
-            elif item['data-type'] != 'String':
+            else:
                 return '{name}_stack_offset'.format(name=name)
 
-        return [unpack_name(item) for item in self._props + self._sockets if item['data-type'] != 'String']
+        return [unpack_name(item) for item in self._props + self._sockets]
 
     def _generate_offset_definitions(self):
         names = self._unpack_names()
@@ -248,25 +251,25 @@ class SVMWriter:
             ])
 
     def _generate_load_params(self):
-        load = ['uint4 defaults{i} = read_node(kg, offset);'.format(i=i // 4 + 1) for i in range(0, len(
-            [socket for socket in self._sockets if socket['type'] == 'Input' and socket['data-type'] == 'Float']), 4)]
+        load = ['uint4 defaults{i} = read_node(kg, &offset);'.format(i=i // 4 + 1) for i in range(0, len(
+            [socket for socket in self._sockets if socket['type'] == 'Input' and isinstance(socket['data-type'], FloatSocket)]), 4)]
         if len(load) > 0:
             load.append('\n\n')
 
         float_i = 0
-        type_map = {'Float': 'float', 'Vector': 'float3', 'RGBA': 'float3', 'Int': 'int', 'Shader': 'float3'}
+        type_map = {'Float': 'float', 'Vector': 'float3', 'Color': 'float3', 'Int': 'int', 'Shader': 'float3'}
         for socket in self._sockets:
-            if socket['type'] == 'Input' and socket['data-type'] != 'String':
+            if socket['type'] == 'Input':
                 load.append(
                     '{type} {name} = stack_load_{type}{default}(stack, {name}_stack_offset{default_address});'.format(
-                        type=type_map[socket['data-type']],
+                        type=socket['data-type'].svm_name,
                         name=code_generator_util.string_lower_underscored(socket['name']),
-                        default='_default' if socket['data-type'] == 'Float' else '',
+                        default='_default' if isinstance(socket['data-type'], FloatSocket) else '',
                         default_address=', {node}.{address}'.format(
                             node='defaults{i}'.format(i=float_i // 4 + 1),
-                            address=['x', 'y', 'z', 'w'][float_i % 4]) if socket['data-type'] == 'Float' else ''
+                            address=['x', 'y', 'z', 'w'][float_i % 4]) if isinstance(socket['data-type'], FloatSocket) else ''
                     ))
-                if socket['data-type'] == 'Float':
+                if isinstance(socket['data-type'], FloatSocket):
                     float_i += 1
         return ''.join(load)
 
@@ -277,7 +280,7 @@ class SVMWriter:
     def _generate_shader_params(self):
         """Parameters in shader"""
         num_params = self._passed_params_count()
-        items = [item for item in self._props + self._sockets if item['data-type'] != 'String']
+        items = [item for item in self._props + self._sockets]
         if num_params < 4:
             params = ', '.join('uint {name}{suffix}'.format(
                 name=code_generator_util.string_lower_underscored(item['name']),
@@ -302,33 +305,37 @@ class SVMWriter:
 
         return '{params}{offset}'.format(
             params=params,
-            offset=', int *offset' if any(socket['data-type'] == 'Float' for socket in self._sockets) else '')
+            offset=', int offset' if any(isinstance(socket['data-type'], FloatSocket) for socket in self._sockets) else '')
 
     def _generate_shader_file_name(self):
-        return "svm_{name}".format(
+        return "{name}".format(
             name=code_generator_util.string_lower_underscored(self._node_name)
         )
 
     def _generate_svm_shader(self):
         """Loading passed values in svm_*.h"""
         params = self._generate_shader_params()
-        return 'CCL_NAMESPACE_BEGIN\n\n' \
-               'ccl_device void svm_node_{suff}{name}(KernelGlobals *kg,' \
-               'ShaderData *sd,' \
-               'float *stack' \
+        return '\n#pragma once\n\n' \
+               'CCL_NAMESPACE_BEGIN\n\n' \
+               'ccl_device {return_type} svm_node_{suff}{name}(const KernelGlobals kg,' \
+               'ccl_private ShaderData *sd,' \
+               'ccl_private float *stack' \
                '{params}' \
                ')' \
                '{{' \
                '{offset_defs}\n\n' \
                '{unpack_params}\n\n' \
                '{load_params}' \
+               '{return_statement}' \
                '}}\n\n' \
-               'CCL_NAMESPACE_END\n\n'.format(suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
+               'CCL_NAMESPACE_END\n\n'.format(return_type='int' if self._has_multiple_nodes() else 'void',
+                   suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                                               name=code_generator_util.string_lower_underscored(self._node_name),
                                               params=',{params}'.format(params=params) if params else '',
                                               offset_defs=self._generate_offset_definitions(),
                                               unpack_params=self._generate_unpack(),
-                                              load_params=self._generate_load_params())
+                                              load_params=self._generate_load_params(),
+                                              return_statement='return offset;' if self._has_multiple_nodes() else '')
 
     def add_svm_shader(self):
         """svm_*.h"""
@@ -349,10 +356,10 @@ class SVMWriter:
         """Returns whether the shader requires multiple nodes for passing parameters"""
         param_count = 0
         for param in self._props + self._sockets:
-            if param['data-type'] == 'Float':
+            if param['data-type'] == 'Float' or isinstance(param['data-type'], FloatSocket):
                 # Float optimizations are added in a separate node
                 return True
-            elif param['data-type'] != 'String':
+            else:
                 param_count += 1
         # 3 uchar4's = 3*4 = 12 max params for one node
         return param_count > 12
@@ -373,14 +380,15 @@ class SVMWriter:
         """Case to pass parameters to shader in svm.h"""
         params=self._generate_svm_shader_passed_params()
         return 'case NODE_{SUFF}{NAME}:' \
-               'svm_node_{suff}{name}(kg, sd, stack{params}{offset});' \
+               '{set_offset}svm_node_{suff}{name}(kg, sd, stack{params}{offset});' \
                'break;\n'.format(
             SUFF='{SUFF}_'.format(SUFF=self._type_suffix_abbreviated.upper()) if self._type_suffix_abbreviated else '',
             NAME=code_generator_util.string_upper_underscored(self._node_name),
+            set_offset='offset = ' if self._has_multiple_nodes() else '',
             suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
             name=code_generator_util.string_lower_underscored(self._node_name),
             params=', {params}'.format(params=params) if params else '',
-            offset=', &offset' if self._has_multiple_nodes() else ''
+            offset=', offset' if self._has_multiple_nodes() else ''
         )
 
     def add_register_svm(self):
@@ -401,12 +409,7 @@ class SVMWriter:
 
             for i, line in enumerate(lines):
                 if line == '    switch (node.x) {\n':
-                    j = i
-                    while lines[j] != '#if NODES_GROUP(NODE_GROUP_LEVEL_{group})\n'.format(
-                            group=self._node_group_level):
-                        j += 1
-
-                    lines.insert(j + 1, shader_case)
+                    lines.insert(i + 1, shader_case)
                     break
             else:
                 raise Exception("No match found")
@@ -425,11 +428,11 @@ class SVMWriter:
                 NAME=code_generator_util.string_upper_underscored(self._node_name),
                 OPTION=code_generator_util.string_upper_underscored(option['name']),
                 i=i + 1) for i, option in enumerate(prop['options'])]))
-            for prop in self._props if prop['data-type'] == 'Enum'])
+            for prop in self._props if isinstance(prop['data-type'], EnumProp)])
 
     def add_svm_types(self):
-        """Register node types in svm_types.h"""
-        file_path = path.join(self._source_path, "intern", "cycles", "kernel", "svm", "svm_types.h")
+        """Register node types in types.h"""
+        file_path = path.join(self._source_path, "intern", "cycles", "kernel", "svm", "types.h")
         with open(file_path, 'r+') as f:
             lines = f.readlines()
             for i, line in enumerate(lines):

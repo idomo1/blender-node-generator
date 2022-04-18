@@ -1,7 +1,10 @@
 from itertools import chain
 from os import path
 
-from . import code_generator_util
+import code_generation.code_generator_util as code_generator_util
+from node_types.prop_bool import BoolProp
+from node_types.prop_enum import EnumProp
+from node_types.prop_int import IntProp
 
 
 class GLSLWriter:
@@ -17,7 +20,7 @@ class GLSLWriter:
         self._type_suffix_abbreviated = gui.type_suffix_abbreviated()
         self._uses_texture_mapping = gui.uses_texture_mapping()
         self._node_type = gui.get_node_type()
-        self._dropdowns = list(filter(lambda p: p['data-type'] == 'Enum', self._props))
+        self._dropdowns = list(filter(lambda p: isinstance(p['data-type'], EnumProp), self._props))
         self._sockets = gui.get_node_sockets()
         self._source_path = gui.get_source_path()
 
@@ -106,11 +109,11 @@ class GLSLWriter:
             ))
             for prop in self._props:
                 prop_name = code_generator_util.string_lower_underscored(prop['name'])
-                if prop['data-type'] == 'Boolean':
+                if isinstance(prop['data-type'], BoolProp):
                     retrieved_props.append('float {name} = ({struct}->{name}) ? 1.0f : 0.0f;'.format(
                         name=prop_name,
                         struct=struct))
-                elif prop['data-type'] != 'String' and prop['data-type'] != 'Enum':
+                elif not isinstance(prop['data-type'], EnumProp):
                     retrieved_props.append('float {name} = {struct}->{name};'.format(
                         name=prop_name,
                         struct=struct))
@@ -121,9 +124,9 @@ class GLSLWriter:
             boolean_bit = 0
             for prop in self._props:
                 prop_name = code_generator_util.string_lower_underscored(prop['name'])
-                if prop['data-type'] == 'Boolean':
+                if isinstance(prop['data-type'], BoolProp):
                     # Need to get individual bits if multiple bools
-                    if len([prop for prop in self._props if prop['data-type'] == 'Boolean']) > 1:
+                    if len([prop for prop in self._props if isinstance(prop['data-type'], BoolProp)]) > 1:
                         retrieved_props.append(
                             'float {name} = ({struct}->custom{i}) ? 1.0f : 0.0f;'.format(name=prop_name,
                                                                                          struct=struct,
@@ -136,12 +139,7 @@ class GLSLWriter:
                                 i=s_custom_i,
                                 boolean_bit=boolean_bit))
                         boolean_bit += 1
-                elif prop['data-type'] == 'Float':
-                    retrieved_props.append('float {name} = node->custom{i};'.format(name=prop_name,
-                                                                                    struct=struct,
-                                                                                    i=f_custom_i))
-                    f_custom_i += 1
-                elif prop['data-type'] == 'Int':
+                elif isinstance(prop['data-type'], IntProp):
                     retrieved_props.append('float {name} = node->custom{i};'.format(name=prop_name,
                                                                                     struct=struct,
                                                                                     i=s_custom_i))
@@ -183,7 +181,7 @@ class GLSLWriter:
         """
         return ['GPU_constant(&{prop})'.format(
             prop=code_generator_util.string_lower_underscored(prop['name'])) for prop in
-            list(filter(lambda p: p['data-type'] != 'Enum' and p['data-type'] != 'String', self._props))]
+            list(filter(lambda p: not isinstance(p['data-type'], EnumProp), self._props))]
 
     def _generate_return_statement(self):
         """Generates the return statement of the gpu function"""
@@ -221,16 +219,15 @@ class GLSLWriter:
     def _generate_glsl_shader(self):
         if self._dropdowns_count() > 2:
             return '// glsl functions'
-        type_map = {'Vector': 'vec3', 'Float': 'float', 'Int': 'float', 'Boolean': 'float',
-                    'RGBA': 'vec4', 'Shader': 'Closure'}
+
         params = ','.join('{out}{type} {name}'.format(
-            type=type_map[param['data-type']],
+            type=param['data-type'].glsl_name,
             out='out ' if 'type' in param and param['type'] == 'Output' else '',
             # Must check if 'type' is a key since props don't have 'type' key
             name=code_generator_util.string_lower_underscored(param['name']))
                           for param in
-                          [prop for prop in self._props if prop['data-type'] not in ['Enum', 'String']] +
-                          [socket for socket in self._sockets if socket['data-type'] != 'String'])
+                          [prop for prop in self._props if not isinstance(prop['data-type'], EnumProp)] +
+                          [socket for socket in self._sockets])
         if self._dropdowns_count() == 0:
             return 'void node_{name}({params}){{}}'.format(
                 name=code_generator_util.string_lower_underscored(self._node_name),

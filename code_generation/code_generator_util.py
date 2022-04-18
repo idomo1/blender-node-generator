@@ -2,6 +2,10 @@ import os
 from os import path, pardir
 import shutil
 import subprocess
+from node_types.prop_bool import BoolProp
+
+from node_types.prop_enum import EnumProp
+from node_types.prop_int import IntProp
 
 
 def write_license(fd):
@@ -36,16 +40,12 @@ def uses_dna(props, node_type):
     bool_count = 0
     int_count = 0
     for prop in props:
-        if prop['data-type'] == "Float":
-            float_count += 1
-        elif prop['data-type'] == "Enum":
+        if isinstance(prop['data-type'], EnumProp):
             enum_count += 1
-        elif prop['data-type'] == "Boolean":
+        elif isinstance(prop['data-type'], BoolProp):
             bool_count += 1
-        elif prop['data-type'] == "Int":
+        elif isinstance(prop['data-type'], IntProp):
             int_count += 1
-        elif prop['data-type'] == "String":
-            return True
     if enum_count > 2 or float_count > 2 or bool_count > 16 or int_count > 2:
         return True
     if enum_count + int_count > 2 or (enum_count + int_count == 2 and bool_count > 0):
@@ -56,12 +56,7 @@ def uses_dna(props, node_type):
 def dna_padding_size(props):
     """Returns the padding size the dna struct requires
         Requires a padding member if the bytes size of the properties is not a multiple of 8"""
-    byte_total = 0
-    for prop in props:
-        if prop['data-type'] == "String":
-            byte_total += 2 * prop['size']
-        else:
-            byte_total += 4
+    byte_total = len(props) * 4
     return (8 - byte_total % 8) if byte_total % 8 != 0 else 0
 
 
@@ -94,9 +89,8 @@ def fill_socket_default(socket_defaults, count=4):
     defaults = socket_defaults.split(',')
     if len(defaults) > 4:
         raise Exception("Socket has more than four defaults")
-    filled_defaults = list(map(lambda d: d + 'f', defaults))
-    filled_defaults.extend(['0.0f' for _ in range(count - len(defaults))])
-    return ', '.join(filled_defaults)
+    defaults.extend(['0.0f' for _ in range(count - len(defaults))])
+    return ', '.join(defaults)
 
 
 def fill_white_space(items, size, gaps):

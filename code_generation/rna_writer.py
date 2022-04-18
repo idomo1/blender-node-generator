@@ -1,6 +1,9 @@
 from os import path, SEEK_SET
 
-from . import code_generator_util
+import code_generation.code_generator_util as code_generator_util
+from node_types.prop_bool import BoolProp
+from node_types.prop_enum import EnumProp
+from node_types.prop_int import IntProp
 
 
 class RNAWriter:
@@ -15,7 +18,7 @@ class RNAWriter:
 
     def _generate_enum_prop_item(self, enum):
         """Generates RNA enum property item"""
-        if enum['data-type'] != 'Enum':
+        if not isinstance(enum['data-type'], EnumProp):
             raise Exception("Given prop must be an Enum")
 
         return 'static const EnumPropertyItem rna_enum_node_{suff}{enum}_items[] = {{' \
@@ -40,19 +43,15 @@ class RNAWriter:
                 props = []
                 enum_defs = []
                 s_custom_i = 1
-                f_custom_i = 3
                 uses_dna = code_generator_util.uses_dna(self._props, self._node_type)
                 for prop in self._props:
                     if not uses_dna:
-                        if prop['data-type'] == "Enum" or prop['data-type'] == "Int":
+                        if isinstance(prop['data-type'], (EnumProp, IntProp)):
                             custom_i = s_custom_i
                             s_custom_i += 1
-                        elif prop['data-type'] == "Boolean":
+                        elif isinstance(prop['data-type'], BoolProp):
                             custom_i = s_custom_i
-                        elif prop['data-type'] == "Float":
-                            custom_i = f_custom_i
-                            f_custom_i += 1
-                    if prop['data-type'] == "Enum":
+                    if isinstance(prop['data-type'], EnumProp):
                         enum_name = 'rna_enum_node_{suff}{name}_items'. \
                             format(suff='{suff}_'.format(
                             suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
@@ -67,17 +66,17 @@ class RNAWriter:
                                  'RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");'.
                         format(
                         name=code_generator_util.string_lower_underscored(prop['name']),
-                        TYPE=code_generator_util.string_upper_underscored(prop['data-type']),
+                        TYPE=code_generator_util.string_upper_underscored(prop['data-type'].type_name),
                         SUBTYPE=prop['sub-type'],
-                        type=code_generator_util.string_lower_underscored(prop['data-type']),
+                        type=code_generator_util.string_lower_underscored(prop['data-type'].type_name),
                         sdna=code_generator_util.string_lower_underscored(
                             prop['name'] if uses_dna else "custom{index}".format(index=custom_i)),
                         enum=', SHD_{NAME}_{PROP}'.format(
                             NAME=code_generator_util.string_upper_underscored(self._node_name),
                             PROP=code_generator_util.string_upper_underscored(prop['name']))
-                        if prop['data-type'] == "Boolean" else '',
+                        if isinstance(prop['data-type'], BoolProp) else '',
                         enum_items='RNA_def_property_enum_items(prop, {enum_name});'.format(enum_name=enum_name) if
-                        prop['data-type'] == "Enum" else '',
+                        isinstance(prop['data-type'], EnumProp) else '',
                         prop_range='RNA_def_property_range(prop, {min}, {max});'.format(min=prop['min'],
                                                                                         max=prop['max']) if prop[
                                                                                                                 'data-type'] == "Int" or
@@ -90,15 +89,17 @@ class RNAWriter:
                        '{{\n' \
                        'PropertyRNA *prop;\n\n' \
                        '{sdna}' \
+                       '{define_tex}\n\n' \
                        '{props}\n' \
                        '}}\n\n'.format(suff="{suff}_".format(
                     suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                                        name=self._node_name.replace(" ", "_").lower(),
-                                       sdna='RNA_def_struct_sdna_from(srna, "Node{Tex}{Name}", "storage");\ndef_sh_tex(srna);\n\n'. \
+                                       sdna='RNA_def_struct_sdna_from(srna, "Node{Tex}{Name}", "storage");'. \
                                        format(Name=code_generator_util.string_capitalized_no_space(
                                            self._node_name),
                                            Tex="Tex" if self._is_texture_node else "")
-                                       if self._is_texture_node else '',
+                                       if code_generator_util.uses_dna(self._props, self._node_type) else '',
+                                       define_tex='\ndef_sh_tex(srna);' if self._is_texture_node else '',
                                        props="\n\n".join(props))
                 lines = f.readlines()
                 for i, line in enumerate(lines):

@@ -1,6 +1,7 @@
 from os import path
 
-from . import code_generator_util
+import code_generation.code_generator_util as code_generator_util
+from node_types.prop_enum import EnumProp
 
 
 class NodeDrawingWriter:
@@ -13,9 +14,9 @@ class NodeDrawingWriter:
         self._node_name = gui.get_node_name()
 
     def write_node_drawing(self):
-        """drawnode.c"""
+        """drawnode.cc"""
         drawnode_path = path.join(self._source_path, "source", "blender", "editors", "space_node",
-                                  "drawnode.c")
+                                  "drawnode.cc")
         with open(drawnode_path, "r+") as f:
             if self._node_has_properties:
                 draw_props = ''
@@ -23,11 +24,9 @@ class NodeDrawingWriter:
                     prop_lines = []
                     for prop in self._props:
                         name = "NULL"
-                        if prop['data-type'] == "Enum":
+                        if isinstance(prop['data-type'], EnumProp):
                             name = '""'
-                        elif prop['data-type'] == "String":
-                            name = 'IFACE_("{name}")'.format(
-                                name=code_generator_util.string_capitalized_spaced(prop['name']))
+
                         prop_lines.append(
                             'uiItemR(layout, ptr, "{propname}", 0, {name}, ICON_NONE);'.format(
                                 propname=code_generator_util.string_lower_underscored(prop['name']),

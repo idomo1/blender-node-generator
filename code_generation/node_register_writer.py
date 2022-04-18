@@ -1,6 +1,7 @@
-from os import path, SEEK_END, SEEK_SET
+from os import path
+import re
 
-from . import code_generator_util
+import code_generation.code_generator_util as code_generator_util
 
 
 class NodeRegisterWriter:
@@ -13,19 +14,18 @@ class NodeRegisterWriter:
         self._node_sockets = gui.get_node_sockets()
         self._node_has_properties = gui.node_has_properties()
         self._props = gui.get_props()
-        self._socket_availability_changes = gui.socket_availability_changes()
-        self._node_type = gui.get_node_type()
 
     def generate_node_shader_register(self):
         register_text = 'void register_node_type_sh_{suff}{name}(void)' \
                         '{{' \
+                        'namespace file_ns = blender::nodes::node_shader_{suff}{name}_cc;\n\n' \
                         'static bNodeType ntype;\n\n' \
-                        'sh_node_type_base(&ntype, SH_NODE_{SUFF}{NAME}, "{Name}", NODE_CLASS_{CLASS}, 0);' \
-                        'node_type_socket_templates(&ntype, {sockets_in}, {sockets_out});' \
+                        'sh_node_type_base(&ntype, SH_NODE_{SUFF}{NAME}, "{Name}", NODE_CLASS_{CLASS});' \
+                        'ntype.declare = file_ns::node_declare;' \
                         '{init}' \
                         '{storage}' \
-                        'node_type_gpu(&ntype, gpu_shader_{suff}{name});' \
-                        '{update}\n\n' \
+                        'node_type_gpu(&ntype, file_ns::gpu_shader_{suff}{name});' \
+                        '\n\n' \
                         'nodeRegisterType(&ntype);' \
                         '}}\n'.format(suff='{suff}_'.format(
             suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
@@ -41,15 +41,15 @@ class NodeRegisterWriter:
                                           name=code_generator_util.string_lower_underscored(
                                               self._node_name)) if len(
                                           [sock for sock in self._node_sockets if
-                                           sock['type'] == 'Input' and sock['data-type'] != 'String']) > 0 else 'NULL',
+                                           sock['type'] == 'Input']) > 0 else 'NULL',
                                       sockets_out='sh_node_{suff}{name}_out'.format(
                                           suff='{suff}_'.format(
                                               suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                                           name=code_generator_util.string_lower_underscored(
                                               self._node_name)) if len(
                                           [sock for sock in self._node_sockets if
-                                           sock['type'] == 'Output' and sock['data-type'] != 'String']) > 0 else 'NULL',
-                                      init='node_type_init(&ntype, node_shader_init_{tex}{name});'.format(
+                                           sock['type'] == 'Output']) > 0 else 'NULL',
+                                      init='node_type_init(&ntype, file_ns::node_shader_init_{tex}{name});'.format(
                                           tex='{suff}_'.format(
                                               suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                                           name=code_generator_util.string_lower_underscored(
@@ -58,16 +58,8 @@ class NodeRegisterWriter:
                                           Suff=self._type_suffix_abbreviated.capitalize(),
                                           Name=code_generator_util.string_capitalized_no_space(
                                               self._node_name)
-                                      )
-                                      if code_generator_util.uses_dna(
-                                          self._props,
-                                          self._node_type) else 'node_type_storage(&ntype, "", NULL, NULL);',
-                                      Suff=self._type_suffix_abbreviated.capitalize(),
-                                      update='node_type_update(&ntype, node_shader_update_{suff}{name});'.format(
-                                          suff='{suff}_'.format(
-                                              suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
-                                          name=code_generator_util.string_lower_underscored(self._node_name))
-                                      if self._socket_availability_changes else '')
+                                      ),
+                                      Suff=self._type_suffix_abbreviated.capitalize())
         return register_text
 
     def write_node_register(self):
@@ -80,30 +72,27 @@ class NodeRegisterWriter:
                 suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                        name=code_generator_util.string_lower_underscored(self._node_name))
 
-            f.seek(0, SEEK_END)
-            f.seek(f.tell() - 500, SEEK_SET)
-            line = f.readline()
-            while line != '\n':
-                if line == '':
-                    raise Exception("Reached end of file")
-                line = f.readline()
-            f.seek(f.tell() - 2, SEEK_SET)
-            f.write(func)
-            f.write('\n' \
-                    'void register_node_type_sh_custom_group(bNodeType *ntype);\n' \
-                    '\n' \
-                    '#ifdef __cplusplus\n' \
-                    '}\n' \
-                    '#endif\n' \
-                    '\n')
+            # Find insertion point. Parse file in reverse to put new line near the bottom.
+            contents = f.readlines()
+            for i, line in enumerate(reversed(contents)):
+                if re.search(r'^void register_node_type_sh.*void\);$', line) != None:
+                    break
+            
+            # Insert new register call.
+            contents.insert(len(contents) - i, func)
+            # Clear file contents.
+            f.truncate(0)
+            # Write new content.
+            f.seek(0)
+            f.writelines(contents)
 
     def write_call_node_register(self):
         """node.c"""
-        file_path = path.join(self._source_path, "source", "blender", "blenkernel", "intern", "node.c")
+        file_path = path.join(self._source_path, "source", "blender", "blenkernel", "intern", "node.cc")
         with open(file_path, 'r+') as f:
             lines = f.readlines()
             for i, line in enumerate(lines):
-                if line == 'static void registerShaderNodes(void)\n':
+                if line == 'static void registerShaderNodes()\n':
                     while lines[i] != '}\n':
                         i += 1
                     lines.insert(i, 'register_node_type_sh_{suff}{name}();'.format(

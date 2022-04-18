@@ -1,7 +1,7 @@
 from os import path
 import re
 
-from . import code_generator_util
+import code_generation.code_generator_util as code_generator_util
 
 CMAKE_FILE_NAME = 'CMakeLists.txt'
 
@@ -51,13 +51,13 @@ class CMakeWriter:
         """Adds created svm file to cmake list"""
         with open(path.join(self._source_path, "intern", "cycles", "kernel", CMAKE_FILE_NAME), 'r+') as f:
             text = f.read()
-            match = re.search(r'set\(SRC_SVM_HEADERS', text)
+            match = re.search(r'set\(SRC_KERNEL_SVM_HEADERS', text)
             if not match:
                 raise Exception("Match not found")
 
             svm_start = match.end() + 1
 
-            svm_file_path = '  svm/svm_{name}.h'.format(
+            svm_file_path = '  svm/{name}.h'.format(
                 name=code_generator_util.string_lower_underscored(self._node_name))
 
             text = self._insert_cmake_file_path(svm_start, text, svm_file_path)
@@ -67,7 +67,7 @@ class CMakeWriter:
             f.truncate()
 
     def _add_osl(self):
-        with open(path.join(self._source_path, "intern", "cycles", "kernel", "shaders", CMAKE_FILE_NAME), 'r+') as f:
+        with open(path.join(self._source_path, "intern", "cycles", "kernel", "osl", "shaders", CMAKE_FILE_NAME), 'r+') as f:
             text = f.read()
             match = re.search(r'set\(SRC_OSL', text)
             if not match:
@@ -85,14 +85,14 @@ class CMakeWriter:
             f.truncate()
 
     def _add_node(self):
-        with open(path.join(self._source_path, "source", "blender", "nodes", CMAKE_FILE_NAME), 'r+') as f:
+        with open(path.join(self._source_path, "source", "blender", "nodes", "shader", CMAKE_FILE_NAME), 'r+') as f:
             text = f.read()
             match = re.search(r'set\(SRC\n', text)
             if not match:
                 raise Exception("Match not found")
             node_start_i = match.end()
 
-            node_path = '  shader/nodes/node_shader_{suff}{name}.c'.format(
+            node_path = '  nodes/node_shader_{suff}{name}.cc'.format(
                 suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
                 name=code_generator_util.string_lower_underscored(self._node_name)
             )
@@ -103,39 +103,39 @@ class CMakeWriter:
             f.write(text)
             f.truncate()
 
-    def _add_glsl(self):
-        with open(path.join(self._source_path, "source", "blender", "gpu", CMAKE_FILE_NAME), 'r+') as f:
-            text = f.read()
+    # def _add_glsl(self):
+    #     with open(path.join(self._source_path, "source", "blender", "gpu", CMAKE_FILE_NAME), 'r+') as f:
+    #         text = f.read()
 
-            glsl_path = 'shaders/material/gpu_shader_material_{suff}{name}.glsl'.format(
-                suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
-                name=code_generator_util.string_lower_underscored(self._node_name)
-            )
-            func_call = 'data_to_c_simple({path} SRC)'.format(path=glsl_path)
+    #         glsl_path = 'shaders/material/gpu_shader_material_{suff}{name}.glsl'.format(
+    #             suff='{suff}_'.format(suff=self._type_suffix_abbreviated) if self._type_suffix_abbreviated else '',
+    #             name=code_generator_util.string_lower_underscored(self._node_name)
+    #         )
+    #         func_call = 'data_to_c_simple({path} SRC)'.format(path=glsl_path)
 
-            # Find start of data_to_c gpu shaders block
-            match = re.search(r'data_to_c_simple\(shaders/material/gpu_shader_material', text)
-            if not match:
-                raise Exception("Match not found")
+    #         # Find start of data_to_c gpu shaders block
+    #         match = re.search(r'data_to_c_simple\(shaders/material/gpu_shader_material', text)
+    #         if not match:
+    #             raise Exception("Match not found")
 
-            block_start_i = match.start()
+    #         block_start_i = match.start()
 
-            # Find end of data_to_c_block
-            # First line after start of block which doesn't start with d or newline character
-            match = re.search(r'(^[^d\n])', text[block_start_i:], re.MULTILINE)
-            if not match:
-                raise Exception("Match not found")
-            block_end_i = block_start_i + match.start()
+    #         # Find end of data_to_c_block
+    #         # First line after start of block which doesn't start with d or newline character
+    #         match = re.search(r'(^[^d\n])', text[block_start_i:], re.MULTILINE)
+    #         if not match:
+    #             raise Exception("Match not found")
+    #         block_end_i = block_start_i + match.start()
 
-            text = self._insert_cmake_file_path(block_start_i, text, func_call, block_end_i)
+    #         text = self._insert_cmake_file_path(block_start_i, text, func_call, block_end_i)
 
-            f.seek(0)
-            f.write(text)
-            f.truncate()
+    #         f.seek(0)
+    #         f.write(text)
+    #         f.truncate()
 
     def add_to_cmake(self):
         """Adds created files to cmake lists"""
         self._add_svm()
         self._add_osl()
         self._add_node()
-        self._add_glsl()
+        # self._add_glsl()

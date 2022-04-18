@@ -1,6 +1,11 @@
 from os import path
+from node_types.prop_enum import EnumProp
 
-from . import code_generator_util
+from node_types.socket_vector import VectorSocket
+
+from node_types.socket_color import ColorSocket
+
+import code_generation.code_generator_util as code_generator_util
 
 
 class OSLWriter:
@@ -16,7 +21,7 @@ class OSLWriter:
     def write_osl_shader(self):
         """"""
         node_name_underscored = code_generator_util.string_lower_underscored(self._node_name)
-        osl_path = path.join(self._source_path, "intern", "cycles", "kernel", "shaders",
+        osl_path = path.join(self._source_path, "intern", "cycles", "kernel", "osl", "shaders",
                              "node_{name}{suffix}.osl".format(
                                  name=node_name_underscored,
                                  suffix='_{suffix}'.format(
@@ -25,16 +30,7 @@ class OSLWriter:
         with open(osl_path, "w") as osl_f:
             code_generator_util.write_license(osl_f)
 
-            # Must include stdcycles for closure type definition
-            if any(sock['data-type'] == 'Shader' for sock in self._node_sockets):
-                osl_f.write('#include "stdcycles.h"\n\n')
-            else:
-                osl_f.write('#include "stdosl.h"\n\n')
-
-            type_conversion = {"Boolean": "int", "String": "string", "Int": "int", "Float": "float", "Enum": "string",
-                               "Vector": "point", "RGBA": "point", 'Shader': 'closure color'}
-
-            out_socket_default = {"RGBA": "0.0", "Shader": "0", "Vector": "point(0.0, 0.0, 0.0)", "Float": "0.0"}
+            osl_f.write('#include "stdcycles.h"\n\n')
 
             function = "shader node_{name}{suffix}({mapping}{props}{in_sockets}{out_sockets}){{}}\n".format(
                 name=node_name_underscored,
@@ -42,22 +38,21 @@ class OSLWriter:
                 mapping='int use_mapping = 0,matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),'
                 if self._uses_texture_mapping else '',
                 props=''.join('{type} {name} = {default},'.format(
-                    type=type_conversion[prop['data-type']],
+                    type=prop['data-type'].osl_name,
                     name=code_generator_util.string_lower_underscored(prop['name']),
-                    default='"{default}"'.format(default=prop['default']) if prop['data-type'] == 'Enum' else prop[
-                        'default'])
-                              for prop in self._props if prop['data-type'] != 'String'),
+                    default='"{default}"'.format(default=prop['default']) if isinstance(prop['data-type'], EnumProp) else prop['default'])
+                              for prop in self._props),
                 in_sockets=''.join(['{type} {name} = {default},'.format(
-                    type=type_conversion[socket['data-type']],
+                    type=socket['data-type'].osl_name,
                     name=code_generator_util.string_capitalized_no_space(socket['name']),
-                    default=socket['default'] if socket['data-type'] not in ['Vector', 'RGBA', 'Shader'] else
-                    'point({0})'.format(socket['default'].replace(',', ', ')))
-                    for socket in self._node_sockets if socket['type'] == 'Input' and socket['data-type'] != 'String']),
+                    default=socket['default'].replace('f', '') if not isinstance(socket['data-type'], (VectorSocket, ColorSocket)) else
+                    'point({0})'.format(socket['default'].replace(',', ', ').replace('f', '')))
+                    for socket in self._node_sockets if socket['type'] == 'Input']),
                 out_sockets=','.join(
                     ['output {type} {name} = {default}'.format(
-                        type=type_conversion[socket['data-type']],
+                        type=socket['data-type'].osl_name,
                         name=code_generator_util.string_capitalized_no_space(socket['name']),
-                        default=out_socket_default[socket['data-type']])
+                        default=socket['data-type'].osl_default)
                         for socket in self._node_sockets if socket['type'] == 'Output']))
 
             osl_f.write(function)

@@ -3,14 +3,31 @@ A tool for generating the boilerplate for a new blender shading node, allowing y
 ![](demo.gif)
 
 ## Running the Tool
-To run the tool, download the repository and run main.py using a python interpreter.   
+First clone the repository.
+Then install dependencies by running:  
+
+```
+pip install -r requirements.txt
+```  
+
+Then to run the tool:  
+```
+python main.py
+```
+or
+```
+python3 main.py
+```
+
 ### Windows and Mac
 Dependencies
-- Python 3.8
+- Python 3.8  
+- Numpy  
 ### Linux
 Dependencies
-- Python 3.8
+- Python 3.8  
 - Tkinter  
+- Numpy  
 
 Linux's python installation doesn't come with Tkinter by default, so it needs to be installed manually.  
 Instructions differ per distribution, if you are on a Debian based distro, tkinter can be installed with the following command:  

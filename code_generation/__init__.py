@@ -2,16 +2,22 @@ from os import path, SEEK_END, SEEK_SET
 import re
 from collections import defaultdict
 
-from . import code_generator_util
-from .svm_writer import SVMWriter
-from .glsl_writer import GLSLWriter
-from .cmake_writer import CMakeWriter
-from .node_definition_writer import NodeDefinitionWriter
-from .osl_writer import OSLWriter
-from .dna_writer import DNAWriter
-from .node_register_writer import NodeRegisterWriter
-from .rna_writer import RNAWriter
-from .node_drawing_writer import NodeDrawingWriter
+import code_generation.code_generator_util as code_generator_util
+from code_generation.svm_writer import SVMWriter
+from code_generation.glsl_writer import GLSLWriter
+from code_generation.cmake_writer import CMakeWriter
+from code_generation.node_definition_writer import NodeDefinitionWriter
+from code_generation.osl_writer import OSLWriter
+from code_generation.dna_writer import DNAWriter
+from code_generation.node_register_writer import NodeRegisterWriter
+from code_generation.rna_writer import RNAWriter
+from code_generation.node_drawing_writer import NodeDrawingWriter
+from node_types.prop_bool import BoolProp
+from node_types.prop_enum import EnumProp
+from node_types.prop_int import IntProp
+from node_types.socket_color import ColorSocket
+from node_types.socket_float import FloatSocket
+from node_types.socket_vector import VectorSocket
 
 
 class CodeGenerator:
@@ -91,36 +97,24 @@ class CodeGenerator:
             f.truncate()
 
     def _add_cycles_class(self):
-        """nodes.h"""
-        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "render", "nodes.h")
+        """shader_nodes.h"""
+        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "scene", "shader_nodes.h")
         with open(file_path, 'r+') as f:
-            props = defaultdict(list)
-            types_convert = {"Boolean": "bool", "Int": "int", "Float": "float", "Enum": "int", "Vector": "float3",
-                             "RGBA": "float3", "String": "ustring"}
-            for socket in list(filter(lambda s: s['type'] == 'Input', self._gui.get_node_sockets())):
-                props[types_convert[socket['data-type']]].append(
-                    code_generator_util.string_lower_underscored(socket['name']))
-
-            for prop in self._gui.get_props():
-                props[types_convert[prop['data-type']]].append(
-                    code_generator_util.string_lower_underscored(prop['name']))
-
-            props_string = "".join(
-                '{type} {names};'.format(type=type,
-                                         names=", ".join(names)) for
-                type, names in props.items())
+            props_string = "\n".join(
+                "NODE_SOCKET_API({type}, {name})".format(
+                    type=item['data-type'].property_name,
+                    name=code_generator_util.string_lower_underscored(item['name'])
+                    )
+                    for item in self._gui.get_props() + self._gui.get_node_sockets()
+                )
 
             node = "class {name}{Suffix}Node : public {type}Node {{" \
                    "public:" \
                    "SHADER_NODE_CLASS({name}{Suffix}Node)\n" \
-                   "{node_group}" \
                    "{props}" \
                    "}};".format(name=code_generator_util.string_capitalized_no_space(self._gui.get_node_name()),
                                 Suffix=self._gui.type_suffix().capitalize(),
                                 type=self._gui.get_node_type(),
-                                node_group="virtual int get_group(){{return NODE_GROUP_LEVEL_{level};}}".
-                                format(
-                                    level=self._gui.get_node_group_level()) if self._gui.get_node_group_level() is not 0 else "",
                                 props=props_string)
             f.seek(0, SEEK_END)
             f.seek(f.tell() - 100, SEEK_SET)
@@ -140,8 +134,8 @@ class CodeGenerator:
         code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_cycles_class_instance(self):
-        """blender_shader.cpp"""
-        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "blender", "blender_shader.cpp")
+        """shader.cpp"""
+        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "blender", "shader.cpp")
         with open(file_path, 'r+') as f:
             props = self._gui.get_props()
             text = 'else if (b_node.is_a(&RNA_ShaderNode{Suff}{Name})) {{' \
@@ -158,7 +152,7 @@ class CodeGenerator:
                     self._gui.get_node_name()),
                 Suffix=self._gui.type_suffix().capitalize(),
                 props=''.join(
-                    ['{name}->{prop} = b_{name}_node.{prop}();'.format(
+                    ['{name}->set_{prop}(b_{name}_node.{prop}());'.format(
                         name=code_generator_util.string_lower_underscored(self._gui.get_node_name()),
                         prop=code_generator_util.string_lower_underscored(prop['name'])) for prop in props]),
                 texture_mapping='BL::TexMapping b_texture_mapping(b_{name}_node.texture_mapping());'
@@ -207,33 +201,31 @@ class CodeGenerator:
         code_generator_util.apply_clang_formatting(file_path, self._gui.get_source_path())
 
     def _add_cycles_node(self):
-        """nodes.cpp"""
+        """shader_nodes.cpp"""
 
         def format_default(item):
-            if item['data-type'] == 'Enum':
+            if isinstance(item['data-type'], EnumProp):
                 for i, option in enumerate(item['options']):
                     if option['name'] == item['default']:
                         return i + 1
                 else:
                     raise Exception("Default not in options")
-            elif item['data-type'] == 'Boolean':
+            elif isinstance(item['data-type'], BoolProp):
                 return 'true' if item['default'] else 'false'
-            elif item['data-type'] == 'Float':
-                return '{0}f'.format(item['default'])
-            elif item['data-type'] == 'Int':
+            elif isinstance(item['data-type'], FloatSocket):
                 return item['default']
-            elif item['data-type'] == 'String':
-                return 'ustring()'
-            elif item['data-type'] == 'Vector' or item['data-type'] == 'RGBA':
+            elif isinstance(item['data-type'], IntProp):
+                return item['default']
+            elif isinstance(item['data-type'], (VectorSocket, ColorSocket)):
                 return 'make_float3({default})'.format(
                     default=code_generator_util.fill_socket_default(item['default'], 3))
 
         def is_first_vector_socket(socket):
-            if socket['data-type'] != 'Vector':
+            if not isinstance(socket['data-type'], VectorSocket):
                 return False
-            return socket == [sock for sock in sockets if sock['data-type'] == 'Vector'][0]
+            return socket == [sock for sock in sockets if isinstance(sock['data-type'], VectorSocket)][0]
 
-        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "render", "nodes.cpp")
+        file_path = path.join(self._gui.get_source_path(), "intern", "cycles", "scene", "shader_nodes.cpp")
         with open(file_path, 'r+') as f:
             props = self._gui.get_props()
             sockets = self._gui.get_node_sockets()
@@ -242,7 +234,7 @@ class CodeGenerator:
 
             socket_defs = []
             for prop in props:
-                if prop['data-type'] == 'Enum':
+                if isinstance(prop['data-type'], EnumProp):
                     socket_defs.append('static NodeEnum {name}_enum;'.format(
                         name=code_generator_util.string_lower_underscored(prop['name'])))
                     socket_defs.extend(['{prop}_enum.insert("{OPTION}", {i});'.format(
@@ -255,25 +247,21 @@ class CodeGenerator:
                         default=format_default(prop)))
                 else:
                     socket_defs.append('SOCKET_{TYPE}({prop}, "{Prop}", {default});'.format(
-                        TYPE=prop['data-type'].upper(),
+                        TYPE=prop['data-type'].type_name.upper(),
                         prop=code_generator_util.string_lower_underscored(prop['name']),
                         Prop=code_generator_util.string_capitalized_spaced(prop['name']),
                         default=format_default(prop)))
             socket_defs.append('\n\n')
 
-            data_type_map = {'Int': 'INT', 'Float': 'FLOAT', 'Enum': 'ENUM', 'Vector': 'POINT', 'RGBA': 'COLOR',
-                             'Shader': 'CLOSURE', 'String': 'STRING'}
-
             for socket in sockets:
                 socket_defs.append('SOCKET_{TYPE}_{DATA_TYPE}({name}, "{Name}"{default}{texture_mapping});'.format(
                     TYPE=socket['type'][:-3].upper(),
-                    DATA_TYPE=data_type_map[socket['data-type']],
+                    DATA_TYPE=socket['data-type'].definition_name,
                     name=code_generator_util.string_lower_underscored(socket['name']),
                     Name=code_generator_util.string_capitalized_spaced(socket['name']),
-                    default=(', ' + format_default(socket)) if socket['type'] == 'Input' and socket[
-                        'data-type'] != 'Shader' else '',
+                    default=(', ' + format_default(socket)) if socket['type'] == 'Input' else '',
                     texture_mapping=', SocketType::LINK_TEXTURE_GENERATED' if self._gui.uses_texture_mapping() and
-                                                                              socket['data-type'] == 'Vector' and
+                                                                              isinstance(socket['data-type'], VectorSocket) and
                                                                               is_first_vector_socket(socket) else ''))
 
             node = '/* {NodeName}{space}{Suffix} */\n\n' \
@@ -308,8 +296,7 @@ class CodeGenerator:
                 Type=self._gui.get_node_type(),
                 svm_func=svm_node_manager.generate_svm_compile_func(),
                 tex_mapping_comp_osl='tex_mapping.compile(compiler);\n\n' if self._gui.uses_texture_mapping() else '',
-                osl_params=''.join('compiler.parameter(this, "{prop}");'.format(prop=prop['name']) for prop in props if
-                                   prop['data-type'] != 'String')
+                osl_params=''.join('compiler.parameter(this, "{prop}");'.format(prop=code_generator_util.string_lower_underscored(prop['name'])) for prop in props)
             )
 
             text = f.read()

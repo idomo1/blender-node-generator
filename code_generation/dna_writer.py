@@ -2,7 +2,9 @@ from os import path
 from collections import defaultdict
 import re
 
-from . import code_generator_util
+import code_generation.code_generator_util as code_generator_util
+from node_types.prop_bool import BoolProp
+from node_types.prop_enum import EnumProp
 
 
 class DNAWriter:
@@ -25,7 +27,7 @@ class DNAWriter:
                 OPTION=code_generator_util.string_upper_underscored(option['name']),
                 i=i + 1
             ) for i, option in enumerate(dropdown['options'])))
-                       for dropdown in self._props if dropdown['data-type'] == 'Enum')
+                       for dropdown in self._props if isinstance(dropdown['data-type'], EnumProp))
 
     def _generate_macros(self):
         """Macros used for bool props"""
@@ -33,7 +35,7 @@ class DNAWriter:
             NAME=code_generator_util.string_upper_underscored(self._node_name),
             BOOL=code_generator_util.string_upper_underscored(prop['name']),
             i=i + 1
-        ) for i, prop in enumerate([prop for prop in self._props if prop['data-type'] == 'Boolean']))
+        ) for i, prop in enumerate([prop for prop in self._props if isinstance(prop['data-type'], BoolProp)]))
 
     def write_dna_node_type(self):
         """
@@ -47,14 +49,7 @@ class DNAWriter:
                 props = defaultdict(list)
                 for prop in self._props:
                     prop_name = code_generator_util.string_lower_underscored(prop['name'])
-                    if prop['data-type'] in ['Enum', 'Boolean', 'Int']:
-                        props['int'].append(prop_name)
-                    elif prop['data-type'] == 'String':
-                        props['char'].append("{name}[{size}]".format(name=prop_name, size=prop['size']))
-                    elif prop['data-type'] == 'Float':
-                        props['float'].append(prop_name)
-                    else:
-                        raise Exception("Invalid Property Type")
+                    props['int'].append(prop_name)
                 props_definitions = "; ".join(
                     '{key} {names}'.format(key=key, names=", ".join(names)) for key, names in props.items()) + ";"
                 struct = 'typedef struct Node{Suff}{name} {{{base}{props}{pad}}} Node{Suff}{name};\n\n'.format(
@@ -78,7 +73,7 @@ class DNAWriter:
                     print("No newline found")
                 text = text[:i + 2] + struct + text[i + 2:]
 
-            if [prop for prop in self._props if prop['data-type'] in ['Enum', 'Boolean']]:
+            if [prop for prop in self._props if isinstance(prop['data-type'], (EnumProp, BoolProp))]:
                 macros = self._generate_macros()
                 defs = '/* {name} */\n' \
                        '{macros}' \
